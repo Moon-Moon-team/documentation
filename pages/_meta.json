@@ -1,15 +1,12 @@
 {
   "index": "Introduction",
-  "another": "Another Page",
-  "advanced": "Advanced (A Folder)",
-  "about": {
-    "title": "About",
-    "type": "page"
-  },
+  "Markdown": "Markdown (A Folder)",
+  "Templates": "Templates (A Folder)",
+  "Tutos": "Tutos (A Folder)",
   "contact": {
-    "title": "Contact ↗",
+    "title": "Retyour vers moon-moon.fr ↗",
     "type": "page",
-    "href": "https://twitter.com/shuding_",
+    "href": "https://moon-moon.fr",
     "newWindow": true
   }
 }
