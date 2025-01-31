@@ -2,22 +2,23 @@
 
 Retrouvez la documentation de Whishlist Power [ici](https://wishlist-power.helpscoutdocs.com/article/604-advanced-developer-documentation)
 
-> Télécharger et activer l’app (**$**15,99 / month).
+## Setup Boutique
+> Téléchargez et activez l’app (**$**15,99 / month).
 >
-> Activer l’app sur votre branche du theme.
+> Activez l’app dans les settings de votre branche du theme.
 >
-> Créer le template '**wishlist**' dans les pages.
+> Créez le template **Wishlist** dans les pages.
 
-
-## Ajouter les appels au fichier css + js dans theme.liquid
-``` Liquid
+## Setup VsCode
+### Ajoutez les appels aux fichiers **css + js** dans le fichier **theme.liquid**
+``` liquid
 {% Wishlist %}
 {{ 'mm-wishlist.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'mm-wishlist.js' | asset_url }}" defer="defer"></script>
 ```
 
-## Créer le fichier mm-wishlist.js dans le dossier assets
-``` JavaScript
+### Créez le fichier **mm-wishlist.js** dans le dossier **assets**
+``` javascript
 class WishlistManager {
     constructor() {
         this.boundHandleClick = this.handleButtonClick.bind(this);
@@ -124,8 +125,8 @@ const initWishlistManager = () => {
 document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
-## Créer le fichier mm-wishlist.css dans le dossier assets
-``` CSS
+### Créez le fichier **mm-wishlist.css** dans le dossier **assets**
+``` css
 /* ----------------- Wishlist content  */
 .mm-wishlist {
 	padding: 2px;
@@ -142,7 +143,7 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 	fill: var(--black-700);
 }
 
-header .mm-wishlist.active svg path {
+.mm-header .mm-wishlist.active svg path {
     fill: transparent !important;
 }
 
@@ -243,8 +244,8 @@ header .mm-wishlist.active svg path {
 }
 ```
 
-## Créer la section MM-Wishlist-Products dans le dossier sections
-``` Liquid
+### Créer le fichier **MM-Wishlist-Products.liquid** dans le dossier **sections**
+``` liquid
 {% comment %} Settings info section {% endcomment %}
 {% liquid
     assign section_title = section.settings.section_title
@@ -343,12 +344,8 @@ header .mm-wishlist.active svg path {
 {% endschema %}
 ```
 
-## Créer le snippet JS.liquid utilisé dans la section 
-``` ruby
-{% render "mm-wishlist-card-js" %}
-```
-
-``` html
+### Créez le fichier **mm-wishlist-card-js.liquid** utilisé dans la section **MM-Wishlist-Products**
+``` liquid
 <script>
 	class WishlistProductsSection extends HTMLElement {
 		constructor() {
@@ -469,8 +466,8 @@ header .mm-wishlist.active svg path {
 </script>
 ```
 
-## Créer le template product.card
-``` python
+### Créez le fichier **product.card.liquid** dans le dossier **templates**
+``` liquid
 {% render 'mm-card-product'
 	, product: product
 	, class: 'mm-page-wishlist',
@@ -481,8 +478,9 @@ header .mm-wishlist.active svg path {
 %}
 ```
 
-3. Créer le snippet du bouton (ajout à la wishlist ou suppression).
-``` liquid{% comment %}
+### Créez le fichier **mm-wishlist-content.liquid** (Bouton d'ajout à la wishlist ou de suppression) dans le dossier **snippets**
+``` liquid
+{% comment %}
     Renders a wishlist button with optional functionality based on the context (header or product).
 
     Accepts:
@@ -511,23 +509,25 @@ header .mm-wishlist.active svg path {
     </div>
 {% endif %}
 ```
-Exemple section Main-Product (page produit): 
-``` Liquid
+
+### Exemples d'utilisation
+#### Section Main-Product (page produit): 
+``` liquid
 {% render 'mm-wishlist-content', header: false, class: 'mm-main-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
 ```
 
-Exemple Product Card : 
-``` Liquid
+#### Snippet Product Card : 
+``` liquid
 {% render 'mm-wishlist-content', header: false, class: 'mm-card-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
 ```
 
-Exemple Header : 
-``` Liquid
+#### Section Header : 
+``` liquid
 {% render 'mm-wishlist-content', header: true  %}
 ```
 
-Créer le snippet mm-icon-wishlist-close
-``` Liquid
+### Créez le fichier **mm-icon-wishlist-close.liquid** dans le dossier **snippets**
+``` liquid
 <svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" {{ style_attribute }} {{ function }}>
 	<g opacity="0.7">
 		<path d="M6.20117 6.20117L13.7988 13.7988M13.7988 6.20117L6.20117 13.7988" stroke="{{ color }}" stroke-linecap="square" stroke-linejoin="bevel"/>
@@ -535,35 +535,38 @@ Créer le snippet mm-icon-wishlist-close
 </svg>
 ```
 
-Créer le snippet mm-wishlist
-``` Liquid
+### Créez le fichier **mm-wishlist.liquid** dans le dossier **snippets**
+``` liquid
 <svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" {{ style_attribute }} {{ function }}>
 	<path d="M12 14.3333V1.66667H4V14.3333L8 11.6667L12 14.3333Z" stroke="{{ color }}" stroke-linecap="round"/>
 </svg>
 ```
 
-Ne pas oublier de les ajouter au snippet qui gère les icones mm-icon.liquid (si présent).
-``` Liquid
+### Ajoutez les nouvelles icones au snippet qui gère les icones **mm-icon.liquid** (si présent).
+``` liquid
 when 'wishlist-close'
 	render 'mm-wishlist-close', class_attribute: class_attribute, style_attribute: style_attribute, color: color, function: function
 when 'wishlist'
 	render 'mm-wishlist', class_attribute: class_attribute, style_attribute: style_attribute, color: color, function: function
 ```
+> Si vous n'avez pas le snippet **mm-icon.liquid**, le liquid dans les fichier d'icones n'est pas utile..
 
-Créer le snippet mm-wishlist-count-bubble
-``` Liquid
+### Créez le fichier **mm-wishlist-count-bubble.liquid** dans le dossier **snippets**
+``` liquid
 <div class="mm-wishlist-count-bubble mm-count-cart hidden">
 	0
 </div>
 ```
-Ajouter les textes de traduction dans le fichier local en.default.json
+
+### Ajoutez les textes de traduction dans le fichier local **en.default.json**
 ``` json
 "wishlist": {
 	"wishlist": "Wishlist",
 	"empty": "Your wishlist is empty"
 },
 ```
-Et dans la correspondance dans fichier local fr.json
+
+### Et dans le fichier de correspondance **fr.json**
 ``` json
 "wishlist": {
 	"wishlist": "Wishlist",
