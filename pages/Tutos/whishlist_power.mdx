@@ -10,14 +10,14 @@ Retrouvez la documentation de Whishlist Power [ici](https://wishlist-power.helps
 
 
 ## Ajouter les appels au fichier css + js dans theme.liquid
-``` Liquid
+``` liquid
 {% Wishlist %}
 {{ 'mm-wishlist.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'mm-wishlist.js' | asset_url }}" defer="defer"></script>
 ```
 
 ## Créer le fichier mm-wishlist.js dans le dossier assets
-``` JavaScript
+``` javascript
 class WishlistManager {
     constructor() {
         this.boundHandleClick = this.handleButtonClick.bind(this);
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
 ## Créer le fichier mm-wishlist.css dans le dossier assets
-``` CSS
+``` css
 /* ----------------- Wishlist content  */
 .mm-wishlist {
 	padding: 2px;
@@ -244,7 +244,7 @@ header .mm-wishlist.active svg path {
 ```
 
 ## Créer la section MM-Wishlist-Products dans le dossier sections
-``` Liquid
+``` liquid
 {% comment %} Settings info section {% endcomment %}
 {% liquid
     assign section_title = section.settings.section_title
@@ -344,7 +344,7 @@ header .mm-wishlist.active svg path {
 ```
 
 ## Créer le snippet JS.liquid utilisé dans la section 
-``` ruby
+``` liquid
 {% render "mm-wishlist-card-js" %}
 ```
 
@@ -470,7 +470,7 @@ header .mm-wishlist.active svg path {
 ```
 
 ## Créer le template product.card
-``` python
+``` liquid
 {% render 'mm-card-product'
 	, product: product
 	, class: 'mm-page-wishlist',
@@ -481,8 +481,9 @@ header .mm-wishlist.active svg path {
 %}
 ```
 
-3. Créer le snippet du bouton (ajout à la wishlist ou suppression).
-``` liquid{% comment %}
+## Créer le snippet du bouton (ajout à la wishlist ou suppression).
+``` liquid
+{% comment %}
     Renders a wishlist button with optional functionality based on the context (header or product).
 
     Accepts:
@@ -512,22 +513,22 @@ header .mm-wishlist.active svg path {
 {% endif %}
 ```
 Exemple section Main-Product (page produit): 
-``` Liquid
+``` liquid
 {% render 'mm-wishlist-content', header: false, class: 'mm-main-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
 ```
 
 Exemple Product Card : 
-``` Liquid
+``` liquid
 {% render 'mm-wishlist-content', header: false, class: 'mm-card-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
 ```
 
 Exemple Header : 
-``` Liquid
+``` liquid
 {% render 'mm-wishlist-content', header: true  %}
 ```
 
 Créer le snippet mm-icon-wishlist-close
-``` Liquid
+``` liquid
 <svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" {{ style_attribute }} {{ function }}>
 	<g opacity="0.7">
 		<path d="M6.20117 6.20117L13.7988 13.7988M13.7988 6.20117L6.20117 13.7988" stroke="{{ color }}" stroke-linecap="square" stroke-linejoin="bevel"/>
@@ -536,14 +537,14 @@ Créer le snippet mm-icon-wishlist-close
 ```
 
 Créer le snippet mm-wishlist
-``` Liquid
+``` liquid
 <svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" {{ style_attribute }} {{ function }}>
 	<path d="M12 14.3333V1.66667H4V14.3333L8 11.6667L12 14.3333Z" stroke="{{ color }}" stroke-linecap="round"/>
 </svg>
 ```
 
 Ne pas oublier de les ajouter au snippet qui gère les icones mm-icon.liquid (si présent).
-``` Liquid
+``` liquid
 when 'wishlist-close'
 	render 'mm-wishlist-close', class_attribute: class_attribute, style_attribute: style_attribute, color: color, function: function
 when 'wishlist'
@@ -551,7 +552,7 @@ when 'wishlist'
 ```
 
 Créer le snippet mm-wishlist-count-bubble
-``` Liquid
+``` liquid
 <div class="mm-wishlist-count-bubble mm-count-cart hidden">
 	0
 </div>
