@@ -2,6 +2,574 @@
 
 Retrouvez la documentation de Whishlist Power [ici](https://wishlist-power.helpscoutdocs.com/article/604-advanced-developer-documentation)
 
- > Coucou Thibault.
- > Coucou Thibault 2.
- > Coucou Thibault no members.
+> 1. Télécharger et activer l’app (**$**15,99 / month).
+
+> 2. Activer l’app sur votre branche du theme.
+
+> 3. Créer le template ‘wishlist’ dans les pages.
+
+
+1. Ajouter les appels au fichier css + js dans theme.liquid 
+``` Liquid
+<!-- Wishlist -->
+{{ 'mm-wishlist.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'mm-wishlist.js' | asset_url }}" defer="defer"></script>
+```
+
+2. Créer le fichier mm-wishlist.js
+``` JavaScript
+class WishlistManager {
+    constructor() {
+        this.boundHandleClick = this.handleButtonClick.bind(this);
+        this.wishlistContainer = document.querySelector('[data-wishlist-button-header]');
+        this.countBubble = this.wishlistContainer?.querySelector('.mm-wishlist-count-bubble');
+        this.initializeWishlist();
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        document.addEventListener('ooo-wishlist:product-added', (event) => {
+            const count = event.detail.wishlist_product_list.length;
+            this.updateUI(count);
+        });
+
+        document.addEventListener('ooo-wishlist:product-removed', (event) => {
+            const count = event.detail.wishlist_product_list.length;
+            this.updateUI(count);
+        });
+    }
+
+    async handleButtonClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const button = e.currentTarget;
+        const handle = button.dataset.productHandle;
+        if (!handle) return;
+
+        try {
+            const isCurrentlyActive = button.classList.contains('active');
+            
+            // Action API
+            await (isCurrentlyActive 
+                ? window.Maestrooo.wishlist.removeProduct(handle)
+                : window.Maestrooo.wishlist.addProduct(handle));
+            
+            // Mise à jour visuelle du bouton
+            this.updateButtonState(button, !isCurrentlyActive);
+            
+            // Mise à jour de la page wishlist si nécessaire
+            const wishlistSection = document.querySelector('wishlist-products-section');
+            if (wishlistSection && isCurrentlyActive) {
+                await wishlistSection.loadWishlistProducts();
+            }
+        } catch (error) {
+            console.error('Erreur wishlist:', error);
+        }
+    }
+
+    updateUI(count) {
+        if (!this.countBubble || !this.wishlistContainer) return;
+        
+        this.countBubble.textContent = count;
+        this.countBubble.classList.toggle('hidden', count === 0);
+        this.wishlistContainer.classList.toggle('active', count > 0);
+    }
+
+    updateButtonState(button, isActive) {
+        button.classList.toggle('active', isActive);
+        button.dataset.added = isActive ? 'true' : null;
+    }
+
+    async initButtons() {
+        const wishlistButtons = document.querySelectorAll('[data-wishlist-button]');
+        if (!wishlistButtons.length) return;
+
+        const promises = Array.from(wishlistButtons).map(async button => {
+            const handle = button.dataset.productHandle;
+            if (!handle) return;
+
+            button.removeEventListener('click', this.boundHandleClick);
+            button.addEventListener('click', this.boundHandleClick);
+
+            try {
+                const isInWishlist = await window.Maestrooo.wishlist.containsProduct(handle);
+                this.updateButtonState(button, isInWishlist);
+            } catch (error) {
+                console.error('Erreur état initial:', error);
+            }
+        });
+
+        await Promise.all(promises);
+    }
+
+    async initializeWishlist() {
+        try {
+            const content = await window.Maestrooo.wishlist.getContent();
+            this.updateUI(content?.products?.length || 0);
+            await this.initButtons();
+        } catch (error) {
+            console.error('Erreur initialisation wishlist:', error);
+        }
+    }
+}
+
+// Initialisation unique
+const initWishlistManager = () => {
+    if (!window.wishlistManager) {
+        window.wishlistManager = new WishlistManager();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', initWishlistManager);
+```
+
+3. Créer le fichier mm-wishlist.css
+``` CSS
+/* ----------------- Wishlist content  */
+
+.mm-wishlist {
+	padding: 2px;
+    cursor: pointer;
+	position: relative;
+}
+
+.mm-wishlist .mm-icon-wishlist path {
+	fill: transparent;
+	transition: var(--duration-fast) var(--cubic-bezier-fast);
+}
+
+.mm-wishlist.active .mm-icon-wishlist path {
+	fill: var(--black-700);
+}
+
+header .mm-wishlist.active svg path {
+    fill: transparent !important;
+}
+
+/* Wishlist -- Product card */
+
+.mm-card-product-wishlist {
+	position: absolute;
+	top: 0;
+	right: 0;
+	margin: 12px;
+}
+
+@media (max-width: 768px) {
+    .mm-card-product-wishlist {
+        margin: 6px;
+    }
+}
+
+/* Wishlist -- Product page */
+
+.mm-main-product-wishlist {
+	margin-top: 4px;
+}
+
+/* Wishlist -- Header */
+
+.mm-wishlist-count-bubble {
+	position: absolute;
+	top: 50%;
+    right: -4px;
+    transform: translateY(-50%);
+}
+
+/* ----------------- Page wishlist  */
+
+.mm-wishlist-products {
+    padding: var(--spacing-7, 64px) 20px 72px 20px;
+    grid-gap: 40px;
+    background: var(--black-50, #F4F4F4);
+}
+
+@media (max-width: 768px) {
+    .mm-wishlist-products {
+        padding: 40px 10px 20px 10px;
+        grid-gap: 40px;
+    }
+
+    .mm-wishlist-products-title {
+        font-size: var(--font-size-x-large, 24px);
+        line-height: 130%;
+        letter-spacing: -0.96px;
+        text-align: center;
+        align-items: center;
+    }
+}
+
+/* Wishlist -- Container */
+
+.mm-wishlist-products-container {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-gap: 2px;
+}
+
+@media (max-width: 1024px) {
+    .mm-wishlist-products-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .mm-wishlist-products-container {
+        grid-template-columns: repeat(1, 1fr);
+        grid-gap: 22px 2px;
+    }
+}
+
+/* Wishlist -- Empty */
+
+.mm-text-empty-wishlist {
+    padding-bottom: 10px;
+}
+
+.mm-wishlist-empty[hidden] {
+    display: none;
+}
+
+.mm-wishlist-empty {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}
+
+
+.mm-wishlist-products .mm-product-card-link .mm-product-infos-top {
+    margin-left: inherit;
+    text-align: center;
+    align-items: center;
+}
+```
+
+2. Créer la section MM-Wishlist-Products
+
+``` Liquid
+{% comment %} Settings info section {% endcomment %}
+{% liquid
+    assign section_title = section.settings.section_title
+    assign section_title_type = section.settings.section_title_type
+    assign wishlist_empty_text = section.settings.wishlist_empty_text
+    assign wishlist_empty_cta_text = section.settings.wishlist_empty_cta_text
+    assign wishlist_empty_cta_url = section.settings.wishlist_empty_cta_url
+%}
+
+<wishlist-products-section>
+	<div class="mm-wishlist-products mm-flex mm-column mm-align-center">
+		{% render 'mm-title-selector', title: section_title, type: section_title_type, class: 'mm-wishlist-products-title mm-text-3xl' %}
+
+		<div class="mm-wishlist-products-grid">
+			<div class="mm-wishlist-products-container" data-wishlist-products-container>
+				{% comment %} Les produits seront injectés ici via JavaScript {% endcomment %}
+			</div>
+
+			<div class="mm-wishlist-empty mm-column" data-wishlist-empty hidden>
+				{% render 'mm-title-selector', title: wishlist_empty_text, type: 'p', class: 'mm-text-md mm-text-empty-wishlist' %}
+				{% render 'mm-btn', url: wishlist_empty_cta_url, text: wishlist_empty_cta_text, fallback_text: 'MM_custom.cta.discover', class: 'mm-btn mm-btn-secondary mm-w-fit', icon: true, icon_name: 'arrow-right', icon_class: 'mm-arrow-right', icon_style: 'height: 16px;', icon_color: 'var(--white)' %}
+			</div>
+		</div>
+	</div>
+</wishlist-products-section>
+
+{% render "mm-wishlist-card-js" %}
+
+{% schema %}
+    {
+        "name": "MM Wishlist Products",
+        "tag": "section",
+        "class": "section-wishlist-products",
+        "settings": [
+            {
+                "type": "header",
+                "content": "Section info"
+            },
+            {
+                "type": "text",
+                "id": "section_title",
+                "label": "Titre de la section"
+            },
+            {
+                "type": "select",
+                "id": "section_title_type",
+                "label": "Type titre de la section",
+                "options": [
+                    {
+                        "value": "h1",
+                        "label": "Titre 1 (h1)"
+                    },
+                    {
+                        "value": "h2",
+                        "label": "Titre 2 (h2)"
+                    },
+                    {
+                        "value": "h3",
+                        "label": "Titre 3 (h3)"
+                    },
+                    {
+                        "value": "p",
+                        "label": "Texte (p)"
+                    }
+                ],
+                "default": "p"
+            },
+            {
+                "type": "header",
+                "content": "Wishlist Settings"
+            },
+			{
+				"type": "text",
+				"id": "wishlist_empty_text",
+				"label": "Texte quand la wishlist est vide",
+				"default": "Votre liste de souhaits est vide"
+			},
+			{
+				"type": "text",
+				"id": "wishlist_empty_cta_text",
+				"label": "Texte du bouton",
+				"default": "Découvrir nos produits"
+			},
+			{
+				"type": "url",
+				"id": "wishlist_empty_cta_url",
+				"label": "Lien du bouton"
+			}
+        ],
+        "presets": [
+            {
+                "name": "MM Wishlist Products"
+            }
+        ]
+    }
+{% endschema %}
+```
+
+Créer le snippet utilisé dans la section 
+``` Liquid
+{% render "mm-wishlist-card-js" %}
+```
+
+``` liquid
+<script>
+	class WishlistProductsSection extends HTMLElement {
+		constructor() {
+			super();
+			this.container = this.querySelector('[data-wishlist-products-container]');
+			this.emptyMessage = this.querySelector('[data-wishlist-empty]');
+			this.boundLoadProducts = this.loadWishlistProducts.bind(this);
+			this.setupEventListeners();
+			this.initializeWishlist();
+		}
+
+		setupEventListeners() {
+			document.addEventListener('ooo-wishlist:product-removed', (event) => {
+				const count = event.detail.wishlist_product_list.length;
+				this.updateUI(count);
+			});
+		}
+
+		initializeWishlist() {
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', this.boundLoadProducts);
+			} else {
+				this.boundLoadProducts();
+			}
+		}
+
+		async fetchProductCard(handle) {
+			try {
+                // Détecter la langue depuis l'URL
+                const path = window.location.pathname;
+                const languageMatch = path.match(/^\/([a-z]{2})(\/|$)/); // Capture un code langue comme "fr" ou "en" au début du chemin
+                const languagePrefix = languageMatch ? `/${languageMatch[1]}` : ''; // Ajoute le préfixe langue si trouvé
+        
+                // Construire l'URL avec la langue
+                const response = await fetch(`${languagePrefix}/products/${handle}?view=card`);
+              
+				const html = await response.text();
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(html, 'text/html');
+				const productCard = doc.querySelector('.mm-product-card');
+				return productCard ? `<div class="mm-wishlist-product-item">${productCard.outerHTML}</div>` : '';
+			} catch (error) {
+				console.error(`Erreur lors du chargement du produit ${handle}:`, error);
+				return '';
+			}
+		}
+
+		updateUI(count) {
+			const wishlistContainer = document.querySelector('[data-wishlist-button-header]');
+			const countBubble = wishlistContainer?.querySelector('.mm-wishlist-count-bubble');
+			
+			if (countBubble && wishlistContainer) {
+				countBubble.textContent = count;
+				countBubble.classList.toggle('hidden', count === 0);
+				wishlistContainer.classList.toggle('active', count > 0);
+			}
+		}
+
+		handleProductRemoval(button, handle) {
+			return async (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				if (!handle) return;
+
+				try {
+					await window.Maestrooo.wishlist.removeProduct(handle);
+					const item = button.closest('.mm-wishlist-product-item');
+					item?.remove();
+					
+					if (!this.container.querySelector('.mm-wishlist-product-item')) {
+						this.container.hidden = true;
+						this.emptyMessage.hidden = false;
+					}
+				} catch (error) {
+					console.error('Erreur lors de la suppression:', error);
+				}
+			};
+		}
+
+		async loadWishlistProducts() {
+			if (!this.container) return;
+
+			try {
+				const wishlistContent = await window.Maestrooo.wishlist.getContent();
+				
+				if (wishlistContent?.products?.length) {
+					this.container.hidden = false;
+					this.emptyMessage.hidden = true;
+					
+					const productsHTML = await Promise.all(
+						wishlistContent.products.map(p => this.fetchProductCard(p.handle))
+					);
+
+					this.container.innerHTML = productsHTML.join('');
+					
+					this.container.querySelectorAll('[data-wishlist-button]').forEach(button => {
+						const handle = button.dataset.productHandle;
+						button.removeEventListener('click', this.handleProductRemoval(button, handle));
+						button.addEventListener('click', this.handleProductRemoval(button, handle));
+					});
+				} else {
+					this.container.hidden = true;
+					this.emptyMessage.hidden = false;
+				}
+			} catch (error) {
+				console.error('Erreur lors du chargement de la wishlist:', error);
+				this.container.innerHTML = '<p class="mm-text-center">Une erreur est survenue</p>';
+			}
+		}
+
+		disconnectedCallback() {
+			document.removeEventListener('DOMContentLoaded', this.boundLoadProducts);
+			document.removeEventListener('ooo-wishlist:product-removed', this.updateUI);
+		}
+	}
+
+	customElements.define('wishlist-products-section', WishlistProductsSection);
+</script>
+```
+
+Créer le template product.card
+``` liquid
+{% render 'mm-card-product'
+	, product: product
+	, class: 'mm-page-wishlist',
+	, product_handle: product.handle
+	, show_wishlist: true
+	, is_wishlist_page: true
+	, data_added: true
+%}
+```
+
+3. Créer le snippet du bouton (ajout à la wishlist).
+``` liquid{% comment %}
+    Renders a wishlist button with optional functionality based on the context (header or product).
+
+    Accepts:
+    - header: {Boolean} If true, renders the wishlist button in the header.
+    - class: {String} Additional CSS class for the wishlist button.
+    - product_handle: {String} The product handle for the product-specific wishlist button (optional, used only when `header` is false).
+    - is_wishlist_page: {Boolean} If true, renders a "close" icon for the wishlist page.
+    
+    Usage:
+    {% render 'mm-wishlist', header: true, class: 'wishlist-header-class', product_handle: 'product.handle', is_wishlist_page: true %}
+{% endcomment %}
+
+{% if header %}
+    <a href="{% if routes.root_url != '/' %}{{ routes.root_url }}{% endif %}/pages/wishlist" class="mm-wishlist {{ class }}" id="wishlist-icon-bubble" data-wishlist-button-header>
+    {% render 'mm-icon', icon_name: 'wishlist', icon_class: 'mm-icon-wishlist', icon_style: '', color: 'var(--black-900)' %}
+        <span class="visually-hidden">{{ 'MM_custom.wishlist.wishlist' | t }}</span>
+        {% render 'mm-wishlist-count-bubble' %}
+    </a>
+{% else %}
+    <div class="mm-wishlist {{ class }}" data-product-handle="{{ product_handle }}" data-wishlist-button>
+        {% if is_wishlist_page %}
+            {% render 'mm-icon', icon_name: 'wishlist-close', icon_class: 'mm-icon-close', icon_style: '', color: 'var(--black-700)' %}
+        {% else %}
+            {% render 'mm-icon', icon_name: 'wishlist', icon_class: 'mm-icon-wishlist', icon_style: '', color: 'var(--black-900)' %}
+        {% endif %}
+    </div>
+{% endif %}
+```
+Exemple page produit : 
+``` Liquid
+{% render 'mm-wishlist-content', header: false, class: 'mm-main-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
+```
+
+Exemple Product Card : 
+``` Liquid
+{% render 'mm-wishlist-content', header: false, class: 'mm-card-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
+```
+
+Exemple Header : 
+``` Liquid
+{% render 'mm-wishlist-content', header: true  %}
+```
+
+Créer le snippet icone wishlist
+``` Liquid
+<svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" {{ style_attribute }} {{ function }}>
+  <g opacity="0.7">
+    <path d="M6.20117 6.20117L13.7988 13.7988M13.7988 6.20117L6.20117 13.7988" stroke="{{ color }}" stroke-linecap="square" stroke-linejoin="bevel"/>
+  </g>
+</svg>
+```
+
+Créer le snippet icone wishlist-close
+``` Liquid
+<svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" {{ style_attribute }} {{ function }}>
+  <path d="M12 14.3333V1.66667H4V14.3333L8 11.6667L12 14.3333Z" stroke="{{ color }}" stroke-linecap="round"/>
+</svg>
+```
+
+Ne pas oublier de les ajouter au snippet mm-icon.liquid
+``` Liquid
+when 'wishlist-close'
+	render 'mm-wishlist-close', class_attribute: class_attribute, style_attribute: style_attribute, color: color, function: function
+when 'wishlist'
+	render 'mm-wishlist', class_attribute: class_attribute, style_attribute: style_attribute, color: color, function: function
+```
+
+Créer le snippet mm-wishlist-count-bubble
+``` Liquid
+ <div class="mm-wishlist-count-bubble mm-count-cart hidden">
+	0
+</div>
+```
+Ajouter les textes de traduction dans le fichier local en.default.json
+``` json
+"wishlist": {
+	"wishlist": "Wishlist",
+	"empty": "Your wishlist is empty"
+},
+```
+Et dans la correspondance dans fichier local fr.json
+``` json
+"wishlist": {
+	"wishlist": "Wishlist",
+	"empty": "Votre liste de souhaits est vide"
+},
+```
