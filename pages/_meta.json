@@ -1,8 +1,11 @@
 {
 	"index": "Introduction",
-	"Markdown": "Markdown (A Folder)",
-	"Templates": "Templates (A Folder)",
-	"Tutos": "Tutos (A Folder)",
+	"Apps": "Apps",
+	"Liquid": "Liquid",
+	"Markdown": "Markdown",
+	"Script JS": "Script JS",
+	"Splide": "Splide",
+	"Tutos": "Tutos",
 	"contact": {
 		"title": "Retyour vers moon-moon.fr ↗",
 		"type": "page",
