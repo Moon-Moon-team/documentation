@@ -1,12 +1,12 @@
 {
-  "index": "Introduction",
-  "Markdown": "Markdown (A Folder)",
-  "Templates": "Templates (A Folder)",
-  "Tutos": "Tutos (A Folder)",
-  "contact": {
-    "title": "Retyour vers moon-moon.fr ↗",
-    "type": "page",
-    "href": "https://moon-moon.fr",
-    "newWindow": true
-  }
+	"index": "Introduction",
+	"Markdown": "Markdown (A Folder)",
+	"Templates": "Templates (A Folder)",
+	"Tutos": "Tutos (A Folder)",
+	"contact": {
+		"title": "Retyour vers moon-moon.fr ↗",
+		"type": "page",
+		"href": "https://moon-moon.fr",
+		"newWindow": true
+	}
 }
