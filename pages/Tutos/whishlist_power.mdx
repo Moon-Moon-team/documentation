@@ -1,22 +1,22 @@
 # Whishlist Power
-CA FONCTIONNE OU PAS ?
+
 Retrouvez la documentation de Whishlist Power [ici](https://wishlist-power.helpscoutdocs.com/article/604-advanced-developer-documentation)
 
 > Télécharger et activer l’app (**$**15,99 / month).
-
+>
 > Activer l’app sur votre branche du theme.
-
+>
 > Créer le template '**wishlist**' dans les pages.
 
 
-1. Ajouter les appels au fichier css + js dans theme.liquid
+## Ajouter les appels au fichier css + js dans theme.liquid
 ``` Liquid
-<!-- Wishlist -->
+{% Wishlist %}
 {{ 'mm-wishlist.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'mm-wishlist.js' | asset_url }}" defer="defer"></script>
 ```
 
-2. Créer le fichier mm-wishlist.js dans le dossier assets
+## Créer le fichier mm-wishlist.js dans le dossier assets
 ``` JavaScript
 class WishlistManager {
     constructor() {
@@ -124,10 +124,9 @@ const initWishlistManager = () => {
 document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
-3. Créer le fichier mm-wishlist.css dans le dossier assets
+## Créer le fichier mm-wishlist.css dans le dossier assets
 ``` CSS
 /* ----------------- Wishlist content  */
-
 .mm-wishlist {
 	padding: 2px;
     cursor: pointer;
@@ -237,7 +236,6 @@ header .mm-wishlist.active svg path {
     display: flex;
 }
 
-
 .mm-wishlist-products .mm-product-card-link .mm-product-infos-top {
     margin-left: inherit;
     text-align: center;
@@ -245,7 +243,7 @@ header .mm-wishlist.active svg path {
 }
 ```
 
-2. Créer la section MM-Wishlist-Products dans le dossier sections
+## Créer la section MM-Wishlist-Products dans le dossier sections
 ``` Liquid
 {% comment %} Settings info section {% endcomment %}
 {% liquid
@@ -345,12 +343,12 @@ header .mm-wishlist.active svg path {
 {% endschema %}
 ```
 
-Créer le snippet JS.liquid utilisé dans la section 
-``` Liquid
+## Créer le snippet JS.liquid utilisé dans la section 
+``` ruby
 {% render "mm-wishlist-card-js" %}
 ```
 
-``` liquid
+``` html
 <script>
 	class WishlistProductsSection extends HTMLElement {
 		constructor() {
@@ -471,8 +469,8 @@ Créer le snippet JS.liquid utilisé dans la section
 </script>
 ```
 
-Créer le template product.card
-``` liquid
+## Créer le template product.card
+``` python
 {% render 'mm-card-product'
 	, product: product
 	, class: 'mm-page-wishlist',
