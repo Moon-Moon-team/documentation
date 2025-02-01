@@ -10,10 +10,15 @@ Les titres sont créés en utilisant des dièses (`#`). Plus il y a de dièses, 
 
 ```markdown
 # Titre de niveau 1
+
 ## Titre de niveau 2
+
 ### Titre de niveau 3
+
 #### Titre de niveau 4
+
 ##### Titre de niveau 5
+
 ###### Titre de niveau 6
 ```
 
@@ -27,8 +32,9 @@ Pour mettre du texte en gras, utilisez deux astérisques ou deux tirets bas auto
 
 ```markdown
 **Texte en gras**
-__Texte en gras__
+**Texte en gras**
 ```
+
 **Texte en gras**
 
 #### Texte en italique
@@ -36,10 +42,11 @@ __Texte en gras__
 Pour mettre du texte en italique, utilisez un astérisque ou un tiret bas autour du texte.
 
 ```markdown
-*Texte en italique*
+_Texte en italique_
 _Texte en italique_
 ```
-*Texte en italique*
+
+_Texte en italique_
 
 #### Texte barré
 
@@ -48,6 +55,7 @@ Pour mettre du texte barré, utilisez deux tildes (`~~`) autour du texte.
 ```markdown
 ~~Texte barré~~
 ```
+
 ~~Texte barré~~
 
 ---
@@ -59,22 +67,26 @@ Pour mettre du texte barré, utilisez deux tildes (`~~`) autour du texte.
 Pour créer une liste à puces, utilisez un astérisque (`*`), un plus (`+`) ou un tiret (`-`) suivi d'un espace.
 
 ```markdown
-* Élément 1
-* Élément 2
-  * Sous-élément 2.1
-  * Sous-élément 2.2
-- Élément 3
-+ Élément 4
+-   Élément 1
+-   Élément 2
+    -   Sous-élément 2.1
+    -   Sous-élément 2.2
+
+*   Élément 3
+
+-   Élément 4
 ```
 
 Rendu :
 
-* Élément 1
-* Élément 2
-  * Sous-élément 2.1
-  * Sous-élément 2.2
-- Élément 3
-+ Élément 4
+-   Élément 1
+-   Élément 2
+    -   Sous-élément 2.1
+    -   Sous-élément 2.2
+
+*   Élément 3
+
+-   Élément 4
 
 #### Liste numérotée
 
@@ -83,8 +95,8 @@ Pour créer une liste numérotée, utilisez un point suivi d'un nombre et d'un p
 ```markdown
 1. Premier élément
 2. Deuxième élément
-   1. Sous-élément 2.1
-   2. Sous-élément 2.2
+    1. Sous-élément 2.1
+    2. Sous-élément 2.2
 3. Troisième élément
 ```
 
@@ -92,20 +104,20 @@ Rendu :
 
 1. Premier élément
 2. Deuxième élément
-   1. Sous-élément 2.1
-   2. Sous-élément 2.2
+    1. Sous-élément 2.1
+    2. Sous-élément 2.2
 3. Troisième élément
 
 ---
 
 ### 4. Code
 
-```markdown
+````markdown
 ```python
 def bonjour():
     print("Bonjour, monde !")
 ```
-
+````
 
 Voici un `exemple de code en ligne`.
 
@@ -150,8 +162,8 @@ Pour insérer une image, utilisez la syntaxe suivante :
 
 ```markdown
 ![Texte alternatif](URL)
-``` 
+```
 
 Rendu :
 
-![Texte alternatif](https://via.placeholder.com/150)    
+![Texte alternatif](https://via.placeholder.com/150)
