@@ -1,7 +1,7 @@
 # Dynamic Checkout Button
 
 ## Dans le product form
-``` Liquid
+``` liquid
 {{ form | payment_button }}
 ```
 > Attention : 
@@ -11,6 +11,6 @@
 > Si on utilise de l’abonnement, il faut un (et un seul) input avec name=”selling_plan” ayant le selling plan id en value (par defaut la value doit être vide si on sélectionne un plan one shot par defaut).
 
 ## Utilisation dans le panier
-``` Liquid
+``` liquid
 {{ content_for_additional_checkout_buttons }}
 ```
