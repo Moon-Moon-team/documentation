@@ -1,1 +1,129 @@
-Work in progress !
+# Marquee
+> Bande défilante automatique
+
+## HTML
+```html
+<div class="mm-background-color-{{ section.id }}">
+	<div class="marquee">
+		<div class="marquee__inner-{{ section.id }}" aria-hidden="true">
+			{% for i in (1..4) %}
+				{% for block in section.blocks %}
+					<!-- Image défilante -->
+					{% if block.settings.image != blank %}
+						{{ block.settings.image | image_url: width: "150px" | image_tag: loading: 'lazy', class: class }}
+					{% endif %}
+
+					<!-- Texte défilant -->
+					{% if block.settings.text != blank %}
+						<span class="mm-marquee-content-{{ section.id }}">
+						{{ block.settings.text }}
+						</span>
+					{% endif %}
+				{% endfor %}
+			{% endfor %}
+		</div>
+	</div>
+</div>
+```
+
+## CSS
+```css
+.mm-background-color-{{ section.id }} {
+    background-color: #FFFDF9;
+    border-top: 1px solid #412EFF;
+    border-bottom: 1px solid #412EFF;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    height: 66px;
+    width: 100%;
+}
+
+/* AUTO SCROLL */
+.marquee {
+    position: relative;
+    overflow: hidden;
+    max-width: 100vw;
+    height: 100%;
+}
+
+.marquee__inner-{{ section.id }} {
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    position: relative;
+    animation: marquee {{ section.settings.speed }}s linear infinite;
+    height: 100%;
+}
+
+@keyframes marquee {
+	0% {
+		transform: translateX(0);
+	}
+
+	100% {
+		transform: translateX(-25%);
+	}
+}
+
+.mm-marquee-content-{{ section.id }} {
+	padding: 0 {{ section.settings.padding_content }}vw;
+	white-space: nowrap;
+	color: #D1C3ED;
+}
+```
+
+## Schema
+```liquid
+	{% schema %}
+		{
+		"name": "MM Bande Défilante Auto",
+		"settings": [
+			{
+				"type": "range",
+				"id": "speed",
+				"min": 5,
+				"max": 70,
+				"step": 5,
+				"unit": "s",
+				"label": "Vitesse de défilement",
+				"default": 30
+			},
+			{
+				"type": "range",
+				"id": "padding_content",
+				"min": 0,
+				"max": 10,
+				"step": 0.5,
+				"unit": "vw",
+				"label": "Espace entre les éléments",
+				"default": 2
+			}
+		],
+		"blocks": [
+			{
+				"type": "text",
+				"name": "Texte/Image",
+				"settings": [
+					{
+						"type": "image_picker",
+						"id": "image",
+						"label": "Image"
+					},
+					{
+						"type": "text",
+						"id": "text",
+						"label": "Texte"
+					}
+				]
+			}
+		],
+		"presets": [
+			{
+			"name": "MM Bande Défilante Auto"
+			}
+		]
+	}
+{% endschema %}
+
+```
