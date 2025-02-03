@@ -1,1 +1,11 @@
-Work in progress !
+# Boucle et interpolation
+> Éviter les répétitions
+
+```liquid
+{% for i in (1..100) %}
+{% assign img_url = 'img_url_' | append: i %}
+
+	{% if block.settings[img_url] != blank %}
+	{% endif %}
+{% endfor %}
+```
