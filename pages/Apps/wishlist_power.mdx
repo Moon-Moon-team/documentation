@@ -11,14 +11,14 @@ Retrouvez la documentation de Whishlist Power [ici](https://wishlist-power.helps
 
 ## Setup VsCode
 ### Ajoutez les appels aux fichiers **css + js** dans le fichier **theme.liquid**
-``` liquid
+``` liquid showLineNumbers
 {% Wishlist %}
 {{ 'mm-wishlist.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'mm-wishlist.js' | asset_url }}" defer="defer"></script>
 ```
 
 ### Créez le fichier **mm-wishlist.js** dans le dossier **assets**
-``` javascript
+``` javascript showLineNumbers
 class WishlistManager {
     constructor() {
         this.boundHandleClick = this.handleButtonClick.bind(this);
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
 ### Créez le fichier **mm-wishlist.css** dans le dossier **assets**
-``` css
+``` css showLineNumbers
 /* ----------------- Wishlist content  */
 .mm-wishlist {
 	padding: 2px;
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
 ### Créer le fichier **MM-Wishlist-Products.liquid** dans le dossier **sections**
-``` liquid
+``` liquid showLineNumbers
 {% comment %} Settings info section {% endcomment %}
 {% liquid
     assign section_title = section.settings.section_title
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
 ### Créez le fichier **mm-wishlist-card-js.liquid** utilisé dans la section **MM-Wishlist-Products**
-``` liquid
+``` liquid showLineNumbers
 <script>
 	class WishlistProductsSection extends HTMLElement {
 		constructor() {
@@ -381,7 +381,6 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
         
                 // Construire l'URL avec la langue
                 const response = await fetch(`${languagePrefix}/products/${handle}?view=card`);
-              
 				const html = await response.text();
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(html, 'text/html');
@@ -467,7 +466,7 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
 ### Créez le fichier **product.card.liquid** dans le dossier **templates**
-``` liquid
+``` liquid showLineNumbers
 {% render 'mm-card-product'
 	, product: product
 	, class: 'mm-page-wishlist',
@@ -479,7 +478,7 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
 ### Créez le fichier **mm-wishlist-content.liquid** (Bouton d'ajout à la wishlist ou de suppression) dans le dossier **snippets**
-``` liquid
+``` liquid showLineNumbers
 {% comment %}
     Renders a wishlist button with optional functionality based on the context (header or product).
 
@@ -512,22 +511,22 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 
 ### Exemples d'utilisation
 #### Section Main-Product (page produit): 
-``` liquid
+``` liquid showLineNumbers
 {% render 'mm-wishlist-content', header: false, class: 'mm-main-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
 ```
 
 #### Snippet Product Card : 
-``` liquid
+``` liquid showLineNumbers
 {% render 'mm-wishlist-content', header: false, class: 'mm-card-product-wishlist', is_wishlist_page: false, product_handle: product.handle %}
 ```
 
 #### Section Header : 
-``` liquid
+``` liquid showLineNumbers
 {% render 'mm-wishlist-content', header: true  %}
 ```
 
 ### Créez le fichier **mm-icon-wishlist-close.liquid** dans le dossier **snippets**
-``` liquid
+``` liquid showLineNumbers
 <svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" {{ style_attribute }} {{ function }}>
 	<g opacity="0.7">
 		<path d="M6.20117 6.20117L13.7988 13.7988M13.7988 6.20117L6.20117 13.7988" stroke="{{ color }}" stroke-linecap="square" stroke-linejoin="bevel"/>
@@ -536,14 +535,14 @@ document.addEventListener('DOMContentLoaded', initWishlistManager);
 ```
 
 ### Créez le fichier **mm-wishlist.liquid** dans le dossier **snippets**
-``` liquid
+``` liquid showLineNumbers
 <svg {{ class_attribute }} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" {{ style_attribute }} {{ function }}>
 	<path d="M12 14.3333V1.66667H4V14.3333L8 11.6667L12 14.3333Z" stroke="{{ color }}" stroke-linecap="round"/>
 </svg>
 ```
 
 ### Ajoutez les nouvelles icones au snippet qui gère les icones **mm-icon.liquid** (si présent)
-``` liquid
+``` liquid showLineNumbers
 when 'wishlist-close'
 	render 'mm-wishlist-close', class_attribute: class_attribute, style_attribute: style_attribute, color: color, function: function
 when 'wishlist'
@@ -552,14 +551,14 @@ when 'wishlist'
 > Si vous n'avez pas le snippet **mm-icon.liquid**, le code liquid utilisé dans les fichiers d'icones SVG n'est pas utile.
 
 ### Créez le fichier **mm-wishlist-count-bubble.liquid** dans le dossier **snippets**
-``` liquid
+``` liquid showLineNumbers
 <div class="mm-wishlist-count-bubble mm-count-cart hidden">
 	0
 </div>
 ```
 
 ### Ajoutez les textes de traduction dans le fichier local **en.default.json** situé dans le dossier **locales**
-``` json
+``` json showLineNumbers
 "wishlist": {
 	"wishlist": "Wishlist",
 	"empty": "Your wishlist is empty"
@@ -567,7 +566,7 @@ when 'wishlist'
 ```
 
 ### Et dans le fichier de correspondance **fr.json** situé dans le dossier **locales**
-``` json
+``` json showLineNumbers
 "wishlist": {
 	"wishlist": "Wishlist",
 	"empty": "Votre liste de souhaits est vide"

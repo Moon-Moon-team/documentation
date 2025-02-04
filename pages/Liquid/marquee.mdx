@@ -2,7 +2,7 @@
 > Bande défilante automatique
 
 ## HTML
-```html
+```html showLineNumbers
 <div class="mm-background-color-{{ section.id }}">
 	<div class="marquee">
 		<div class="marquee__inner-{{ section.id }}" aria-hidden="true">
@@ -27,7 +27,7 @@
 ```
 
 ## CSS
-```css
+```css showLineNumbers
 .mm-background-color-{{ section.id }} {
     background-color: #FFFDF9;
     border-top: 1px solid #412EFF;
@@ -74,9 +74,9 @@
 ```
 
 ## Schema
-```liquid
-	{% schema %}
-		{
+```liquid showLineNumbers
+{% schema %}
+	{
 		"name": "MM Bande Défilante Auto",
 		"settings": [
 			{
