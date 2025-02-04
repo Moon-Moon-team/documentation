@@ -1,14 +1,40 @@
 # Dynamic Checkout Button
 
 ## Dans le product form
-``` liquid
-{{ form | payment_button }}
+```liquid
+{% form 'product', product, id: 'product-form', novalidate: 'novalidate', data-type: 'add-to-cart-form' %}
+```
+> Attention : il ne faut pas qu’il y ai le “javascript:void” dans le tag form !
+
+
+```liquid
+{%- if block.settings.show_dynamic_checkout -%}
+    {{ form | payment_button }}
+{%- endif -%}
 ```
 > Attention : 
 >
 > Il faut un (et un seul) input avec name=”id” ayant la variant id en value.
 >
-> Si on utilise de l’abonnement, il faut un (et un seul) input avec name=”selling_plan” ayant le selling plan id en value (par defaut la value doit être vide si on sélectionne un plan one shot par defaut).
+> Si on utilise de l’abonnement, il faut un (et un seul) input avec name=”selling_plan” ayant le selling plan id en value (par defaut la value doit être vide si on sélectionne un plan one shot par defaut)
+
+### Schema
+```liquid
+{
+    "type": "buy_button",
+    "name": "t:sections.main-product.blocks.buy_buttons.name",
+    "limit": 1,
+    "settings": [
+        {
+            "type": "checkbox",
+            "id": "show_dynamic_checkout",
+            "default": true,
+            "label": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.label",
+            "info": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.info"
+        }
+    ]
+},
+```
 
 ## Utilisation dans le panier
 ``` liquid
