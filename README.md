@@ -18,6 +18,15 @@ First, run `pnpm i` to install the dependencies.
 
 Then, run `pnpm dev` to start the development server and visit localhost:3000.
 
+## if 'zsh: command not found: pnpm' in terminal
+
+run `node -v`.
+If it's 16.13 or newer, just enable Corepack:
+run `corepack enable`
+install pnpm `corepack prepare pnpm@latest --activate`
+try `pnpm -v`
+
+
 ## License
 
 This project is licensed under the MIT License.
