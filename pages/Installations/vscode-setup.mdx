@@ -1,0 +1,103 @@
+# VScode & Shopify CLI setup
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+***
+
+## **VS Code**
+👉 [Installer VS Code](https://code.visualstudio.com/download)
+
+Et quelques extensions comme:
+- Shopify Liquid
+- Liquid
+- Shopify Liquid Template Snippets
+- Prettier - code formatter
+- indent-rainbow
+- Auto Close Tag
+- Auto Rename Tag
+- Path Intellisense
+- TODO Highlight
+- ESLint
+- Color Highlight
+
+## **Shopify CLI**
+
+La documentation officielle de Shopify est très complète.  
+[Pour plus de détails](https://shopify.dev/docs/themes/tools/cli)
+
+#### 💡 **Les prérequis**
+
+
+<details>
+    <summary><strong>WINDOWS</strong></summary>
+
+    - [Node.js](https://nodejs.org/en/download/) 18 ou supérieur
+    - Ruby+Devkit 3.0 via  
+    [RubyInstaller for Windows](https://rubyinstaller.org/downloads/)  
+    (sélectionner le composant **MSYS2** et l'option **MSYS2 base installation**)
+    - [Git](https://git-scm.com/downloads)
+    - [Bundler](https://bundler.io/) 2.3.8 ou supérieur
+</details>
+
+<details>
+    <summary><strong>MACOS</strong></summary>
+
+    - [Homebrew](https://brew.sh/)
+    - [Node.js](https://nodejs.org/en/download/) 18 ou supérieur
+    - [Ruby](https://www.ruby-lang.org/en/)
+    - [Git](https://git-scm.com/downloads)
+
+    *Note : Si vous installez Shopify CLI via Homebrew, Node.js, Ruby et Git seront installés automatiquement.*
+</details>
+
+<details>
+    <summary><strong>LINUX</strong></summary>
+
+    - [Node.js](https://nodejs.org/en/download/package-manager/) 18 ou supérieur
+    - [Ruby](https://www.ruby-lang.org/en/) 3.0
+    - Environnement de développement Ruby (`ruby-dev` / `ruby-devel`)
+    - [Git](https://git-scm.com/downloads)
+    - cURL
+    - GCC
+    - g++
+    - Make
+</details>
+
+#### 💾 **Le processus d’installation**
+
+- Dans le terminal vscode, lancez la cmd :
+    ```ruby
+    npm install -g @shopify/cli @shopify/theme
+    ```
+    
+- Vérification de la version installée
+    ```ruby
+    shopify version ( actuellement : 3.74.1)
+    ```
+    
+- Liste des commandes utiles pour shopify [ou plus de commandes ici](https://shopify.dev/docs/themes/tools/cli/commands)
+    ```ruby
+        /* Lancement du serveur local sur une boutique existante */
+        shopify theme dev -s URL_DE_LA_BOUTIQUE.shopify.com
+
+        /* connaitre la version du shopify-cli installée */
+        shopify version  
+
+        /* Mettre à jour le shopify-cli */
+        shopify upgrade // mettre à jours
+
+        /* Créer un nouveau thème ( souvent à partir de dawn ) */
+        shopify theme init
+    ```
+
+#### 🔌 **Connexion à une boutique**
+- Ouvrir le terminal et lancer la commande suivante avec le lien de votre boutique.
+
+    ```ruby
+        shopify theme dev -s URL_DE_LA_BOUTIQUE.shopify.com
+    ```
+- L'Url de la boutique se trouve dans Shopify > Paramètres > Domaines. Prendre l'URL finissant par '.myshopify.com'
+- Si la boutique demande un code, vous pouvez le trouver dans Shopify > Canaux de vente > Boutiques en ligne > Préférences > Mot de passe
+
