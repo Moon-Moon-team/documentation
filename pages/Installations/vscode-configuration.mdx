@@ -1,0 +1,245 @@
+# VScode Configuration
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+***
+
+> Config par défaut à avoir pour unifier les fichiers liquid et le formatage auto
+
+1. Ajouter un fichier **.gitignore** à la racine du projet afin de ne pas push sur git certains fichiers.
+    ```ruby
+    # Development dependencies
+        /node_modules
+        package-lock.json
+
+        # IDE and tool directories (user-specific)
+        /.claude
+        /.cursor
+        .vscode/
+
+        # Shopify CLI config (keep local)
+        /.shopify/*.json
+
+        # Build artifacts (if any)
+        /dist
+        /build
+
+        # OS files
+        .DS_Store
+        Thumbs.db
+
+        # Logs
+        *.log
+        npm-debug.log*
+
+        # Environment variables (if needed)
+        .env
+        .env.local
+    ```
+2. Créer un fichier .shopifyignore à la racine du projet pour ne pas lancer certains fichiers lors du démarrage du serveur local.
+
+    ```ruby
+    # Documentation (not needed in production)
+        CLAUDE.md
+        CLAUDE-FIGMA.md
+        FONTS-GUIDE.md
+        PERFORMANCE-AUDIT.md
+        .cursorrules
+
+        # Development configuration
+        .gitignore
+        .liquidrc
+        .theme-check.yml
+        package.json
+        package-lock.json
+
+        # Development tools
+        /node_modules
+        /.claude
+        /.cursor
+        /.shopify
+        .vscode/
+
+        # Git and version control
+        .git/
+        .github/
+
+        # Build artifacts (if any)
+        /dist
+        /build
+
+        # OS files
+        .DS_Store
+        Thumbs.db
+
+        # Logs
+        *.log
+
+        # Environment files
+        .env
+        .env.local
+
+        # IDE files
+        *.swp
+        *.swo
+        *~
+    ```
+
+3. Créer un fichier .liquidrc à la racine du projet afin d’établir les règles de format par défaut.
+    ```ruby
+        {
+            "engine": "shopify",
+            "files": {
+                "settings": "config/settings_schema.json",
+                "locales": "locales/fr.json",
+                "sections": ["sections/*.liquid"],
+                "snippets": ["snippets/*.liquid"]
+            },
+            "format": {
+                "ignore": [],
+                "wrap": 5000,
+                "indentSize": 4,
+                "preserveLine": 2,
+                "endNewline": true,
+                "liquid": {
+                    "indentAttribute": true,
+                    "lineBreakSeparator": "before",
+                    "normalizeSpacing": true,
+                    "quoteConvert": "single",
+                    "ignoreTagList": []
+                },
+                "markup": {
+                    "quoteConvert": "double",
+                    "selfCloseSpace": true,
+                    "delimiterTerminus": "inline",
+                    "stripAttributeLines": true,
+                    "commentNewline": false,
+                    "forceIndent": true,
+                    "commentIndent": true,
+                    "ignoreJS": true,
+                    "ignoreCSS": false,
+                    "ignoreJSON": false,
+                    "forceAttribute": 3
+                },
+                "json": {
+                    "bracePadding": false,
+                    "braceAllman": true,
+                    "arrayFormat": "indent",
+                    "objectIndent": "indent",
+                    "objectSort": false
+                },
+                "style": {
+                    "noLeadZero": true,
+                    "quoteConvert": "single",
+                    "atRuleSpace": true
+                }
+            }
+        }
+    ```
+
+4. Ajout du theme check pour avoir les bonnes pratiques shopify / quick fix.
+    1. Dans le terminal, lancer la commande
+    ```Ruby
+        shopify theme check --init
+    ```
+    2. Un fichier .theme-check.yml va être créé afin de gérer les règles
+    3. [Plus d’infos](https://shopify.dev/themes/tools/theme-check)
+
+
+5. Shopify Liquid Prettier Plugin (plus d’infos : https://shopify.dev/themes/tools/liquid-prettier-plugin).
+    ```Ruby
+        npm install --save-dev prettier @shopify/prettier-plugin-liquid
+    ```
+6. Mes paramètres settings.json : 
+    ```json
+        {
+            // Editor
+            "editor.accessibilitySupport": "off",
+            "editor.cursorBlinking": "phase",
+            "editor.cursorSmoothCaretAnimation": "on",
+            "editor.defaultFormatter": "esbenp.prettier-vscode",
+            "editor.fontFamily": "'Fira Code', Menlo, Monaco, 'Courier New', monospace",
+            "editor.fontLigatures": true,
+            "editor.guides.bracketPairs": "active",
+            "editor.lineHeight": 20,
+            "editor.smoothScrolling": true,
+            "editor.guides.highlightActiveIndentation": "always",
+            "editor.wordWrap": "on",
+            "editor.indentSize": "tabSize",
+            "editor.tabSize": 4,
+            "editor.stickyTabStops": true,
+            "editor.linkedEditing": true,
+            "editor.detectIndentation": false,
+            "editor.formatOnSave": false,
+            "editor.insertSpaces": false,
+            // Emmet
+            "emmet.includeLanguages": { "liquid": "html" },
+            // Explorer
+            "explorer.confirmDelete": false,
+            "explorer.confirmDragAndDrop": false,
+            // files
+            "files.autoSave": "afterDelay",
+            // Html
+            "html.format.indentHandlebars": true,
+            "html.format.wrapAttributes": "force-aligned",
+            // Indent
+            "indentRainbow.colorOnWhiteSpaceOnly": true,
+            // Liquid Formatting
+            "[liquid]": {
+                "editor.defaultFormatter": "sissel.shopify-liquid",
+                "editor.formatOnSave": true
+            },
+            // Liquid Configuration
+            "liquid.config.baseDir": ".",
+            "liquid.config.method": "liquidrc",
+            // Liquid Completion Settings
+            "liquid.completion.tags": true,
+            "liquid.completion.objects": true,
+            "liquid.completion.filters": true,
+            "liquid.completion.operators": true,
+            "liquid.completion.schema": true,
+            // Liquid Validations
+            "liquid.validate.schema": true,
+            // Liquid Hover Descriptions
+            "liquid.hover.tags": true,
+            "liquid.hover.filters": true,
+            "liquid.hover.objects": true,
+            "liquid.hover.schema": true,
+            // Live server
+            "liveServer.settings.donotShowInfoMsg": true,
+            "liveServer.settings.donotVerifyTags": true,
+            // Prettier
+            "prettier.endOfLine": "auto",
+            "prettier.singleQuote": true,
+            "prettier.useTabs": true,
+            "prettier.tabWidth": 4,
+            "prettier.bracketSameLine": true,
+            "prettier.printWidth": 5000,
+            "prettier.singleAttributePerLine": true,
+            // Secutiry
+            "security.workspace.trust.untrustedFiles": "open",
+            // Tabnine
+            "tabnine.experimentalAutoImports": true,
+            // Terminal
+            "debug.terminal.clearBeforeReusing": true,
+            "terminal.integrated.defaultProfile.osx": "zsh",
+            "terminal.integrated.fontFamily": "MesloLGS NF",
+            "terminal.integrated.smoothScrolling": true,
+            "terminal.integrated.fontSize": 13,
+            // Theme check
+            "themeCheck.checkOnSave": false,
+            "themeCheck.checkOnOpen": false,
+            "themeCheck.onlySingleFileChecks": true,
+            "themeCheck.checkOnChange": false,
+            // Window
+            "window.title": "${activeEditorMedium}${separator}${rootName}",
+            "window.zoomLevel": -1,
+            // Workbench
+            "workbench.colorTheme": "One Dark Pro",
+            "workbench.startupEditor": "none",
+            "workbench.settings.useSplitJSON": true,
+            "workbench.iconTheme": "vscode-great-icons"
+        }
+    ```

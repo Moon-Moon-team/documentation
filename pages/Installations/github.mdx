@@ -1,0 +1,92 @@
+# Github
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+***
+
+> - Objectif :
+>    - Conserver son thème sur Github.
+>    - Meilleur tracking des modifications.
+>    - Permet de collaborer avec d’autres utilisateurs.
+
+
+## **Process global**
+- Création du repo github et ajout du thème.
+- Récupération du thème sur Vscode + création de branche de developpement, on aura différent branche de dev.
+    - Une pour chaque développeur : dev-name - link shopify.
+    - Une commune aux développeur pour mettre le code en commun : main - link shopify.
+- Link la branche avec shopify
+- Chaque dev va développer sur sa branche et quand la section sera prête pour la validation technique, il devra push sur le main :
+    - Commit & push sur sa branch ses devs .
+        ```ruby
+        git branch /* Permet de vérifier que l'on se trouve sur sa branche */ 
+        git add "file_name /* Se fait via la partie contrôle de source de VScode */ 
+        git commit -m "commit_name" /* Contrôle de source de VScode */ 
+        git push
+        ```
+    - Récupérer la branche dev-main sur sa branch afin de résoudre les conflits ( modification de la partie personnalisation du thème / dev du autre personne.
+        ```ruby
+        git pull origin dev-main
+        ```
+    - Résoudre les conflits puis commit and push → notre branch a donc les modifs des autres devs + les nôtres.
+        💡 Il y aura souvent un conflit avec les fichiers template ( ex:  index.json ), c’est automatiquement modifié lorsque l’on utilise la personnalisation de thème. Je pense qu’il ne faut pas push cette partie et donc garder l’existant (dev-main) à chaque fois et ensuite reporter nos modifs sur la partie personnalisé du dev-main après notre push.
+        
+    - On peut finalement merger notre branch dans dev-main.
+        **Prérequis** :
+        - Documentation : https://shopify.dev/docs/themes/tools/github
+        - un thème sur un répo github 
+        - Etre connecté à une boutique shopify
+
+## **Créer un Theme sur Github**
+
+    <details>
+        <summary><strong>**1ere Methode** (import MoonMoon Theme)</strong></summary>
+
+            - Aller sur https://github.com/Moon-Moon-team/moon-moon-theme.
+            - En haut a droite, aller sur **Use this Template**’ et créer un nouveau repo.
+            - Créer un nouveau repository avec le nom du projet, exemple : mm-nom-du-shop
+            - Dans le terminal, se placer à l’endroit ou le nouveau projet va se créer et importer le thème en local et taper :
+                
+                ```ruby
+                git clone git@github.com:url_project_git.git
+                ```
+    </details>
+
+    <details>
+        <summary><strong>**2eme Methode**</strong></summary>
+
+            - Créer un nouveau repository sur Github avec le nom du projet, exemple : mm-nom-du-shop.
+            - Récupérer le theme en local et suivre les indications suivante :
+                
+                ```ruby
+                git init  /* Initialise le repo git */
+                git add . /* Add all existing files to the index */
+                git commit -m "init project" /* Record changes to the repository with a message */
+                git branch -M main /* Change Master to Main */
+                git remote add origin url_project_git.git /* Permet d'ajouter le lien vers notre repo git distant */
+                git push -u origin main /* Push notre thème sur le serveur distant sur la branche master */
+                ```
+    </details>
+
+## **Créer les branches nécessaires depuis Github**
+
+```ruby
+    git fetch /* Récupère toutes les nouvelles branches */
+```
+```ruby
+    git checkout -b dev-"YOUR NAME"
+```
+
+## **Processus pour lier un thème github sur shopify**
+> Connecter son compte github au compte shopify
+- Ajouter un thème
+- Se connecter depuis github
+- Créer un thème à partir d’une branche du répo souhaitée
+    
+
+Autoriser Shopify à accéder au contenu du répo Github : 
+- Tout d’abord il faut aller sur les paramètres de son compte github
+- Ensuite il faut aller dans la partie Intégration > application
+- Donner les accès sur le répo qui contient le thème que l’on souhaite lier
