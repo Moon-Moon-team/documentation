@@ -1,0 +1,158 @@
+# Images
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+---
+
+## Workshop Images Shopify
+
+### Principes rapides
+
+- Uploadez des visuels en 2x par rapport à la plus grande taille d’affichage prévue (nettement meilleur rendu sur écrans haute densité).
+- N’uploadez pas d’images déjà sur-optimisées : laissez Shopify générer les variantes adaptées (`img_url`, `image_url`).
+- Vérifiez vos `srcset`/`sizes` avec l’extension Chrome « responsive image linter ».
+
+### Quand utiliser `<picture>` ?
+
+- Pour l’“art direction” : afficher un visuel différent sur mobile vs desktop.
+- Ne pas dupliquer deux `<img>` cachées (mobile/desktop) : les deux seraient téléchargées par tous.
+
+#### Exemple `<picture>` prêt pour Liquid
+
+```liquid
+<picture>
+  <source
+    media="(min-width: 800px)"
+    srcset="
+      {{ section.settings.image_desktop | image_url: width: 600 }} 600w,
+      {{ section.settings.image_desktop | image_url: width: 1200 }} 1200w">
+
+  {{ section.settings.image_mobile
+    | image_url: width: 900
+    | image_tag:
+      widths: "300, 600, 900",
+      sizes: "(max-width: 320px) 280px, (max-width: 640px) 580px, 1000px" }}
+</picture>
+```
+
+### Ajouter des attributs avancés avec `capture`
+
+```liquid
+{% capture source %}
+  {{ section.settings.image_desktop
+    | image_url: width: 1500
+    | image_tag: sizes: "...", widths: "700, 1400" }}
+{% endcapture %}
+
+<picture>
+  {{ source | replace: "<img", "<source media=\"(min-width: 800px)\"" }}
+  {{ section.settings.image_mobile
+    | image_url: width: 1500
+    | image_tag: sizes: "...", widths: "330, 660", alt: section.settings.image.alt | escape }}
+</picture>
+```
+
+### Limiter la taille et le DPR
+
+- N’upload pas d’images gigantesques : viser au plus 2× la largeur d’affichage max (surtout pour pages peu fréquentées).
+- Les mobiles hautes densités (3×) peuvent tirer des fichiers énormes : utilisez `<picture>` pour “caper” le DPR (candidats `srcset` limités à 2× ou 3×, inutile d’inclure 1× si jamais utilisé).
+- Selon le besoin, envisager les descripteurs en `x` plutôt qu’en `w`.
+
+### Lazy loading et priorité
+
+- Pas de lazy loading au-dessus de la ligne de flottaison. Par défaut, `image_tag` active `loading="lazy"` plus bas dans la page.
+- Pour l’image LCP, ajustez `fetchpriority` via `section.index`.
+
+```liquid
+{%- liquid
+  assign fetchpriority = "auto"
+  if section.index == 1
+    assign fetchpriority = "high"
+  endif
+-%}
+
+{{ section.settings.image
+  | image_url: width: 1080
+  | image_tag: fetchpriority: fetchpriority }}
+```
+
+- Pensez aussi au préchargement des polices (`<link rel="preload" as="font" crossorigin>`).
+- Ressources utiles : [debug causes de lenteur](https://performance.shopify.com/blogs/blog/debugging-common-causes-for-slow-loading-in-shopify-liquid-storefronts), [tests WebPageTest](https://performance.shopify.com/blogs/blog/how-to-test-with-webpagetest), [fallbacks](https://screenspan.net/fallback), [Guide haute densité](https://jakearchibald.com/2021/serving-sharp-images-to-high-density-screens/), [Priorité de chargement (`fetchpriority`)](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/fetchPriority).
+
+---
+
+## Utiliser le filtre `image_tag`
+
+`image_tag` génère une balise `<img>` à partir d’un `image_url`. Par défaut, il ajoute `width` et `height` d’après l’URL. Vous pouvez les surcharger (ou les retirer avec `nil`).
+
+```liquid
+{{ product | image_url: width: 200 | image_tag }}
+```
+
+Sortie :
+
+```html
+<img src="//.../science-beakers-blue-light-new.jpg?v=1683744744&width=200"
+     alt="Health potion"
+     srcset="//.../science-beakers-blue-light-new.jpg?v=1683744744&width=200 200w"
+     width="200" height="133">
+```
+
+### Lazy loading
+
+- Sans `preload`, `loading="lazy"` est appliqué plus bas dans la page. Ne pas l’utiliser pour les visuels above the fold ; ajustez avec `section.index`/`section.location` si besoin.
+
+### Focal point automatique
+
+Si un point focal existe, `image_tag` applique `object-position` automatiquement. Accès direct possible via `focal_point`.
+
+```liquid
+{{ images['potions-header.png'] | image_url: width: 300 | image_tag }}
+```
+
+### Paramètres utiles
+
+- `width` / `height` : force l’attribut (ou le retire avec `nil`).
+
+```liquid
+<!-- largeur fixée -->
+{{ product | image_url: width: 400 | image_tag: width: 300 }}
+
+<!-- sans largeur -->
+{{ product | image_url: width: 400 | image_tag: width: nil }}
+```
+
+- `sizes` : définit l’attribut HTML `sizes`.
+
+```liquid
+{{ product | image_url: width: 200
+  | image_tag: sizes: "(min-width:1600px) 960px, (min-width: 750px) calc((100vw - 11.5rem) / 2), calc(100vw - 4rem)" }}
+```
+
+- `widths` : liste personnalisée pour générer le `srcset`.
+
+```liquid
+{{ product | image_url: width: 600 | image_tag: widths: "200, 300, 400" }}
+```
+
+- `srcset` : écrase le `srcset` généré (ou le supprime avec `nil`).
+
+```liquid
+{{ product | image_url: width: 200 | image_tag: srcset: nil }}
+```
+
+- `preload` : envoie un hint HTTP `Link: ...; rel=preload; as=image` (à réserver aux visuels critiques).
+
+- `alt` : surcharge le texte alternatif.
+
+```liquid
+{{ product | image_url: width: 200 | image_tag: alt: "Texte alternatif" }}
+```
+
+- Attributs HTML arbitraires : passez-les comme paramètres (`class`, `loading`, etc.).
+
+```liquid
+{{ product | image_url: width: 200 | image_tag: class: "custom-class", loading: "lazy" }}
+```
