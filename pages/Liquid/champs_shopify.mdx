@@ -1,3 +1,74 @@
 # Les différents types de champs (schema)
 
-Work in progress !
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+***
+
+Cette page récapitule les principaux types de champs utilisables dans le `schema` d’une section ou d’un bloc de thème Shopify. Ces champs apparaissent dans l’éditeur de thème et permettent de rendre vos sections configurables par un marchand.
+
+## Champs texte et contenu
+
+- `text` : champ texte court.
+- `textarea` : texte multi-ligne.
+- `richtext` : éditeur riche (gras, liens, listes).
+- `inline_richtext` : texte riche inline, pratique pour de petites portions de contenu.
+- `html` : contenu HTML libre.
+- `liquid` : insère du Liquid (utile mais à réserver aux besoins avancés).
+
+## Sélecteurs et contrôles
+
+- `select` / `radio` : choix unique parmi des options.
+- `checkbox` : booléen.
+- `number` : valeur numérique.
+- `range` : curseur avec `min`, `max`, `step`, `unit`.
+- `url` : URL avec validation.
+
+## Couleur et médias
+
+- `color` ou `color_background` : sélection d’une couleur ou d’un dégradé.
+- `image_picker` : sélection d’une image de la bibliothèque.
+- `video` / `video_url` : vidéo stockée ou URL (YouTube, Vimeo).
+- `file` : fichier statique (PDF, SVG, etc.).
+
+## Ressources Shopify
+
+- `product`, `product_list`
+- `collection`, `collection_list`
+- `blog`, `article`
+- `page`
+- `link_list`
+- `font_picker` : choix d’une police déclarée.
+
+## Exemple de schema avec plusieurs types
+
+```json
+{
+  "name": "Bannière héro",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Titre" },
+    { "type": "inline_richtext", "id": "subtitle", "label": "Sous-titre" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "color_background", "id": "background", "label": "Arrière-plan" },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignement",
+      "options": [
+        { "value": "left", "label": "Gauche" },
+        { "value": "center", "label": "Centre" },
+        { "value": "right", "label": "Droite" }
+      ],
+      "default": "center"
+    },
+    { "type": "checkbox", "id": "show_cta", "label": "Afficher le bouton" },
+    { "type": "url", "id": "cta_url", "label": "Lien du bouton" }
+  ]
+}
+```
+
+## Conseils rapides
+- Pensez à définir des valeurs `default` et des `info` pour guider le marchand.
+- Testez toujours vos paramètres dans l’éditeur de thème pour vérifier le rendu.

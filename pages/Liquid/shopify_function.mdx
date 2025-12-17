@@ -1,0 +1,29 @@
+# Shopify fonction
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+***
+
+1. Créer un dossier en local
+2. Ouvrir le dossier dans VsCode et lancer un terminal :
+    ```ruby
+        npm init @shopify/app@latest
+    ```
+3. Donner un nom à l’app puis choisir ‘start with remix’
+4. Aller dans le dossier de l’app avec un ‘cd’
+5. Installer l’app sur le store de dev :
+    ```ruby
+        npm run dev
+    ```
+6. Générer une extension depuis l’app :
+    ```ruby
+        npm run shopify app generate extension
+    ```
+7. Choisir le type d’extension à construire, puis la nommer et choisir le langage de dev
+8. Aller dans le dossier extensions/nom-de-l-extension avec un ‘cd’
+9. Modifier le GraphQL selon les besoins, puis regénérer les types :
+    ```ruby
+        npm run shopify app function typegen
+    ```

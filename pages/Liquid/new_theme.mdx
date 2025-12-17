@@ -1,0 +1,29 @@
+# Création d'un nouveau thème
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+---
+
+1. Install Shopify CLI for windows : https://shopify.dev/themes/tools/cli/installation
+2. Go to new local repo and "theme init" (PowerShell)
+3. Go to github and create a new repo (same name as theme name)
+4. Go to console and type :
+    
+    ```jsx
+    git init
+    git add .
+    git commit -m "first commit"
+    
+    git remote add origin https://github.com/thbrillet/nom-du-theme.git
+    git push -u origin main
+    ```
+    
+5. Go to shopify/partners → back office of the Shopify, then "add a theme" and "connect to github"
+6. Go to console and type :
+    
+    ```jsx
+    shopify login --store https://nom-du-theme.myshopify.com/admin
+    shopify theme serve
+    ```

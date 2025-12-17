@@ -1,0 +1,55 @@
+# Snippets
+
+<div align="right">
+    MAJ Conf 2025
+</div>
+
+---
+
+## Overview
+
+Les snippets sont des morceaux de code Liquid réutilisables qui permettent de garder de la cohérence et de réduire la duplication dans un thème. Ils encapsulent une logique ou un balisage complexe dans un fichier distinct, appelable partout dans le thème.
+
+Contrairement aux sections et aux blocs, les snippets sont invisibles pour les marchands dans l’éditeur de thème. Ils sont idéaux pour les éléments répétés : cartes produit, navigation, formulaires, etc.
+
+---
+
+## Utiliser un snippet
+
+Employez la balise `render` pour référencer un snippet et lui passer des paramètres nommés.
+
+```
+{% render 'product-card',
+  product: product,
+  show_price: true,
+  max_description_length: 120
+%}
+```
+
+Pour d’autres options de passage de données, consultez la documentation des paramètres de `render`.
+
+---
+
+## Portée des variables
+
+- Depuis un snippet, on peut accéder aux objets globaux (`product`, `collection`, `section`, etc.).
+- On reçoit les variables explicitement passées en paramètres via `render`.
+- Les variables créées à l’intérieur d’un snippet restent locales et ne sont pas accessibles à l’extérieur.
+
+---
+
+## Documenter un snippet avec LiquidDoc
+
+LiquidDoc offre un moyen structuré d’ajouter de la documentation directement dans vos snippets. Cette doc s’intègre aux outils de développement pour fournir feedback en temps réel, validation des paramètres et complétion.
+
+```
+{% doc %}
+  Product card snippet
+
+  @param {string} title - Titre à afficher
+  @param {number} [max_items] - Nombre maximum d’éléments à montrer
+  @example
+  
+  {% render 'example-snippet', title: 'Featured Products', max_items: 3 %}
+{% enddoc %}
+```
