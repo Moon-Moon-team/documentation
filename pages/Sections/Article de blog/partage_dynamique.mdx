@@ -1,0 +1,40 @@
+# Partage Dynamique
+
+***
+
+## **Liens de partage d'articles**
+Générer les liens : https://www.sharelinkgenerator.com/
+```html
+    <!-- Facebook -->
+    <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//{{ shop.url }}/{{ article.url }}" target="blank">
+    
+    <!-- Twitter -->
+    <a href="https://twitter.com/intent/tweet?text=https%3A//{{ shop.url }}/{{ article.url }}" target="blank">
+
+    <!-- Pinterest -->
+    <a href="https://pinterest.com/pin/create/button/?url=https%3A//{{ shop.url }}/{{ article.url }}&media={{ article.image | img_url: "600x" }}&description=" target="blank">
+```
+
+## **Lien de partage dynamique**
+Web Share API : https://w3c.github.io/web-share/
+```javascript
+    <script>
+        function mmShareArticle() {
+            var shareButton = document.querySelector('.mm-article-sharing-elem-js');
+            
+            shareButton.addEventListener("click", async () => {
+            try {
+                await navigator.share({ title: "Example Page", url: "" });
+                console.log("Data was shared successfully");
+            } catch (err) {
+                console.error("Share failed:", err.message);
+            }
+            });
+        }
+        
+        window.addEventListener("DOMContentLoaded", (event) => {
+            mmShareArticle();
+        });
+    </script>
+```
+
