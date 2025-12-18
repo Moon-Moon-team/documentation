@@ -1,0 +1,71 @@
+# Slider avec l'app instafeed
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+***
+
+```javascript
+/* Script mm-scroll-grab-instafeed.js */ 
+document.addEventListener("DOMContentLoaded", () => {
+    waitForElement();
+});
+
+/* L'apps instafeed chargent les images à la fin de la page du coup on check si les items on été 
+créé + ajout timer avant de lancer la fonction*/
+function waitForElement(){
+    if(document.querySelector("#insta-feed>div") != null){
+        mmScroll()
+    }
+    else{
+        setTimeout(waitForElement, 2000);
+    }
+}
+function mmScroll() {
+    var slider = document.querySelector("#insta-feed>div");
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    slider.addEventListener("mousedown", (e) => {
+        isDown = true;
+        slider.classList.add("active");
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+    });
+    slider.addEventListener("mouseleave", () => {
+        isDown = false;
+        slider.classList.remove("active");
+    });
+    slider.addEventListener("mouseup", () => {
+        isDown = false;
+        slider.classList.remove("active");
+    });
+    slider.addEventListener("mousemove", (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 3; //scroll-fast
+        slider.scrollLeft = scrollLeft - walk;
+    });
+}
+```
+
+
+```liquid
+{{ 'mm-instafeed.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'mm-scroll-grab.js' | asset_url }}" async></script>
+
+<div class="mm-section-{{ section.id }} mm-instafeed-section">
+    <div class="mm-instafeed-header mm-flex mm-justify-between">
+        <h3 class="mm-0">{{ section.settings.title | upcase  }}</h3>
+        <div class="mm-0 mm-technic-fields">{{ section.settings.subtitle | upcase }}</div>
+    </div>
+    <div class="mm-instafeed">
+        <div id="insta-feed"></div>
+    </div>
+</div>
+```
+
+Exemple sur le site Coral Gardener

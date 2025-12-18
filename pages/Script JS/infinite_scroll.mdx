@@ -1,0 +1,103 @@
+# Infinite scroll
+
+<div align="right">
+    MAJ Conf 2024
+</div>
+
+***
+
+## Fonctionnalités
+
+- **Aucune dépendance** - Fonctionne sans bibliothèques externes
+- **Défilement infini** - Faites défiler jusqu'en bas du contenu pour charger la page suivante
+- **Clic infini** - Comme le défilement infini mais avec un clic sur un lien pour charger les pages suivantes
+- **Dégradation gracieuse** - Fonctionne correctement même lorsque JavaScript n'est pas disponible
+- **Compatible Shopify** - Nous l'utilisons principalement sur Shopify mais il peut fonctionner sur n'importe quel site
+
+## Démarrage
+
+### Étape 1 : Ajouter le fichier JavaScript
+
+Ajoutez `ajaxinate.min.js` au dossier `assets` de votre thème Shopify, ou ajoutez-le à vos fichiers vendor si vous utilisez Slate.
+
+### Étape 2 : Charger le script
+
+Ajoutez `ajaxinate.min.js` avant la balise de fermeture `</body>` ou differez son chargement :
+
+```liquid
+{{ 'ajaxinate.min.js' | asset_url | script_tag }}
+```
+
+### Étape 3 : Configurer votre template
+
+Configurez votre template de collection ou de blog, par exemple :
+
+```liquid showLineNumbers
+{% paginate collection.products by 3 %}
+
+    <div id="AjaxinateLoop">
+      {% for product in collection.products %}
+        {% include 'product-grid-item' %}
+      {% endfor %}
+    </div>
+
+    <div id="AjaxinatePagination">
+      {% if paginate.next %}
+        <a href="{{ paginate.next.url }}">Charger plus</a>
+      {% endif %}
+    </div>
+
+{% endpaginate %}
+```
+
+### Étape 4 : Initialiser Ajaxinate
+
+Initialisez-le dans votre fichier de script ou en ligne :
+
+```javascript
+document.addEventListener("DOMContentLoaded", function() {
+  var endlessScroll = new Ajaxinate();
+});
+```
+
+## Paramètres
+
+Si vous souhaitez changer les noms des sélecteurs, vous pouvez les passer avec les paramètres suivants.
+
+Par exemple :
+
+```javascript
+document.addEventListener("DOMContentLoaded", function() {
+  var endlessScroll = new Ajaxinate({
+    container: '#AjaxinateLoop',
+    pagination: '#AjaxinatePagination'
+  });
+});
+```
+
+| Option | Par défaut | Type | Description |
+|--------|------------|------|-------------|
+| `pagination` | `#AjaxinatePagination` | String | Un sélecteur pour identifier le conteneur de pagination. |
+| `container` | `#AjaxinateLoop` | String | Un sélecteur pour identifier la grille que vous souhaitez dupliquer. |
+| `method` | `scroll` | String | Peut être changé en `click` pour que les utilisateurs doivent cliquer pour charger plus. |
+| `offset` | `0` | Integer | Diminue la distance requise pour faire défiler avant d'envoyer une requête. |
+| `loadingText` | `Loading` | String | Change le texte du lien de pagination pendant une requête. |
+| `callback` | `null` | Function | Une fonction déclenchée après le chargement de la nouvelle page. |
+
+## Méthodes
+
+### `.destroy()`
+
+**Description :** Arrête Ajaxinate et supprime les écouteurs d'événements
+
+```javascript
+// Créer une nouvelle instance ajaxinate
+const endlessCollection = new Ajaxinate();
+
+// Détruire l'instance
+endlessCollection.destroy();
+```
+
+## Ressources
+
+Pour plus d'informations et le tutoriel d'installation complet (2 min), consultez : [https://minionmade.github.io/scrollify/](https://minionmade.github.io/scrollify/)
