@@ -1,0 +1,82 @@
+# CTA Sticky en mobile
+
+***
+
+## CSS
+
+```css
+@media(max-width:768px) {
+  .mm-cta-sticky {
+    display: block;
+    background-color: white;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    z-index: 3;
+    padding-left: 2%;
+    padding-right: 2%;
+    padding-top: 12px;
+    max-width: none;
+  }
+}
+```
+
+## JavaScript
+
+```jsx
+if (window.screen.width < 768) {
+  // STICKY CTA DISPLAY ONLY WHEN SCROLL AFTER TRUE CTA
+  var derniere_position_de_scroll_connue = 0;
+  var ticking = false;
+  var CTA = document.querySelector('.mm-bg-js-product-add');
+
+  function faireQuelqueChose(position_scroll) {
+    if (position_scroll > 400) {
+      CTA.classList.add('mm-cta-sticky');
+    } else {
+      CTA.classList.remove('mm-cta-sticky');    
+    }
+  }
+
+  window.addEventListener('scroll', function(e) {
+    derniere_position_de_scroll_connue = window.scrollY;
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          faireQuelqueChose(derniere_position_de_scroll_connue);
+          ticking = false;
+        });
+      }
+
+    ticking = true;
+  });
+}
+```
+
+## Explication
+
+Ce système crée un CTA (Call To Action) sticky qui apparaît uniquement sur mobile après un certain scroll :
+
+1. **CSS** :
+   - S'applique uniquement sur les écrans de moins de 768px
+   - Positionne le CTA en bas de l'écran avec `position: fixed`
+   - Ajoute une ombre pour le faire ressortir
+   - Style avec padding et background blanc
+
+2. **JavaScript** :
+   - Vérifie d'abord si l'écran est mobile (`window.screen.width < 768`)
+   - Utilise `requestAnimationFrame` pour optimiser les performances du scroll
+   - Ajoute la classe `mm-cta-sticky` quand le scroll dépasse 400px
+   - Retire la classe quand l'utilisateur remonte en haut de la page
+
+## Utilisation
+
+Parfait pour afficher un bouton d'ajout au panier ou un CTA important qui reste visible en bas de l'écran sur mobile, améliorant ainsi l'expérience utilisateur et les conversions.
+
+## Notes
+
+- Le sélecteur `.mm-bg-js-product-add` doit correspondre à votre élément CTA
+- Le seuil de 400px peut être ajusté selon vos besoins
+- La classe `mm-cta-sticky` est ajoutée/retirée dynamiquement selon la position du scroll
+

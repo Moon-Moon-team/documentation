@@ -1,0 +1,521 @@
+# Formation onboarding dev Shopify Liquid
+
+***
+
+## 1. Le système de sections de Shopify
+
+### Expliquer le système de sections de Shopify
+
+Les sections sont des composants modulaires et réutilisables qui permettent de construire les pages de votre boutique Shopify. Chaque section peut être ajoutée, supprimée et réorganisée directement depuis l'éditeur de thème, sans avoir besoin de modifier le code.
+
+### Présenter la personnalisation du thème
+
+La personnalisation du thème se fait via l'éditeur de thème Shopify, accessible depuis l'admin. Cet éditeur permet de :
+- Ajouter et supprimer des sections
+- Réorganiser les sections par glisser-déposer
+- Personnaliser le contenu et les styles de chaque section
+- Prévisualiser les changements en temps réel
+
+### Architecture front/back
+
+Le thème représente le **front** (templates codés en HTML/CSS), et communique avec le **back-office** grâce au **Liquid** (+ API JS) :
+
+- **Front** : HTML, CSS, JavaScript pour l'affichage visuel
+- **Liquid** : Langage de templating qui permet d'injecter des données du back-office dans le HTML
+- **API JS** : Permet d'interagir dynamiquement avec Shopify (panier, produits, etc.)
+
+## 2. Créer sa première section
+
+### Présenter la structure des fichiers de code du thème
+
+La structure d'un thème Shopify suit cette organisation :
+
+```
+theme/
+├── assets/          # CSS, JS, images
+├── config/          # Fichiers de configuration
+├── layout/          # Templates de mise en page (theme.liquid)
+├── locales/         # Fichiers de traduction
+├── sections/        # Sections réutilisables
+├── snippets/        # Composants réutilisables
+└── templates/       # Templates de pages
+```
+
+### Récupérer la structure dans Notion
+
+Consultez la documentation Notion pour récupérer la structure de base d'une section.
+
+### Créer du contenu simple en HTML et intégrer le CSS
+
+1. Créez un nouveau fichier dans `sections/` (ex: `ma-premiere-section.liquid`)
+2. Ajoutez du HTML simple
+3. Intégrez le CSS directement dans la section ou via un fichier externe
+4. Ajoutez le schema de base pour que la section apparaisse dans l'éditeur
+
+### Retrouver sa section dans la custo du thème
+
+Une fois la section créée avec son schema, elle apparaîtra automatiquement dans l'éditeur de thème sous "Sections" → "Ajouter une section".
+
+## 3. Créer de l'interactivité grâce au schema et à liquid
+
+### Créer un premier champ texte dans le schema
+
+Dans le schema de votre section, ajoutez un champ texte :
+
+```json
+{
+  "type": "text",
+  "id": "titre",
+  "label": "Titre",
+  "default": "Mon titre"
+}
+```
+
+### Créer le tag liquid dans le HTML pour retrouver la valeur
+
+Dans votre HTML, utilisez le tag liquid pour afficher la valeur :
+
+```liquid
+<h1>{{ section.settings.titre }}</h1>
+```
+
+### Ajouter le contenu depuis la custo du thème
+
+1. Ouvrez l'éditeur de thème
+2. Sélectionnez votre section
+3. Modifiez le champ "Titre" dans la barre latérale
+4. Voyez le contenu se mettre à jour en direct dans l'aperçu
+
+### Présenter les autres types de champs les plus utilisés
+
+**Input settings** : [Documentation](https://shopify.dev/themes/architecture/settings/input-settings)
+
+Types de champs disponibles :
+- `text` : Champ texte simple
+- `textarea` : Zone de texte multiligne
+- `richtext` : Éditeur de texte riche
+- `html` : Code HTML
+- `number` : Nombre
+- `range` : Curseur pour sélectionner une valeur
+- `color` : Sélecteur de couleur
+- `url` : URL
+- `image_picker` : Sélecteur d'image
+- `product` : Sélection de produit
+- `collection` : Sélection de collection
+- `blog` : Sélection de blog
+- `article` : Sélection d'article
+- `link_list` : Sélection de menu
+- `checkbox` : Case à cocher
+- `radio` : Boutons radio
+- `select` : Liste déroulante
+
+**Sidebar settings** : [Documentation](https://shopify.dev/themes/architecture/settings/sidebar-settings)
+
+### Exercice : Créer sa première section interactive avec Shopify
+
+Créer une section simple **Hero Banner** avec les champs suivants :
+
+- `<img>` : Image de fond
+- `<h1>` : Titre principal
+- `<h2>` : Sous-titre
+- `<p>` : Texte descriptif
+- `<a>` : Bouton CTA
+
+## 4. Mettre en place le fichier CSS global Moon Moon
+
+### Intégrer le fichier CSS
+
+1. Récupérez le fichier CSS sur Notion
+2. Créez un fichier `mm-global.css` dans le dossier `assets/`
+3. Liez-le dans `theme.liquid` :
+
+```liquid
+{{ 'mm-global.css' | asset_url | stylesheet_tag }}
+```
+
+### Bien comprendre les classes générales
+
+Le système de classes Moon Moon suit une convention de nommage cohérente :
+- Classes utilitaires pour l'espacement
+- Classes pour les grilles et flexbox
+- Classes pour les typographies
+- Classes pour les boutons et composants
+
+### Révision Flexbox + CSS Grid
+
+**Flexbox** : Pour les layouts unidimensionnels (ligne ou colonne)
+- `display: flex`
+- `justify-content`, `align-items`
+- `flex-direction`, `flex-wrap`
+
+**CSS Grid** : Pour les layouts bidimensionnels
+- `display: grid`
+- `grid-template-columns`, `grid-template-rows`
+- `grid-gap`, `grid-area`
+
+### Utiliser les variables CSS du thème
+
+Les variables CSS permettent de centraliser les valeurs (couleurs, tailles, etc.) :
+
+```css
+:root {
+  --primary-color: #000;
+  --secondary-color: #fff;
+  --font-size-base: 16px;
+}
+
+.element {
+  color: var(--primary-color);
+  font-size: var(--font-size-base);
+}
+```
+
+### Importer des fonts custom
+
+Dans `theme.liquid` ou dans votre CSS :
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=YourFont:wght@400;700&display=swap');
+
+body {
+  font-family: 'YourFont', sans-serif;
+}
+```
+
+### Exercice : Refactoriser la section avec les classes Moon Moon
+
+1. Refactoriser la section Hero Banner avec les classes Moon Moon
+2. Changer le bouton → mettre 2 boutons côte à côte avec `.mm-btn-dual`
+
+## 5. Le système de blocs
+
+### C'est quoi les blocs ?
+
+Les blocs sont des éléments répétables à l'intérieur d'une section. Ils permettent de créer du contenu dynamique et répétable directement depuis l'éditeur de thème.
+
+### Montrer dans le schema
+
+Dans le schema, les blocs sont définis dans un tableau `blocks` :
+
+```json
+{
+  "blocks": [
+    {
+      "type": "avis",
+      "name": "Avis client",
+      "settings": [
+        {
+          "type": "text",
+          "id": "nom",
+          "label": "Nom du client"
+        },
+        {
+          "type": "richtext",
+          "id": "avis",
+          "label": "Avis"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Forloop pour loop sur les blocks
+
+Dans le HTML, utilisez une boucle `for` pour itérer sur les blocs :
+
+```liquid
+{% for block in section.blocks %}
+  <div class="avis-card">
+    <h3>{{ block.settings.nom }}</h3>
+    <div>{{ block.settings.avis }}</div>
+  </div>
+{% endfor %}
+```
+
+### Exercice : Créer une section avec système de blocs simple
+
+Créer une section **Avis clients** :
+
+1. Créer la section avec GRID CSS
+2. Coder la card d'avis (pas en snippet)
+3. Itérer sur les blocks pour afficher plusieurs avis
+
+## 6. Aller plus loin avec liquid 2.0
+
+### Les objets liquid
+
+Les objets Liquid sont des structures de données qui contiennent des informations sur votre boutique, produits, collections, etc.
+
+**Documentation** : [Liquid objects](https://shopify.dev/api/liquid/objects)
+
+Objets principaux :
+- `shop` : Informations sur la boutique
+- `product` : Informations sur un produit
+- `collection` : Informations sur une collection
+- `cart` : Contenu du panier
+- `customer` : Informations sur le client connecté
+- `page` : Informations sur une page
+- `article` : Informations sur un article de blog
+
+### Livecode avec différents objets
+
+**Product** :
+```liquid
+<h1>{{ product.title }}</h1>
+<p>{{ product.price | money }}</p>
+<img src="{{ product.featured_image | img_url: 'large' }}" alt="{{ product.title }}">
+```
+
+**Collection** (loop sur les produits) :
+```liquid
+{% for product in collection.products %}
+  <div class="product-card">
+    <h2>{{ product.title }}</h2>
+    <p>{{ product.price | money }}</p>
+  </div>
+{% endfor %}
+```
+
+### Opérateurs logiques
+
+**Cheat Sheet** : [Documentation](http://cheat.markdunkley.com/)
+
+Opérateurs principaux :
+- `==` : Égalité
+- `!=` : Différence
+- `>` : Supérieur
+- `<` : Inférieur
+- `>=` : Supérieur ou égal
+- `<=` : Inférieur ou égal
+- `and` : ET logique
+- `or` : OU logique
+- `contains` : Contient
+
+### Livecode avec opérateurs
+
+```liquid
+{% assign collectionSize = collection.products.size %}
+{% unless collectionSize == 0 %}
+  {{ collectionSize }} PRODUIT{% if collectionSize > 1 %}S{% endif %}
+{% endunless %}
+```
+
+### Exercice : Créer une section "Nos produits"
+
+1. Itération sur `collection.products`
+2. Créer un snippet `mm-product-card.liquid`
+3. Afficher certains tags produit sur les cards
+
+## 7. Le système blocs avancés
+
+### Exemple de la possibilité de choisir entre plusieurs types de blocs
+
+Dans Dawn, vous pouvez créer plusieurs types de blocs dans une même section. Chaque type de bloc peut avoir ses propres settings.
+
+### Montrer le code schema
+
+```json
+{
+  "blocks": [
+    {
+      "type": "titre",
+      "name": "Titre",
+      "settings": [
+        {
+          "type": "text",
+          "id": "texte",
+          "label": "Texte du titre"
+        }
+      ]
+    },
+    {
+      "type": "texte",
+      "name": "Texte",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "contenu",
+          "label": "Contenu"
+        }
+      ]
+    },
+    {
+      "type": "bouton",
+      "name": "Bouton",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label du bouton"
+        },
+        {
+          "type": "url",
+          "id": "lien",
+          "label": "Lien"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Montrer ensuite le code HTML + Liquid
+
+```liquid
+{% for block in section.blocks %}
+  {% case block.type %}
+    {% when 'titre' %}
+      <h2>{{ block.settings.texte }}</h2>
+    {% when 'texte' %}
+      <div>{{ block.settings.contenu }}</div>
+    {% when 'bouton' %}
+      <a href="{{ block.settings.lien }}" class="btn">
+        {{ block.settings.label }}
+      </a>
+  {% endcase %}
+{% endfor %}
+```
+
+### Créer une section en livecode pour tester
+
+Créer une section avec plusieurs types de blocs et tester l'ajout/retrait de blocs depuis l'éditeur.
+
+### Exercice : Créer une section avec système de blocs avancés
+
+Créer une section **Texte + Image** avec les blocks suivants :
+
+- **Titre** : Champ texte pour le titre
+- **Texte** : Zone de texte riche pour le contenu
+- **Bouton** : Label + URL pour le bouton CTA
+
+## 8. Intégrer un slider (splide.js)
+
+### Importer Splide à theme.liquid
+
+Dans le `<head>` de `theme.liquid` :
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/css/splide.min.css">
+```
+
+À la fin du `<body>` :
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.js"></script>
+```
+
+### Paramétrer Splide sur la section (HTML + JS)
+
+**HTML** :
+```html
+<div class="splide">
+  <div class="splide__track">
+    <ul class="splide__list">
+      <li class="splide__slide">Slide 1</li>
+      <li class="splide__slide">Slide 2</li>
+      <li class="splide__slide">Slide 3</li>
+    </ul>
+  </div>
+</div>
+```
+
+**JavaScript** :
+```jsx
+document.addEventListener('DOMContentLoaded', function() {
+  new Splide('.splide', {
+    type: 'loop',
+    perPage: 3,
+    gap: '20px',
+    arrows: true,
+    pagination: true
+  }).mount();
+});
+```
+
+### Voir les différentes options de Splide
+
+Options principales :
+- `type` : Type de slider (`slide`, `loop`, `fade`)
+- `perPage` : Nombre de slides visibles
+- `gap` : Espacement entre les slides
+- `arrows` : Afficher les flèches
+- `pagination` : Afficher les points de pagination
+- `autoplay` : Lecture automatique
+- `breakpoints` : Configuration responsive
+
+### Créer un slider de produits
+
+Combiner Splide avec une boucle sur les produits :
+
+```liquid
+<div class="splide">
+  <div class="splide__track">
+    <ul class="splide__list">
+      {% for product in collection.products %}
+        <li class="splide__slide">
+          {% render 'mm-product-card', product: product %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+```
+
+### Exercice : Créer une section slider avec Splide
+
+Créer une section **Slider texte + image** avec Splide.js.
+
+## 9. Ajouter de l'information aux objets grâce aux metafields
+
+### C'est quoi un metafield ?
+
+Les metafields sont des champs personnalisés qui permettent d'ajouter des données supplémentaires aux objets Shopify (produits, collections, clients, commandes, etc.) sans modifier la structure de base.
+
+### Template vs Metafield vs Tags
+
+- **Template** : Structure de page prédéfinie (page produit, collection, etc.)
+- **Metafield** : Données personnalisées attachées à un objet spécifique
+- **Tags** : Étiquettes simples pour organiser et filtrer les objets
+
+### Créer des metafields
+
+1. Allez dans **Paramètres** → **Metafields**
+2. Choisissez le type d'objet (Produit, Collection, etc.)
+3. Créez un nouveau metafield avec :
+   - Nom et description
+   - Type de données (texte, nombre, image, etc.)
+   - Namespace et clé
+
+### Les appeler dans le thème (et conditionner leur affichage)
+
+**Syntaxe de base** :
+```liquid
+{{ product.metafields.namespace.key }}
+```
+
+**Exemple** :
+```liquid
+{% if product.metafields.custom.ingredients %}
+  <div class="ingredients">
+    <h3>Ingrédients</h3>
+    <p>{{ product.metafields.custom.ingredients }}</p>
+  </div>
+{% endif %}
+```
+
+**Avec condition** :
+```liquid
+{% assign customBadge = product.metafields.custom.badge %}
+{% if customBadge != blank %}
+  <span class="badge">{{ customBadge }}</span>
+{% endif %}
+```
+
+### Bonnes pratiques
+
+1. Toujours vérifier que le metafield existe avant de l'afficher
+2. Utiliser des namespaces cohérents (ex: `custom`, `theme`, etc.)
+3. Documenter les metafields utilisés dans le thème
+4. Utiliser les types de données appropriés (texte, nombre, image, etc.)
+

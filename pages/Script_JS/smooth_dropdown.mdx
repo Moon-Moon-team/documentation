@@ -1,0 +1,118 @@
+# Smooth Dropdown
+
+***
+
+## HTML
+
+```html
+<!-- Questions -->
+<div class="mm-faq-content mm-section-sm">
+    {% for block in section.blocks %}
+        <div class="mm-faq-container">
+            <div class="mm-faq-collapsible">
+                <p class="mm-faq-question mm-p-big mm-bold mm-0">{{ block.settings.question }}</p>
+            </div>
+            <div class="mm-faq-text mm-0 mm-p-sm">{{ block.settings.text }}</div>
+        </div>
+    {% endfor %}
+</div>
+```
+
+## JavaScript
+
+```jsx
+const faqColl = document.querySelectorAll('.mm-faq-collapsible');
+let q;
+
+for (q = 0; q < faqColl.length; q++) {
+    faqColl[q].addEventListener('click', function () {
+        this.classList.toggle('active');
+
+        const content = this.nextElementSibling;
+
+        if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+        } else {
+            content.style.maxHeight = content.scrollHeight + 'px';
+        }
+    });
+}
+```
+
+## CSS
+
+```css
+.mm-faq-container {
+    border-bottom: 1px solid var(--cream);
+    margin-block: 2rem;
+}
+
+.mm-faq-container:first-child {
+    margin-top: 0;
+}
+
+.mm-faq-container:last-child {
+    border: none;
+}
+
+.mm-faq-collapsible {
+    cursor: pointer;
+}
+
+.mm-faq-question {
+    text-transform: uppercase;
+    padding-inline: 16px;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.mm-faq-question:after {
+    content: '+';
+    font-size: 23px;
+    color: var(--green);
+    float: right;
+}
+
+.mm-faq-collapsible.active .mm-faq-question:after {
+    content: '-';
+    font-size: 23px;
+    margin-right: 0.2rem;
+}
+
+.mm-faq-text {
+    padding-top: 1.5rem;
+    padding-inline: 16px;
+    max-height: 0;
+    overflow: hidden;
+    line-height: 16px;
+    transition: max-height 0.3s ease-out;
+}
+
+.mm-faq-collapsible.active + .mm-faq-text {
+    padding-bottom: 2rem;
+}
+
+.mm-faq-text p {
+    line-height: 16px;
+}
+```
+
+## Explication
+
+Ce système de dropdown smooth permet de créer des sections FAQ (ou tout autre contenu pliable) avec une animation fluide :
+
+1. **Structure HTML** : Utilise des blocs Shopify pour créer dynamiquement les questions/réponses
+2. **JavaScript** : 
+   - Ajoute un écouteur d'événement sur chaque élément collapsible
+   - Toggle la classe `active` au clic
+   - Ajuste dynamiquement la `maxHeight` pour créer l'animation
+3. **CSS** :
+   - Masque le contenu avec `max-height: 0` et `overflow: hidden`
+   - Affiche un indicateur `+` qui devient `-` quand actif
+   - Transition fluide avec `transition: max-height 0.3s ease-out`
+
+## Utilisation
+
+Parfait pour créer des sections FAQ, des accordéons ou tout autre contenu pliable avec une animation douce et fluide.
+

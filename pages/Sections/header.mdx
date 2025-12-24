@@ -1,0 +1,1049 @@
+# Header
+
+***
+
+## Header Simple
+
+```html
+<header>
+  
+  <!-- LEVEL 1 -->
+  <ul class="mm-header-menu-l1">
+    {% for link in section.settings.menu.links %}
+      {% if link.links != blank %}
+        <li>
+          <span>{{ link.title }}</span>
+
+          <!-- LEVEL 2 -->
+          <ul class="mm-header-menu-l2">
+            {% for sublink in link.links %}
+              <a href="{{ sublink.url }}">{{ sublink.title }}</a>
+
+              {%  if sublink.links != blank %}
+                
+                <!-- LEVEL 3 -->
+                  <ul class="mm-header-menu-l3">
+                    {% for subsublink in sublink.links %}
+                      <li>
+                        <a href="{{ subsublink.url }}">{{ subsublink.title }}</a>                        
+                      </li>
+                    {% endfor %}
+                  </ul>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </li>
+      {% else %}
+        <li>
+          <a href="{{ link.url }}">{{ link.title }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</header>
+```
+
+## Header + mega-menu (sans drawer-cart)
+
+```html
+<header class="mm-header">
+  
+  <!-- HEADER TOP -->
+  <div class="mm-header-top mm-section">
+    <div class="mm-header-burger-icon-container">
+      <div class="mm-header-burger-icon mm-desktop-hide" onclick="mmMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    
+    <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
+      {%- if section.settings.logo != blank -%}
+      {%- assign image_size = section.settings.logo_width | append: 'x' -%}
+      <img srcset="{{ section.settings.logo | img_url: image_size }} 1x, {{ section.settings.logo | img_url: image_size, scale: 2 }} 2x"
+           src="{{ section.settings.logo | img_url: image_size }}"
+           loading="lazy"
+           class="header__heading-logo"
+           width="{{ section.settings.logo.width }}"
+           height="{{ section.settings.logo.height }}"
+           alt="{{ section.settings.logo.alt | default: shop.name | escape }}"
+           >
+      {%- else -%}
+      <span class="h2">{{ shop.name }}</span>
+      {%- endif -%}
+    </a>
+    
+    <div class="mm-header-right-icons">
+      
+      {%- if shop.customer_accounts_enabled -%}
+      <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="mm-mobile-hide menu-drawer__account link focus-inset h5">
+        <svg width="31" height="31" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15.5 19.375C19.7802 19.375 23.25 15.9052 23.25 11.625C23.25 7.34479 19.7802 3.875 15.5 3.875C11.2198 3.875 7.75 7.34479 7.75 11.625C7.75 15.9052 11.2198 19.375 15.5 19.375Z" stroke="black" stroke-width="2" stroke-miterlimit="10"/>
+        <path d="M3.75391 26.1562C4.94418 24.0942 6.65632 22.3818 8.71821 21.1912C10.7801 20.0007 13.1191 19.3739 15.5 19.3739C17.8809 19.3739 20.2199 20.0007 22.2818 21.1912C24.3437 22.3818 26.0558 24.0942 27.2461 26.1562" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      {%- endif -%}
+      
+      <div class="mm-icon-cart">
+        <svg width="25" height="26" viewBox="0 0 25 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.5 0C9.24551 0 6.55823 2.42681 6.14861 5.56995L5.4105 5.56995C4.30132 5.56991 3.3815 5.56989 2.65963 5.67075C1.90073 5.77679 1.21882 6.01092 0.700224 6.59033C0.181629 7.16973 0.0242334 7.87333 0.00265147 8.6393C-0.0178776 9.36789 0.0837268 10.2821 0.206249 11.3845L0.549236 14.4713C0.805488 16.7777 1.00674 18.5891 1.34857 19.997C1.69894 21.4401 2.22006 22.5663 3.1875 23.4322C4.15587 24.2989 5.33835 24.692 6.81927 24.8806C8.26516 25.0648 10.1012 25.0648 12.4404 25.0648H12.5596C14.8988 25.0648 16.7348 25.0648 18.1807 24.8806C19.6616 24.692 20.8441 24.2989 21.8125 23.4322C22.7799 22.5663 23.3011 21.4401 23.6514 19.997C23.9932 18.5891 24.1945 16.7778 24.4507 14.4714L24.7938 11.3844C24.9163 10.2821 25.0179 9.36788 24.9973 8.6393C24.9758 7.87333 24.8184 7.16974 24.2998 6.59033C23.7812 6.01092 23.0993 5.77679 22.3404 5.67075C21.6185 5.56989 20.6987 5.56991 19.5895 5.56995L18.8514 5.56995C18.4419 2.42689 15.7545 0 12.5 0ZM12.5 1.67098C14.8297 1.67098 16.7665 3.35383 17.161 5.56995H7.83895C8.23339 3.3539 10.1703 1.67098 12.5 1.67098ZM1.94532 7.70474C2.09093 7.54206 2.32198 7.40514 2.89086 7.32566C3.48343 7.24286 4.28549 7.24093 5.47215 7.24093H19.5278C20.7145 7.24093 21.5166 7.24286 22.1091 7.32566C22.678 7.40514 22.9091 7.54206 23.0547 7.70474C23.2003 7.86743 23.3108 8.11218 23.327 8.68636C23.3439 9.28445 23.2572 10.0818 23.1262 11.2612L22.7966 14.2273C22.5323 16.6062 22.3412 18.311 22.0276 19.6027C21.7196 20.8714 21.3167 21.6334 20.6981 22.1871C20.0804 22.74 19.2749 23.0568 17.9696 23.223C16.6415 23.3922 14.9118 23.3938 12.5 23.3938C10.0882 23.3938 8.35852 23.3922 7.03041 23.223C5.72508 23.0568 4.91964 22.74 4.30192 22.1871C3.68327 21.6334 3.2804 20.8714 2.97238 19.6027C2.65875 18.311 2.46771 16.6062 2.20339 14.2273L1.87382 11.2612C1.74278 10.0818 1.65612 9.28445 1.67297 8.68636C1.68915 8.11218 1.79971 7.86743 1.94532 7.70474Z" fill="black"/>
+        </svg>
+        <div class="cart-count-bubble">
+          {%- if cart.item_count < 100 -%}
+          <span aria-hidden="true">{{ cart.item_count }}</span>
+          {%- endif -%}
+          <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- HEADER BOTTOM -->
+  <div class="mm-header-bottom">
+    <div class="mm-section-width">
+      <ul class="mm-header-bottom-items">
+        {%- for link in section.settings.menu.links -%}
+        <li {% if forloop.index == 1 or forloop.index == 2 or forloop.index == 3 %}class="mm-focus"{% endif %} >
+          {%- if link.links != blank -%} <!-- si sous-menu -->
+          <span class="mm-header-bottom-mega-menu-link">{{ link.title | escape }}</span>
+          {% render 'icon-caret' %}
+
+          <div class="mm-mega-menu-wrapper">
+            <div class="mm-mega-menu mm-section">
+              {%- for childlink in link.links -%}
+              <a href="{{ childlink.url }}" class="mm-mega-menu-elem">
+                <img src="{{ childlink.object.featured_image | img_url: "100x" }}">
+                <span>{{ childlink.title | escape }}</span>
+              </a>
+              {%- endfor -%}
+            </div>
+          </div>
+
+            {%- else -%}
+            <a href="{{ link.url }}" class="mm-header-bottom-link">
+              {{ link.title | escape }}
+            </a>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+  
+  <!-- MOBILE MENU -->
+  <div class="mm-mobile-menu-wrapper">
+  <div class="mm-mobile-menu-container">
+    <div class="mm-mobile-menu-header">
+      <span></span>
+      <img src="https://cdn.shopify.com/s/files/1/0512/0147/4737/files/logo_whit_1.png?v=1644925061" alt="logo dijo probiotiques">
+      <span onclick="mmMobileMenu()">╳</span>      
+    </div>
+    <div class="mm-mobile-menu-content">
+      <a href="/">Accueil</a>
+      
+      {%- for link in section.settings.menu.links -%}
+      
+        {%- if link.links != blank -%}
+
+      <div class="mm-mobile-menu-acc-title mm-mm-mobile-menu-acc-title-{{ forloop.index }}" onclick="mmMobileAcc('.mm-mm-mobile-menu-acc-title-{{ forloop.index }}')" {% if forloop.index == 3 %}style="border-bottom:solid 1px rgba(255,255,255,0.5)"{% endif %}>
+        {{ link.title | escape }}
+        <span class="mm-plus">🞢</span>
+        <span class="mm-minus">―</span>
+      </div>
+          <div class="mm-mobile-menu-acc-content">
+            {%- for childlink in link.links -%}
+            <a href="{{ childlink.url }}" class="mm-mega-menu-elem">
+              <img src="{{ childlink.object.featured_image | img_url: "100x" }}">
+              <span>{{ childlink.title | escape }}</span>
+            </a>
+            {%- endfor -%}      
+          </div>
+
+        {% else %}
+
+          <a href="{{ link.url }}" class="mm-header-bottom-link">
+            {{ link.title | escape }}
+          </a>
+
+        {% endif %}
+      
+      {% endfor %}
+    </div>    
+  </div>
+  <div class="mm-mobile-menu-filter" onclick="mmMobileMenu()"></div>
+    
+  </div>
+</header>
+
+<script>
+  function mmMobileMenu() {
+    var mobileMenu = document.querySelector('.mm-mobile-menu-wrapper');
+    
+    mobileMenu.classList.toggle('mm-menu-open');
+  }
+  function mmMobileAcc(className) {
+    var classElem = document.querySelector(className);
+    
+    classElem.classList.toggle('mm-menu-open');
+  }
+</script>
+
+<style>
+  #shopify-section-header {
+    z-index: 9999;
+    position: sticky;
+    top: 0;
+    background: white;
+  }
+  .mm-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 5rem;
+  }
+  .mm-header-bottom {
+    margin-top: 0 !important;
+    width: 100%;
+    background: #FBF9F3;
+    margin-bottom:-1px;
+    position: relative;
+  }
+  
+  /* TOP */
+  .mm-header-burger-icon-container {
+    width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .mm-header-burger-icon {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-direction: column;
+    height: 31px;
+  }
+  .mm-header-burger-icon span {
+    height: 2px;
+    width: 31px;
+    display: block;
+    background: black;
+  }
+  .mm-header-right-icons {
+    display: flex;
+    width: 150px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .mm-header-right-icons a {
+    margin-right: 20px;
+  }
+  .mm-icon-cart {
+    position: relative;
+    cursor: pointer;
+  }
+  .cart-count-bubble {
+    position: absolute;
+    bottom: 0px;
+    right: -5px;
+    left: unset !important;
+  }
+  
+  /* BOTTOM */
+  .mm-header-bottom-items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .mm-header-bottom-items li {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-left: solid 1px rgba(0,0,0,0.1);
+    flex: 1;
+  }
+  .mm-header-bottom-items li:last-child {
+    border-right: none !important;
+  }
+  .mm-header-bottom-items li.mm-focus {
+    background: black;
+    color: white;
+    border-left: solid 1px rgba(255,255,255,0.5);
+  }
+  .mm-header-bottom-items li.mm-focus a {
+    color: white;
+  }
+  .mm-header-bottom-items li a,
+  .mm-header-bottom-items li span {
+    white-space: nowrap;
+    position: relative;
+  }
+  .mm-header-bottom-items li svg {
+    width: 13px;
+    margin-left: 10px;
+    position: relative;
+    top: 2px;
+  }
+  .mm-header-bottom-items li svg path {
+    fill: white;
+  }
+  li.mm-focus >span,
+  li.mm-focus >a {
+    transition: .3s;
+  }
+  li.mm-focus:hover >span,
+  li:hover > a {
+    font-weight: bold;
+  }
+  /*
+  li.mm-focus span:after,
+  li.mm-focus a:after {
+    content: "";
+    display: inline-block;
+    width: 0%;
+    height: 1px;
+    background: #fff;
+    position: absolute;
+    bottom: -5px;
+    left: 0%;
+    transition: .3s;
+  }
+  li.mm-focus:hover span:after,
+  li.mm-focus:hover a:after {
+    width: 100%;
+  }
+  */
+  
+  /* MEGA MENU */
+  .mm-mega-menu-wrapper {
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 100%;
+    background: black;
+    display: none;
+  }
+  .mm-mega-menu {
+    color: white;
+    padding: 20px 5rem;
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    grid-auto-flow: column;
+  }
+  .mm-header-bottom-items li:hover > .mm-mega-menu-wrapper {
+    display: block;
+  }
+  .mm-mega-menu-elem {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+  }
+  .mm-mega-menu-elem span {
+    position: relative;
+  }
+  .mm-mega-menu-elem img {
+    background: white;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: solid 2px black;
+    box-shadow: 1px 1px 0px white, 1px -1px 0px white, -1px 1px 0px white, -1px -1px 0px white;
+  }
+  .mm-mega-menu-elem span:after {
+    content: "";
+    display: inline-block;
+    width: 0%;
+    height: 1px;
+    background: #fff;
+    position: absolute;
+    bottom: -5px;
+    left: 0%;
+    transition: .3s;
+  }
+  .mm-mega-menu-elem:hover span:after {
+    width: 100%;
+  }
+  
+  /* MOBILE MENU */
+  .mm-mobile-menu-wrapper {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: -120%;
+    width: 100vw;
+    height: 100vh;
+    transition: .3s;
+  }
+  .mm-mobile-menu-container {
+    background: black;
+    color: white;
+    width: 85vw;
+    height: 100vh;
+    padding: 40px 20px;
+    overflow-y: scroll;
+  }
+  .mm-mobile-menu-wrapper.mm-menu-open {
+    left: 0;
+  }
+  .mm-mobile-menu-wrapper a {
+    color: white;
+  }
+  .mm-mobile-menu-filter {
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(1px);
+    display: block !important;
+    width: 15vw;
+    height: 100vh;
+  }
+  .mm-mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+  .mm-mobile-menu-header span {
+    display: block !important;
+  }
+  .mm-mobile-menu-content {
+    display: flex;
+    flex-direction: column;
+  }
+  .mm-mobile-menu-content > a,
+  .mm-mobile-menu-content > div {
+    margin: 15px 0;
+    font-size: 20px;
+  }
+  .mm-mobile-menu-acc-title {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+  }
+  
+  .mm-mobile-menu-acc-content {
+    display: none;
+  }
+  .mm-mobile-menu-acc-title.mm-menu-open+.mm-mobile-menu-acc-content {
+    display: block;  
+  }
+  .mm-mobile-menu-acc-title > span.mm-plus {
+    display: block;
+  }
+  .mm-mobile-menu-acc-title > span.mm-minus {
+    display: none;
+  }
+  .mm-mobile-menu-acc-title.mm-menu-open > span.mm-plus {
+    display: none;  
+  }
+  .mm-mobile-menu-acc-title.mm-menu-open > span.mm-minus {
+    display: block;  
+  }
+  .mm-mobile-menu-acc-content a {
+    font-size: 14px;
+  }
+  
+  @media(min-width:768px) {
+    .mm-mobile-menu-wrapper {
+      display: none;
+    }
+  }
+  
+  @media(max-width:768px) {
+    .mm-header-bottom {
+      display: none;
+    }
+    .mm-header-top {
+      padding: 10px 2rem;
+    }
+  }
+
+</style>
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "class": "section-header",
+  "settings": [
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "options": [
+        {
+          "value": "accent-1",
+          "label": "t:sections.header.settings.color_scheme.options__1.label"
+        },
+        {
+          "value": "accent-2",
+          "label": "t:sections.header.settings.color_scheme.options__2.label"
+        },
+        {
+          "value": "background-1",
+          "label": "t:sections.header.settings.color_scheme.options__3.label"
+        },
+        {
+          "value": "background-2",
+          "label": "t:sections.header.settings.color_scheme.options__4.label"
+        },
+        {
+          "value": "inverse",
+          "label": "t:sections.header.settings.color_scheme.options__5.label"
+        }
+      ],
+      "default": "background-1",
+      "label": "t:sections.header.settings.color_scheme.label"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "t:sections.header.settings.logo.label"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 250,
+      "step": 10,
+      "default": 100,
+      "unit": "t:sections.header.settings.logo_width.unit",
+      "label": "t:sections.header.settings.logo_width.label"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:sections.header.settings.menu.label"
+    }
+  ]
+}
+{% endschema %}
+```
+
+## Header + mega-menu (avec drawer-cart)
+
+```html
+<header class="mm-header">
+  
+  <!-- HEADER TOP -->
+  <div class="mm-header-top mm-section">
+    <div class="mm-header-burger-icon-container">
+      <div class="mm-header-burger-icon mm-desktop-hide" onclick="mmMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    
+    <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
+      {%- if section.settings.logo != blank -%}
+      {%- assign image_size = section.settings.logo_width | append: 'x' -%}
+      <img srcset="{{ section.settings.logo | img_url: image_size }} 1x, {{ section.settings.logo | img_url: image_size, scale: 2 }} 2x"
+           src="{{ section.settings.logo | img_url: image_size }}"
+           loading="lazy"
+           class="header__heading-logo"
+           width="{{ section.settings.logo.width }}"
+           height="{{ section.settings.logo.height }}"
+           alt="{{ section.settings.logo.alt | default: shop.name | escape }}"
+           >
+      {%- else -%}
+      <span class="h2">{{ shop.name }}</span>
+      {%- endif -%}
+    </a>
+    
+    <div class="mm-header-right-icons">
+      
+      {%- if shop.customer_accounts_enabled -%}
+      <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="mm-mobile-hide menu-drawer__account link focus-inset h5">
+        <svg width="31" height="31" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15.5 19.375C19.7802 19.375 23.25 15.9052 23.25 11.625C23.25 7.34479 19.7802 3.875 15.5 3.875C11.2198 3.875 7.75 7.34479 7.75 11.625C7.75 15.9052 11.2198 19.375 15.5 19.375Z" stroke="black" stroke-width="2" stroke-miterlimit="10"/>
+        <path d="M3.75391 26.1562C4.94418 24.0942 6.65632 22.3818 8.71821 21.1912C10.7801 20.0007 13.1191 19.3739 15.5 19.3739C17.8809 19.3739 20.2199 20.0007 22.2818 21.1912C24.3437 22.3818 26.0558 24.0942 27.2461 26.1562" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      {%- endif -%}
+      
+      <div class="mm-icon-cart" onclick="mmOpenCart()">
+        <svg width="25" height="26" viewBox="0 0 25 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.5 0C9.24551 0 6.55823 2.42681 6.14861 5.56995L5.4105 5.56995C4.30132 5.56991 3.3815 5.56989 2.65963 5.67075C1.90073 5.77679 1.21882 6.01092 0.700224 6.59033C0.181629 7.16973 0.0242334 7.87333 0.00265147 8.6393C-0.0178776 9.36789 0.0837268 10.2821 0.206249 11.3845L0.549236 14.4713C0.805488 16.7777 1.00674 18.5891 1.34857 19.997C1.69894 21.4401 2.22006 22.5663 3.1875 23.4322C4.15587 24.2989 5.33835 24.692 6.81927 24.8806C8.26516 25.0648 10.1012 25.0648 12.4404 25.0648H12.5596C14.8988 25.0648 16.7348 25.0648 18.1807 24.8806C19.6616 24.692 20.8441 24.2989 21.8125 23.4322C22.7799 22.5663 23.3011 21.4401 23.6514 19.997C23.9932 18.5891 24.1945 16.7778 24.4507 14.4714L24.7938 11.3844C24.9163 10.2821 25.0179 9.36788 24.9973 8.6393C24.9758 7.87333 24.8184 7.16974 24.2998 6.59033C23.7812 6.01092 23.0993 5.77679 22.3404 5.67075C21.6185 5.56989 20.6987 5.56991 19.5895 5.56995L18.8514 5.56995C18.4419 2.42689 15.7545 0 12.5 0ZM12.5 1.67098C14.8297 1.67098 16.7665 3.35383 17.161 5.56995H7.83895C8.23339 3.3539 10.1703 1.67098 12.5 1.67098ZM1.94532 7.70474C2.09093 7.54206 2.32198 7.40514 2.89086 7.32566C3.48343 7.24286 4.28549 7.24093 5.47215 7.24093H19.5278C20.7145 7.24093 21.5166 7.24286 22.1091 7.32566C22.678 7.40514 22.9091 7.54206 23.0547 7.70474C23.2003 7.86743 23.3108 8.11218 23.327 8.68636C23.3439 9.28445 23.2572 10.0818 23.1262 11.2612L22.7966 14.2273C22.5323 16.6062 22.3412 18.311 22.0276 19.6027C21.7196 20.8714 21.3167 21.6334 20.6981 22.1871C20.0804 22.74 19.2749 23.0568 17.9696 23.223C16.6415 23.3922 14.9118 23.3938 12.5 23.3938C10.0882 23.3938 8.35852 23.3922 7.03041 23.223C5.72508 23.0568 4.91964 22.74 4.30192 22.1871C3.68327 21.6334 3.2804 20.8714 2.97238 19.6027C2.65875 18.311 2.46771 16.6062 2.20339 14.2273L1.87382 11.2612C1.74278 10.0818 1.65612 9.28445 1.67297 8.68636C1.68915 8.11218 1.79971 7.86743 1.94532 7.70474Z" fill="black"/>
+        </svg>
+        <div class="cart-count-bubble">
+          {%- if cart.item_count < 100 -%}
+          <span aria-hidden="true">{{ cart.item_count }}</span>
+          {%- endif -%}
+          <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- HEADER BOTTOM -->
+  <div class="mm-header-bottom">
+    <div class="mm-section-width">
+      <ul class="mm-header-bottom-items">
+        {%- for link in section.settings.menu.links -%}
+        <li {% if forloop.index == 1 or forloop.index == 2 or forloop.index == 3 %}class="mm-focus"{% endif %} >
+          {%- if link.links != blank -%} <!-- si sous-menu -->
+          <span class="mm-header-bottom-mega-menu-link">{{ link.title | escape }}</span>
+          {% render 'icon-caret' %}
+
+          <div class="mm-mega-menu-wrapper">
+            <div class="mm-mega-menu mm-section">
+              {%- for childlink in link.links -%}
+              <a href="{{ childlink.url }}" class="mm-mega-menu-elem">
+                <img src="{{ childlink.object.featured_image | img_url: "100x" }}">
+                <span>{{ childlink.title | escape }}</span>
+              </a>
+              {%- endfor -%}
+            </div>
+          </div>
+
+            {%- else -%}
+            <a href="{{ link.url }}" class="mm-header-bottom-link">
+              {{ link.title | escape }}
+            </a>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+  
+  <!-- MOBILE MENU -->
+  <div class="mm-mobile-menu-wrapper">
+  <div class="mm-mobile-menu-container">
+    <div class="mm-mobile-menu-header">
+      <span></span>
+      <img src="https://cdn.shopify.com/s/files/1/0512/0147/4737/files/logo_whit_1.png?v=1644925061" alt="logo dijo probiotiques">
+      <span onclick="mmMobileMenu()">╳</span>      
+    </div>
+    <div class="mm-mobile-menu-content">
+      <a href="/">Accueil</a>
+      
+      {%- for link in section.settings.menu.links -%}
+      
+        {%- if link.links != blank -%}
+
+      <div class="mm-mobile-menu-acc-title mm-mm-mobile-menu-acc-title-{{ forloop.index }}" onclick="mmMobileAcc('.mm-mm-mobile-menu-acc-title-{{ forloop.index }}')" {% if forloop.index == 3 %}style="border-bottom:solid 1px rgba(255,255,255,0.5)"{% endif %}>
+        {{ link.title | escape }}
+        <span class="mm-plus">🞢</span>
+        <span class="mm-minus">―</span>
+      </div>
+          <div class="mm-mobile-menu-acc-content">
+            {%- for childlink in link.links -%}
+            <a href="{{ childlink.url }}" class="mm-mega-menu-elem">
+              <img src="{{ childlink.object.featured_image | img_url: "100x" }}">
+              <span>{{ childlink.title | escape }}</span>
+            </a>
+            {%- endfor -%}      
+          </div>
+
+        {% else %}
+
+          <a href="{{ link.url }}" class="mm-header-bottom-link">
+            {{ link.title | escape }}
+          </a>
+
+        {% endif %}
+      
+      {% endfor %}
+    </div>    
+  </div>
+  <div class="mm-mobile-menu-filter" onclick="mmMobileMenu()"></div>
+    
+  </div>
+</header>
+{% render 'drawer-cart' %}
+
+<script>
+  function mmMobileMenu() {
+    var mobileMenu = document.querySelector('.mm-mobile-menu-wrapper');
+    
+    mobileMenu.classList.toggle('mm-menu-open');
+  }
+  function mmMobileAcc(className) {
+    var classElem = document.querySelector(className);
+    
+    classElem.classList.toggle('mm-menu-open');
+  }
+</script>
+
+<style>
+  #shopify-section-header {
+    z-index: 9999;
+    position: sticky;
+    top: 0;
+    background: white;
+  }
+  .mm-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 5rem;
+  }
+  .mm-header-bottom {
+    margin-top: 0 !important;
+    width: 100%;
+    background: #FBF9F3;
+    margin-bottom:-1px;
+    position: relative;
+  }
+  
+  /* TOP */
+  .mm-header-burger-icon-container {
+    width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .mm-header-burger-icon {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-direction: column;
+    height: 31px;
+  }
+  .mm-header-burger-icon span {
+    height: 2px;
+    width: 31px;
+    display: block;
+    background: black;
+  }
+  .mm-header-right-icons {
+    display: flex;
+    width: 150px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .mm-header-right-icons a {
+    margin-right: 20px;
+  }
+  .mm-icon-cart {
+    position: relative;
+    cursor: pointer;
+  }
+  .cart-count-bubble {
+    position: absolute;
+    bottom: 0px;
+    right: -5px;
+    left: unset !important;
+  }
+  
+  /* BOTTOM */
+  .mm-header-bottom-items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .mm-header-bottom-items li {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-left: solid 1px rgba(0,0,0,0.1);
+    flex: 1;
+  }
+  .mm-header-bottom-items li:last-child {
+    border-right: none !important;
+  }
+  .mm-header-bottom-items li.mm-focus {
+    background: black;
+    color: white;
+    border-left: solid 1px rgba(255,255,255,0.5);
+  }
+  .mm-header-bottom-items li.mm-focus a {
+    color: white;
+  }
+  .mm-header-bottom-items li a,
+  .mm-header-bottom-items li span {
+    white-space: nowrap;
+    position: relative;
+  }
+  .mm-header-bottom-items li svg {
+    width: 13px;
+    margin-left: 10px;
+    position: relative;
+    top: 2px;
+  }
+  .mm-header-bottom-items li svg path {
+    fill: white;
+  }
+  li.mm-focus >span,
+  li.mm-focus >a {
+    transition: .3s;
+  }
+  li.mm-focus:hover >span,
+  li:hover > a {
+    font-weight: bold;
+  }
+  /*
+  li.mm-focus span:after,
+  li.mm-focus a:after {
+    content: "";
+    display: inline-block;
+    width: 0%;
+    height: 1px;
+    background: #fff;
+    position: absolute;
+    bottom: -5px;
+    left: 0%;
+    transition: .3s;
+  }
+  li.mm-focus:hover span:after,
+  li.mm-focus:hover a:after {
+    width: 100%;
+  }
+  */
+  
+  /* MEGA MENU */
+  .mm-mega-menu-wrapper {
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 100%;
+    background: black;
+    display: none;
+  }
+  .mm-mega-menu {
+    color: white;
+    padding: 20px 5rem;
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    grid-auto-flow: column;
+  }
+  .mm-header-bottom-items li:hover > .mm-mega-menu-wrapper {
+    display: block;
+  }
+  .mm-mega-menu-elem {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+  }
+  .mm-mega-menu-elem span {
+    position: relative;
+  }
+  .mm-mega-menu-elem img {
+    background: white;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: solid 2px black;
+    box-shadow: 1px 1px 0px white, 1px -1px 0px white, -1px 1px 0px white, -1px -1px 0px white;
+  }
+  .mm-mega-menu-elem span:after {
+    content: "";
+    display: inline-block;
+    width: 0%;
+    height: 1px;
+    background: #fff;
+    position: absolute;
+    bottom: -5px;
+    left: 0%;
+    transition: .3s;
+  }
+  .mm-mega-menu-elem:hover span:after {
+    width: 100%;
+  }
+  
+  /* MOBILE MENU */
+  .mm-mobile-menu-wrapper {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: -120%;
+    width: 100vw;
+    height: 100vh;
+    transition: .3s;
+  }
+  .mm-mobile-menu-container {
+    background: black;
+    color: white;
+    width: 85vw;
+    height: 100vh;
+    padding: 40px 20px;
+    overflow-y: scroll;
+  }
+  .mm-mobile-menu-wrapper.mm-menu-open {
+    left: 0;
+  }
+  .mm-mobile-menu-wrapper a {
+    color: white;
+  }
+  .mm-mobile-menu-filter {
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(1px);
+    display: block !important;
+    width: 15vw;
+    height: 100vh;
+  }
+  .mm-mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+  .mm-mobile-menu-header span {
+    display: block !important;
+  }
+  .mm-mobile-menu-content {
+    display: flex;
+    flex-direction: column;
+  }
+  .mm-mobile-menu-content > a,
+  .mm-mobile-menu-content > div {
+    margin: 15px 0;
+    font-size: 20px;
+  }
+  .mm-mobile-menu-acc-title {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+  }
+  
+  .mm-mobile-menu-acc-content {
+    display: none;
+  }
+  .mm-mobile-menu-acc-title.mm-menu-open+.mm-mobile-menu-acc-content {
+    display: block;  
+  }
+  .mm-mobile-menu-acc-title > span.mm-plus {
+    display: block;
+  }
+  .mm-mobile-menu-acc-title > span.mm-minus {
+    display: none;
+  }
+  .mm-mobile-menu-acc-title.mm-menu-open > span.mm-plus {
+    display: none;  
+  }
+  .mm-mobile-menu-acc-title.mm-menu-open > span.mm-minus {
+    display: block;  
+  }
+  .mm-mobile-menu-acc-content a {
+    font-size: 14px;
+  }
+  
+  @media(min-width:768px) {
+    .mm-mobile-menu-wrapper {
+      display: none;
+    }
+  }
+  
+  @media(max-width:768px) {
+    .mm-header-bottom {
+      display: none;
+    }
+    .mm-header-top {
+      padding: 10px 2rem;
+    }
+  }
+
+</style>
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "class": "section-header",
+  "settings": [
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "options": [
+        {
+          "value": "accent-1",
+          "label": "t:sections.header.settings.color_scheme.options__1.label"
+        },
+        {
+          "value": "accent-2",
+          "label": "t:sections.header.settings.color_scheme.options__2.label"
+        },
+        {
+          "value": "background-1",
+          "label": "t:sections.header.settings.color_scheme.options__3.label"
+        },
+        {
+          "value": "background-2",
+          "label": "t:sections.header.settings.color_scheme.options__4.label"
+        },
+        {
+          "value": "inverse",
+          "label": "t:sections.header.settings.color_scheme.options__5.label"
+        }
+      ],
+      "default": "background-1",
+      "label": "t:sections.header.settings.color_scheme.label"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "t:sections.header.settings.logo.label"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 50,
+      "max": 250,
+      "step": 10,
+      "default": 100,
+      "unit": "t:sections.header.settings.logo_width.unit",
+      "label": "t:sections.header.settings.logo_width.label"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:sections.header.settings.menu.label"
+    },
+    {
+      "type": "header",
+      "content": "Panier Tiroir"
+    },
+    {
+      "type": "text",
+      "id": "empty_cart_text",
+      "label": "Texte à afficher lorsque le panier est vide"
+    },
+    {
+      "type": "text",
+      "id": "cart_title",
+      "label": "Titre du panier"
+    },
+    {
+      "type": "richtext",
+      "id": "cart_info",
+      "label": "Texte d'info du panier"
+    },
+    {
+      "type": "number",
+      "id": "free_shipping_price",
+      "label": "Montant du panier pour livraison gratuite",
+      "info": "Si ce champ est à 0, le bloc 'barre de progression' sera masqué"
+    },
+    {
+      "type": "text",
+      "id": "upsell_title",
+      "label": "Titre du slider d'upsell"
+    },
+    {
+      "type": "collection",
+      "id": "upsell_collection",
+      "label": "Collection des produits d'upsell"
+    }
+  ]
+}
+{% endschema %}
+```
+

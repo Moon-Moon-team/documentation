@@ -1,1 +1,46 @@
-Work in progress !
+# JS : Attendre qu'un élément soit arrivé dans le DOM
+
+***
+
+Très utile quand on doit attendre qu'une app ait chargé son contenu avant de faire quelque chose avec.
+
+## Fonction waitForElm
+
+```jsx
+function waitForElm(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(mutations => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
+}
+```
+
+## Utilisation
+
+```jsx
+waitForElm('#elem').then((elm) => {
+    // Faire quelque chose
+});
+```
+
+## Explication
+
+Cette fonction utilise une `Promise` et un `MutationObserver` pour attendre qu'un élément spécifique apparaisse dans le DOM. Elle :
+
+1. Vérifie d'abord si l'élément existe déjà
+2. Si l'élément n'existe pas, elle observe les changements dans le DOM
+3. Dès que l'élément est détecté, elle résout la promesse et arrête l'observation
+4. Vous pouvez ensuite utiliser `.then()` pour exécuter votre code une fois l'élément disponible
