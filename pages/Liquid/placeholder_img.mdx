@@ -1,0 +1,371 @@
+# Placeholder IMG
+
+***
+
+Utilisation des placeholders d'images dans Shopify Liquid pour afficher une image de substitution quand aucune image n'est configurée.
+
+![Exemple de placeholder](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/e20a471b-ab3c-4f1f-a03c-0ead9bd27c96/Tresse_Paris___Personnaliser_mm-tresse_dev-julien___Shopify.jpeg)
+
+## Code de base
+
+```liquid
+<!-- Image -->
+<div class="slide-image-cover-container">
+  {% if section.settings.image != blank %}
+    {{ section.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', class: 'slide-image-cover' }}
+  {% else %}
+    {{ 'image' | placeholder_svg_tag: 'placeholder-svg placeholder mm-h-full mm-w-full' }}
+  {% endif %}
+</div>
+```
+
+## Explication
+
+### Structure conditionnelle
+
+```liquid
+{% if section.settings.image != blank %}
+  <!-- Image réelle -->
+{% else %}
+  <!-- Placeholder -->
+{% endif %}
+```
+
+**Rôle :** Vérifie si une image est configurée dans les paramètres de la section. Si oui, affiche l'image, sinon affiche un placeholder.
+
+### Image réelle
+
+```liquid
+{{ section.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', class: 'slide-image-cover' }}
+```
+
+**Explication :**
+- `image_url: width: 1200` : Génère l'URL de l'image avec une largeur de 1200px
+- `image_tag` : Crée la balise `<img>` complète
+- `loading: 'lazy'` : Charge l'image en lazy loading
+- `class: 'slide-image-cover'` : Ajoute une classe CSS
+
+### Placeholder SVG
+
+```liquid
+{{ 'image' | placeholder_svg_tag: 'placeholder-svg placeholder mm-h-full mm-w-full' }}
+```
+
+**Explication :**
+- `'image'` : Type de placeholder (affiche une icône d'image)
+- `placeholder_svg_tag` : Génère un SVG de placeholder
+- Classes CSS : `placeholder-svg placeholder mm-h-full mm-w-full`
+
+## Types de placeholders disponibles
+
+Shopify propose plusieurs types de placeholders :
+
+### Image
+
+```liquid
+{{ 'image' | placeholder_svg_tag: 'placeholder' }}
+```
+
+Affiche une icône d'image générique.
+
+### Collection
+
+```liquid
+{{ 'collection' | placeholder_svg_tag: 'placeholder' }}
+```
+
+Affiche une icône de collection.
+
+### Product
+
+```liquid
+{{ 'product' | placeholder_svg_tag: 'placeholder' }}
+```
+
+Affiche une icône de produit.
+
+### Lifestyle
+
+```liquid
+{{ 'lifestyle' | placeholder_svg_tag: 'placeholder' }}
+```
+
+Affiche une icône lifestyle.
+
+## Exemples d'utilisation
+
+### Dans une section
+
+```liquid
+{% schema %}
+{
+  "name": "Image Section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="image-section">
+  {% if section.settings.image != blank %}
+    {{ section.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', class: 'section-image' }}
+  {% else %}
+    {{ 'image' | placeholder_svg_tag: 'placeholder-svg placeholder' }}
+  {% endif %}
+</div>
+```
+
+### Dans un block
+
+```liquid
+{% for block in section.blocks %}
+  <div class="image-block">
+    {% if block.settings.image != blank %}
+      {{ block.settings.image | image_url: width: 800 | image_tag: loading: 'lazy' }}
+    {% else %}
+      {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+    {% endif %}
+  </div>
+{% endfor %}
+```
+
+### Avec un produit
+
+```liquid
+<div class="product-image">
+  {% if product.featured_image != blank %}
+    {{ product.featured_image | image_url: width: 600 | image_tag: loading: 'lazy', alt: product.title }}
+  {% else %}
+    {{ 'product' | placeholder_svg_tag: 'placeholder-svg' }}
+  {% endif %}
+</div>
+```
+
+### Avec une collection
+
+```liquid
+<div class="collection-image">
+  {% if collection.featured_image != blank %}
+    {{ collection.featured_image | image_url: width: 800 | image_tag: loading: 'lazy', alt: collection.title }}
+  {% else %}
+    {{ 'collection' | placeholder_svg_tag: 'placeholder-svg' }}
+  {% endif %}
+</div>
+```
+
+## Personnalisation CSS
+
+### Styles de base
+
+```css
+.placeholder-svg {
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-svg svg {
+  width: 50%;
+  height: 50%;
+  opacity: 0.3;
+}
+```
+
+### Avec aspect ratio
+
+```css
+.slide-image-cover-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.slide-image-cover,
+.placeholder-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+```
+
+### Version avec couleur personnalisée
+
+```css
+.placeholder-svg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.placeholder-svg svg {
+  fill: white;
+  opacity: 0.5;
+}
+```
+
+## Bonnes pratiques
+
+### 1. Toujours vérifier si l'image existe
+
+```liquid
+{% if section.settings.image != blank %}
+  <!-- Image -->
+{% else %}
+  <!-- Placeholder -->
+{% endif %}
+```
+
+### 2. Utiliser des classes cohérentes
+
+```liquid
+{{ 'image' | placeholder_svg_tag: 'placeholder-svg placeholder mm-h-full mm-w-full' }}
+```
+
+Cela permet de styliser facilement tous les placeholders de la même manière.
+
+### 3. Ajouter un alt text pour l'accessibilité
+
+Pour les images réelles :
+
+```liquid
+{{ section.settings.image | image_url: width: 1200 | image_tag: 
+  loading: 'lazy', 
+  class: 'slide-image-cover',
+  alt: section.settings.alt_text | default: 'Image'
+}}
+```
+
+Pour les placeholders, le SVG généré par Shopify est déjà accessible.
+
+### 4. Utiliser le bon type de placeholder
+
+- `'image'` : Pour les images génériques
+- `'product'` : Pour les produits
+- `'collection'` : Pour les collections
+- `'lifestyle'` : Pour les images lifestyle
+
+## Exemple complet avec plusieurs images
+
+```liquid
+<div class="gallery">
+  {% for block in section.blocks %}
+    <div class="gallery-item">
+      {% if block.settings.image != blank %}
+        {{ block.settings.image | image_url: width: 600 | image_tag: 
+          loading: 'lazy', 
+          class: 'gallery-image',
+          alt: block.settings.alt_text
+        }}
+      {% else %}
+        <div class="placeholder-container">
+          {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+          <span class="placeholder-text">Image à venir</span>
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+```
+
+```css
+.gallery-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.gallery-image,
+.placeholder-container {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+}
+
+.placeholder-text {
+  margin-top: 1rem;
+  color: #999;
+  font-size: 0.875rem;
+}
+```
+
+## Alternative : Image par défaut personnalisée
+
+Si vous préférez utiliser une image par défaut au lieu d'un SVG :
+
+```liquid
+<div class="slide-image-cover-container">
+  {% if section.settings.image != blank %}
+    {{ section.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', class: 'slide-image-cover' }}
+  {% else %}
+    {% if section.settings.default_image != blank %}
+      {{ section.settings.default_image | image_url: width: 1200 | image_tag: loading: 'lazy', class: 'slide-image-cover' }}
+    {% else %}
+      {{ 'image' | placeholder_svg_tag: 'placeholder-svg placeholder mm-h-full mm-w-full' }}
+    {% endif %}
+  {% endif %}
+</div>
+```
+
+Avec le schema :
+
+```json
+{
+  "type": "image_picker",
+  "id": "image",
+  "label": "Image principale"
+},
+{
+  "type": "image_picker",
+  "id": "default_image",
+  "label": "Image par défaut",
+  "info": "Utilisée si aucune image principale n'est sélectionnée"
+}
+```
+
+## Accessibilité
+
+### Pour les images réelles
+
+```liquid
+{{ section.settings.image | image_url: width: 1200 | image_tag: 
+  loading: 'lazy', 
+  class: 'slide-image-cover',
+  alt: section.settings.alt_text | default: 'Image de la section'
+}}
+```
+
+### Pour les placeholders
+
+Les SVG générés par Shopify sont déjà accessibles, mais vous pouvez ajouter un texte alternatif :
+
+```liquid
+<div class="placeholder-container" role="img" aria-label="Image placeholder">
+  {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+</div>
+```
+
+## Limitations
+
+- ⚠️ **Taille fixe** : Les placeholders SVG ont une taille par défaut, à ajuster avec CSS
+- ⚠️ **Pas de personnalisation** : Impossible de changer l'icône du placeholder (utiliser une image par défaut si nécessaire)
+- ⚠️ **Couleur** : La couleur du SVG peut être modifiée via CSS mais avec des limitations
+
+## Ressources
+
+- **Shopify Placeholder Filters** : [Documentation](https://shopify.dev/docs/api/liquid/filters/placeholder-filters)
+- **Image Filters** : [Shopify Liquid Reference](https://shopify.dev/docs/api/liquid/filters/image-filters)
+

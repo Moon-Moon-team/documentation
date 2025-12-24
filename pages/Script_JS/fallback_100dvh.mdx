@@ -1,0 +1,405 @@
+# Fallback 100dvh pour vieux navigateurs mobiles
+
+***
+
+Solution pour gérer la hauteur dynamique du viewport sur les navigateurs mobiles qui ne supportent pas `100dvh`. Utilisé notamment pour le panier et les modales en plein écran.
+
+## Problème
+
+Sur mobile, la barre d'adresse du navigateur peut masquer ou révéler du contenu, ce qui change la hauteur du viewport. Les unités `vh` et `dvh` ne gèrent pas toujours correctement ce comportement sur tous les navigateurs.
+
+## Solution
+
+Utiliser une variable CSS personnalisée `--vh` calculée dynamiquement en JavaScript pour obtenir la vraie hauteur du viewport.
+
+## Code CSS
+
+```css
+height: 100vh; /* Use vh as a fallback for browsers that do not support Custom Properties */
+height: calc(var(--vh, 1vh) * 100);
+```
+
+**Explication :**
+- `100vh` : Fallback pour les navigateurs qui ne supportent pas les variables CSS
+- `calc(var(--vh, 1vh) * 100)` : Utilise la variable `--vh` calculée en JavaScript, avec `1vh` comme fallback si la variable n'existe pas
+
+## Code JavaScript
+
+```jsx
+let vh = window.innerHeight * 0.01;
+// Then we set the value in the --vh custom property to the root of the document
+document.documentElement.style.setProperty('--vh', `${vh}px`);
+
+// We listen to the resize event
+window.addEventListener('resize', () => {
+  // We execute the same script as before
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+});
+```
+
+**Explication :**
+- Calcule 1% de la hauteur du viewport (`window.innerHeight * 0.01`)
+- Stocke cette valeur dans la variable CSS `--vh` à la racine du document
+- Met à jour la valeur lors du redimensionnement de la fenêtre
+
+## Utilisation complète
+
+### Dans theme.liquid (head ou avant </body>)
+
+```jsx
+<script>
+  // Fonction pour calculer et définir --vh
+  function setViewportHeight() {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+
+  // Initialisation
+  setViewportHeight();
+
+  // Mise à jour au redimensionnement
+  window.addEventListener('resize', setViewportHeight);
+  
+  // Mise à jour lors du scroll (pour gérer la barre d'adresse mobile)
+  window.addEventListener('orientationchange', setViewportHeight);
+</script>
+```
+
+### Dans votre CSS
+
+```css
+/* Exemple pour un panier en plein écran */
+.mm-cart-drawer {
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
+  overflow-y: auto;
+}
+
+/* Exemple pour une modale */
+.mm-modal-overlay {
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Exemple pour une section hero */
+.mm-hero-section {
+  min-height: 100vh; /* Fallback */
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+```
+
+## Exemples d'utilisation
+
+### Panier drawer
+
+```css
+.mm-cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 400px;
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
+  background: white;
+  z-index: 1000;
+  overflow-y: auto;
+}
+```
+
+### Modale plein écran
+
+```css
+.mm-fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 9999;
+}
+```
+
+### Section hero
+
+```css
+.mm-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* Fallback */
+  min-height: calc(var(--vh, 1vh) * 100);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+```
+
+## Version optimisée avec debounce
+
+Pour améliorer les performances, vous pouvez utiliser un debounce pour limiter les recalculs :
+
+```jsx
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+function setViewportHeight() {
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Initialisation
+setViewportHeight();
+
+// Mise à jour avec debounce (attendre 100ms après le dernier resize)
+const debouncedSetViewportHeight = debounce(setViewportHeight, 100);
+window.addEventListener('resize', debouncedSetViewportHeight);
+window.addEventListener('orientationchange', setViewportHeight);
+```
+
+## Version avec requestAnimationFrame
+
+Pour une meilleure performance, utilisez `requestAnimationFrame` :
+
+```jsx
+let ticking = false;
+
+function setViewportHeight() {
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+  ticking = false;
+}
+
+function requestTick() {
+  if (!ticking) {
+    requestAnimationFrame(setViewportHeight);
+    ticking = true;
+  }
+}
+
+// Initialisation
+setViewportHeight();
+
+// Mise à jour
+window.addEventListener('resize', requestTick);
+window.addEventListener('orientationchange', setViewportHeight);
+```
+
+## Gestion des événements spécifiques mobile
+
+Pour mieux gérer les changements sur mobile (barre d'adresse, clavier, etc.) :
+
+```jsx
+function setViewportHeight() {
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Initialisation
+setViewportHeight();
+
+// Événements pour mobile
+window.addEventListener('resize', setViewportHeight);
+window.addEventListener('orientationchange', setViewportHeight);
+
+// Pour iOS Safari spécifiquement
+if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+  window.addEventListener('scroll', setViewportHeight);
+  document.addEventListener('DOMContentLoaded', setViewportHeight);
+}
+
+// Pour Android Chrome
+if (/Android/.test(navigator.userAgent)) {
+  window.visualViewport?.addEventListener('resize', setViewportHeight);
+}
+```
+
+## Support des navigateurs
+
+### Avec variables CSS
+
+- ✅ Chrome 49+
+- ✅ Firefox 31+
+- ✅ Safari 9.1+
+- ✅ Edge 15+
+- ✅ iOS Safari 9.3+
+
+### Sans variables CSS (fallback)
+
+- ✅ Tous les navigateurs modernes
+- ⚠️ Utilise `100vh` comme fallback pour les très vieux navigateurs
+
+## Bonnes pratiques
+
+### 1. Initialisation précoce
+
+Appelez la fonction dès le chargement de la page :
+
+```jsx
+// Dans theme.liquid, dans le <head> ou juste après <body>
+<script>
+  (function() {
+    function setViewportHeight() {
+      let vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    setViewportHeight();
+    window.addEventListener('resize', setViewportHeight);
+    window.addEventListener('orientationchange', setViewportHeight);
+  })();
+</script>
+```
+
+### 2. Éviter le FOUC (Flash of Unstyled Content)
+
+Ajoutez un style inline dans le `<head>` pour éviter le flash :
+
+```html
+<head>
+  <style>
+    :root {
+      --vh: 1vh; /* Valeur par défaut */
+    }
+  </style>
+  <script>
+    // Code JavaScript pour calculer --vh
+  </script>
+</head>
+```
+
+### 3. Utiliser avec min-height
+
+Pour les sections qui doivent être au moins aussi hautes que le viewport :
+
+```css
+.section {
+  min-height: 100vh; /* Fallback */
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+```
+
+### 4. Combiner avec max-height
+
+Pour limiter la hauteur maximale :
+
+```css
+.container {
+  max-height: 100vh; /* Fallback */
+  max-height: calc(var(--vh, 1vh) * 100);
+  overflow-y: auto;
+}
+```
+
+## Cas d'usage spécifiques
+
+### Panier drawer
+
+```css
+.mm-cart-drawer {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  max-width: 450px;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  background: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.mm-cart-drawer.open {
+  right: 0;
+}
+```
+
+### Menu mobile plein écran
+
+```css
+.mm-mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  background: white;
+  z-index: 9999;
+  overflow-y: auto;
+}
+```
+
+### Lightbox/galerie
+
+```css
+.mm-lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+```
+
+## Dépannage
+
+### La hauteur ne se met pas à jour
+
+1. Vérifier que le JavaScript est bien exécuté
+2. Vérifier que `--vh` est bien défini dans les DevTools
+3. Vérifier que le CSS utilise bien `calc(var(--vh, 1vh) * 100)`
+
+### Flash au chargement
+
+1. Ajouter un style inline dans le `<head>` avec `--vh: 1vh`
+2. Initialiser le JavaScript le plus tôt possible
+3. Utiliser `DOMContentLoaded` si nécessaire
+
+### Problème sur iOS Safari
+
+1. Ajouter l'événement `scroll` pour iOS
+2. Vérifier que `window.innerHeight` est bien utilisé
+3. Tester avec et sans la barre d'adresse visible
+
+## Alternative : Utiliser 100dvh (navigateurs modernes)
+
+Pour les navigateurs qui supportent `dvh` (dynamic viewport height), vous pouvez utiliser :
+
+```css
+.element {
+  height: 100vh; /* Fallback anciens navigateurs */
+  height: 100dvh; /* Navigateurs modernes */
+  height: calc(var(--vh, 1vh) * 100); /* Fallback personnalisé */
+}
+```
+
+**Support de `dvh` :**
+- ✅ Chrome 108+
+- ✅ Firefox 101+
+- ✅ Safari 15.4+
+- ⚠️ Pas supporté sur les anciens navigateurs
+
+## Ressources
+
+- **CSS Custom Properties** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties)
+- **Viewport Units** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/length#viewport-relative_lengths)
+- **window.innerHeight** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight)
+

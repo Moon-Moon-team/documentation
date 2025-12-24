@@ -1,0 +1,293 @@
+# Animer du texte avec GSAP
+
+***
+
+GSAP (GreenSock Animation Platform) est une bibliothèque JavaScript puissante pour créer des animations fluides et performantes. Cette solution permet d'animer du texte lettre par lettre avec un effet de rotation 3D au scroll.
+
+## Installation
+
+### Dans le `<head></head>`
+
+Ajoutez les scripts GSAP dans le `<head>` de votre fichier `theme.liquid` :
+
+```html
+<!-- Gsap -->
+<script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+<!-- Gsap : scroll detect -->
+<script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js"></script>
+```
+
+## CSS
+
+### Dans moon-moon.css
+
+Ajoutez ces styles dans votre fichier CSS global :
+
+```css
+/* Anims --------------------------- */
+.mm-anim-gsap {
+  position: relative;
+	white-space: nowrap;
+}
+.mm-anim-gsap .letter {
+  display: inline-block;
+  transform-origin: bottom;
+  transform: rotateX(-90deg);
+  opacity: 0;
+}
+```
+
+## JavaScript
+
+### Dans mm-global.js
+
+Ajoutez ce code dans votre fichier JavaScript global :
+
+```jsx
+gsap.registerPlugin(ScrollTrigger);  // ScrollTrigger nous permet de detecter la position du scroll et déclancher les anims au bon moment
+
+// On découpe les textes en lettres pour animer chaque lettre indépendamment
+document.querySelectorAll('.mm-anim-gsap').forEach(element => {
+  element.innerHTML = element.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
+})
+
+// Setup de l'anim sur tous les éléments ayant la classe '.mm-anim-gsap'
+document.querySelectorAll('.mm-anim-gsap').forEach(element => {
+  gsap.to(element.querySelectorAll(".letter"), {
+    scrollTrigger: {
+      trigger: element,
+      start: 'top bottom',  // Déclenche l'animation lorsque le haut de l'élément atteint le bas du viewport
+      once: true  // Assure que l'animation n'est exécutée qu'une seule fois
+    },
+    duration: 1.3, // Durée de l'anim
+    rotateX: [0, 0], // Comportement de l'anim (ici, les lettres pivotent vers le haut)
+    opacity: 1, // Comportement de l'anim (ici, les lettres passent de l'opacité 0 à 1)
+    delay: (i) => i * 0.045,
+    ease: "power2.out"
+  });
+});
+```
+
+## Utilisation
+
+Il ne reste plus qu'à mettre la classe `mm-anim-gsap` sur les textes que vous souhaitez animer !
+
+### Exemple HTML
+
+```html
+<h1 class="mm-anim-gsap">Mon titre animé</h1>
+<p class="mm-anim-gsap">Ce paragraphe sera également animé lettre par lettre.</p>
+```
+
+## Explication du code
+
+### Découpage en lettres
+
+```jsx
+element.innerHTML = element.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
+```
+
+Cette ligne :
+- Récupère le texte de l'élément (`textContent`)
+- Remplace chaque caractère non-blanc (`/\S/g`) par un `<span class='letter'>` contenant ce caractère
+- Permet d'animer chaque lettre indépendamment
+
+### ScrollTrigger
+
+```jsx
+scrollTrigger: {
+  trigger: element,
+  start: 'top bottom',
+  once: true
+}
+```
+
+- **`trigger`** : L'élément qui déclenche l'animation
+- **`start: 'top bottom'`** : L'animation se déclenche quand le haut de l'élément atteint le bas du viewport
+- **`once: true`** : L'animation ne se joue qu'une seule fois
+
+### Animation des lettres
+
+```jsx
+rotateX: [0, 0],  // De rotateX(-90deg) à rotateX(0deg)
+opacity: 1,       // De opacity: 0 à opacity: 1
+delay: (i) => i * 0.045,  // Délai progressif pour chaque lettre
+ease: "power2.out"  // Courbe d'animation
+```
+
+## Variantes d'animation
+
+### Animation de bas en haut (fade + translateY)
+
+```jsx
+gsap.to(element.querySelectorAll(".letter"), {
+  scrollTrigger: {
+    trigger: element,
+    start: 'top bottom',
+    once: true
+  },
+  duration: 1,
+  y: 0,  // De y: 50 à y: 0
+  opacity: 1,
+  delay: (i) => i * 0.03,
+  ease: "power2.out"
+});
+```
+
+CSS correspondant :
+```css
+.mm-anim-gsap .letter {
+  display: inline-block;
+  transform: translateY(50px);
+  opacity: 0;
+}
+```
+
+### Animation de gauche à droite
+
+```jsx
+gsap.to(element.querySelectorAll(".letter"), {
+  scrollTrigger: {
+    trigger: element,
+    start: 'top bottom',
+    once: true
+  },
+  duration: 0.8,
+  x: 0,  // De x: -20 à x: 0
+  opacity: 1,
+  delay: (i) => i * 0.02,
+  ease: "back.out(1.7)"
+});
+```
+
+CSS correspondant :
+```css
+.mm-anim-gsap .letter {
+  display: inline-block;
+  transform: translateX(-20px);
+  opacity: 0;
+}
+```
+
+### Animation avec scale
+
+```jsx
+gsap.to(element.querySelectorAll(".letter"), {
+  scrollTrigger: {
+    trigger: element,
+    start: 'top bottom',
+    once: true
+  },
+  duration: 1.2,
+  scale: 1,  // De scale: 0 à scale: 1
+  opacity: 1,
+  delay: (i) => i * 0.04,
+  ease: "elastic.out(1, 0.3)"
+});
+```
+
+CSS correspondant :
+```css
+.mm-anim-gsap .letter {
+  display: inline-block;
+  transform: scale(0);
+  opacity: 0;
+}
+```
+
+## Options de ScrollTrigger
+
+### Différents points de déclenchement
+
+```jsx
+start: 'top bottom',    // Déclenche quand le haut de l'élément atteint le bas du viewport
+start: 'top center',    // Déclenche quand le haut de l'élément atteint le centre du viewport
+start: 'top top',       // Déclenche quand le haut de l'élément atteint le haut du viewport
+start: 'center center', // Déclenche quand le centre de l'élément atteint le centre du viewport
+```
+
+### Animation répétée
+
+Pour que l'animation se répète à chaque fois que l'élément entre dans le viewport :
+
+```jsx
+scrollTrigger: {
+  trigger: element,
+  start: 'top bottom',
+  once: false,  // Changez à false pour répéter l'animation
+  toggleActions: 'play none none reverse'  // play au scroll down, reverse au scroll up
+}
+```
+
+## Personnalisation
+
+### Ajuster la vitesse
+
+Modifiez le `delay` pour changer la vitesse d'apparition des lettres :
+
+```jsx
+delay: (i) => i * 0.045,  // Plus petit = plus rapide
+delay: (i) => i * 0.1,    // Plus lent
+```
+
+### Changer la durée
+
+```jsx
+duration: 1.3,  // Durée de l'animation en secondes
+duration: 0.8,  // Plus rapide
+duration: 2,    // Plus lent
+```
+
+### Différentes courbes d'animation (ease)
+
+```jsx
+ease: "power2.out",      // Accélération douce
+ease: "power3.inOut",    // Accélération puis décélération
+ease: "back.out(1.7)",   // Effet de rebond
+ease: "elastic.out(1, 0.3)",  // Effet élastique
+ease: "bounce.out",      // Effet de rebond
+ease: "sine.inOut"       // Courbe sinusoïdale
+```
+
+## Exemple complet
+
+### HTML
+
+```html
+<section class="mm-section">
+  <h1 class="mm-anim-gsap">Bienvenue sur notre site</h1>
+  <p class="mm-anim-gsap">Découvrez nos produits exceptionnels</p>
+</section>
+```
+
+### Résultat
+
+Les titres et paragraphes avec la classe `mm-anim-gsap` s'animeront automatiquement lettre par lettre lorsqu'ils entrent dans le viewport lors du scroll.
+
+## Bonnes pratiques
+
+1. **Performance** : Utilisez `once: true` pour éviter de rejouer l'animation inutilement
+2. **Accessibilité** : Assurez-vous que le texte reste lisible même si JavaScript est désactivé
+3. **Mobile** : Testez les animations sur mobile, elles peuvent être plus lentes
+4. **Contraste** : Vérifiez que le texte reste lisible pendant l'animation (opacity: 0 → 1)
+
+## Dépannage
+
+### L'animation ne se déclenche pas
+
+- Vérifiez que GSAP et ScrollTrigger sont bien chargés
+- Vérifiez que `gsap.registerPlugin(ScrollTrigger)` est appelé
+- Vérifiez que la classe `mm-anim-gsap` est bien présente sur l'élément
+
+### Les lettres ne s'affichent pas correctement
+
+- Vérifiez que le CSS est bien chargé
+- Vérifiez que `white-space: nowrap` n'interfère pas avec votre layout
+- Testez avec `display: inline-block` sur les lettres
+
+## Ressources
+
+- **Documentation GSAP** : https://greensock.com/docs/
+- **Documentation ScrollTrigger** : https://greensock.com/docs/v3/Plugins/ScrollTrigger/
+- **Ease Visualizer** : https://greensock.com/ease-visualizer/
+

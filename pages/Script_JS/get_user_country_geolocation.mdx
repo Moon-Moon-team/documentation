@@ -1,0 +1,299 @@
+# Get user country with javascript (with Geolocation IP App)
+
+***
+
+Récupération du pays de l'utilisateur via JavaScript en utilisant l'API de géolocalisation IP de Shopify (Geolocation IP App).
+
+## Code de base
+
+```jsx
+<script>   
+    
+    async function mmGetIP() {
+        let url = 'https://blablabla.fr/browsing_context_suggestions.json';
+        let obj = await (await fetch(url)).json();
+        console.log('IP', obj.detected_values.country_name);
+    }
+    
+    mmGetIP();
+
+</script>
+```
+
+## Explication
+
+Cette fonction utilise l'endpoint `browsing_context_suggestions.json` fourni par Shopify pour détecter automatiquement le pays de l'utilisateur basé sur son adresse IP.
+
+### Fonctionnement
+
+1. **Requête asynchrone** : Utilise `fetch()` pour récupérer les données
+2. **Parsing JSON** : Convertit la réponse en objet JavaScript
+3. **Extraction** : Récupère le nom du pays depuis `obj.detected_values.country_name`
+
+## Utilisation dans un thème Shopify
+
+### Dans theme.liquid
+
+```liquid
+<script>   
+    
+    async function mmGetIP() {
+        let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+        let obj = await (await fetch(url)).json();
+        console.log('IP', obj.detected_values.country_name);
+        return obj.detected_values.country_name;
+    }
+    
+    mmGetIP();
+
+</script>
+```
+
+### Exemple avec utilisation de la valeur
+
+```jsx
+<script>   
+    
+    async function mmGetIP() {
+        let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+        let obj = await (await fetch(url)).json();
+        const countryName = obj.detected_values.country_name;
+        const countryCode = obj.detected_values.country_code;
+        
+        console.log('Country:', countryName);
+        console.log('Code:', countryCode);
+        
+        // Utiliser la valeur pour personnaliser l'expérience
+        if (countryName === 'France') {
+            // Logique spécifique à la France
+        }
+        
+        return {
+            name: countryName,
+            code: countryCode
+        };
+    }
+    
+    mmGetIP().then(data => {
+        // Utiliser les données récupérées
+        console.log('User country:', data);
+    });
+
+</script>
+```
+
+## Structure de la réponse
+
+L'endpoint `browsing_context_suggestions.json` retourne un objet avec plusieurs informations :
+
+```jsx
+{
+    "detected_values": {
+        "country_name": "France",
+        "country_code": "FR",
+        "currency": "EUR",
+        "language": "fr"
+    },
+    "suggestions": {
+        // Suggestions basées sur la localisation
+    }
+}
+```
+
+### Propriétés disponibles
+
+- `country_name` : Nom complet du pays (ex: "France")
+- `country_code` : Code ISO du pays (ex: "FR")
+- `currency` : Devise suggérée (ex: "EUR")
+- `language` : Langue suggérée (ex: "fr")
+
+## Exemple complet avec gestion d'erreur
+
+```jsx
+<script>   
+    
+    async function mmGetIP() {
+        try {
+            let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+            let response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            
+            let obj = await response.json();
+            const countryName = obj.detected_values?.country_name;
+            const countryCode = obj.detected_values?.country_code;
+            
+            if (countryName) {
+                console.log('Country:', countryName);
+                console.log('Code:', countryCode);
+                return {
+                    name: countryName,
+                    code: countryCode
+                };
+            } else {
+                console.warn('Country information not available');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching country:', error);
+            return null;
+        }
+    }
+    
+    // Utilisation
+    mmGetIP().then(countryData => {
+        if (countryData) {
+            // Faire quelque chose avec les données du pays
+            document.body.setAttribute('data-user-country', countryData.code);
+        }
+    });
+
+</script>
+```
+
+## Cas d'usage
+
+### Redirection basée sur le pays
+
+```jsx
+async function mmGetIP() {
+    let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+    let obj = await (await fetch(url)).json();
+    const countryCode = obj.detected_values.country_code;
+    
+    // Rediriger vers une version locale spécifique
+    if (countryCode === 'US') {
+        window.location.href = '/en-us';
+    } else if (countryCode === 'FR') {
+        window.location.href = '/fr-fr';
+    }
+}
+```
+
+### Afficher la devise locale
+
+```jsx
+async function mmGetIP() {
+    let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+    let obj = await (await fetch(url)).json();
+    const currency = obj.detected_values.currency;
+    
+    // Mettre à jour l'affichage des prix
+    document.querySelectorAll('.price').forEach(priceEl => {
+        priceEl.setAttribute('data-currency', currency);
+    });
+}
+```
+
+### Personnalisation du contenu
+
+```jsx
+async function mmGetIP() {
+    let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+    let obj = await (await fetch(url)).json();
+    const countryName = obj.detected_values.country_name;
+    
+    // Afficher un message personnalisé
+    if (countryName === 'France') {
+        document.getElementById('welcome-message').textContent = 'Bienvenue en France !';
+    } else if (countryName === 'United States') {
+        document.getElementById('welcome-message').textContent = 'Welcome to the US!';
+    }
+}
+```
+
+## Bonnes pratiques
+
+### 1. Gestion des erreurs
+
+Toujours gérer les cas d'erreur et les valeurs manquantes :
+
+```jsx
+const countryName = obj.detected_values?.country_name || 'Unknown';
+```
+
+### 2. Cache des résultats
+
+Éviter de faire plusieurs appels inutiles :
+
+```jsx
+let cachedCountry = null;
+
+async function mmGetIP() {
+    if (cachedCountry) {
+        return cachedCountry;
+    }
+    
+    let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+    let obj = await (await fetch(url)).json();
+    cachedCountry = obj.detected_values.country_name;
+    
+    return cachedCountry;
+}
+```
+
+### 3. Utilisation avec localStorage
+
+Sauvegarder le résultat pour éviter les appels répétés :
+
+```jsx
+async function mmGetIP() {
+    // Vérifier le cache local
+    const cached = localStorage.getItem('user_country');
+    if (cached) {
+        return JSON.parse(cached);
+    }
+    
+    // Récupérer depuis l'API
+    let url = '{{ routes.root_url }}browsing_context_suggestions.json';
+    let obj = await (await fetch(url)).json();
+    const countryData = {
+        name: obj.detected_values.country_name,
+        code: obj.detected_values.country_code
+    };
+    
+    // Sauvegarder dans le cache
+    localStorage.setItem('user_country', JSON.stringify(countryData));
+    
+    return countryData;
+}
+```
+
+## Limitations
+
+- ⚠️ **Dépendance Shopify** : Nécessite que l'endpoint soit disponible (fonctionne uniquement sur les stores Shopify)
+- ⚠️ **Précision** : La géolocalisation IP n'est pas toujours précise à 100%
+- ⚠️ **VPN/Proxy** : Les utilisateurs avec VPN peuvent avoir une localisation incorrecte
+- ⚠️ **Performance** : Faire attention à ne pas appeler cette fonction trop souvent
+
+## Alternative : Utiliser une API externe
+
+Si vous avez besoin d'une solution indépendante de Shopify :
+
+```jsx
+async function mmGetIP() {
+    try {
+        // Option 1: ipapi.co (gratuit, 1000 requêtes/jour)
+        let response = await fetch('https://ipapi.co/json/');
+        let data = await response.json();
+        return data.country_name;
+        
+        // Option 2: ip-api.com (gratuit, 45 requêtes/min)
+        // let response = await fetch('http://ip-api.com/json/');
+        // let data = await response.json();
+        // return data.country;
+    } catch (error) {
+        console.error('Error:', error);
+        return null;
+    }
+}
+```
+
+## Ressources
+
+- **Shopify Geolocation** : [Documentation](https://shopify.dev/docs/api/liquid/objects/routes#routes-root_url)
+- **Fetch API** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+- **Async/Await** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)
+

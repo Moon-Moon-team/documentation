@@ -2,11 +2,15 @@
 	"new_theme": "Création d'un nouveau theme",
 	"app_lazyload": "App Lazyload",
 	"champs_shopify": "Champs Shopify",
-	"dynamic_checkout_button": "Dynamic Checkout Button",
 	"dynamic_share_links": "Dynamic Share Links",
 	"loop": "Loop",
 	"images": "Images",
 	"shopify_function": "Shopify Function",
 	"shopify_documentation": "Shopify Documentation",
-	"snippets": "Snippets"
+	"snippets": "Snippets",
+	"dynamic_cta": "Dynamic Checkout Button",
+	"masquer_produit_search_seo": "Masquer le produit dans la recherche SEO",
+	"moyens_paiement_par_pays_script_editor": "Moyens de paiement par pays - Script Editor",
+	"calcul_date_livraison": "Calcul date de livraison en Liquid",
+	"placeholder_img": "Placeholder IMG"
 }

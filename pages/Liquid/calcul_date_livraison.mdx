@@ -1,0 +1,377 @@
+# Calcul date de livraison en Liquid
+
+***
+
+Code pour calculer une date de livraison prévisionnelle en Liquid en prenant en compte les jours ouvrés (excluant les weekends).
+
+## Code complet
+
+```liquid
+{% if block.settings.delivery_date == true %}
+  {% assign wday = 'today' | date: "%a" %}
+  {% assign dtime = block.settings.days | times: 86400 %}
+  {% assign oneday = 1 | times: 86400 %}
+  {% assign twodays = 2 | times: 86400 %}
+  {% assign fourdays = 4 | times: 86400 %}
+  {% assign dmonth = 'today' | date: '%s' | plus: dtime | date: "%B" %}
+  {% assign dday = 'now' | date: '%s' | plus: dtime | date: "%d" %}
+  {% assign dwday = 'today' | date: '%s' | plus: dtime | date: '%a' %}
+  
+  {% if wday == "Sat" %}
+    {% assign dday = 'now' | date: '%s' | plus: fourdays | date: "%d" %}
+    {% assign dwday = 'today' | date: '%s' | plus: fourdays | date: '%a' %}
+    {% assign dmonth = 'today' | date: '%s' | plus: fourdays | date: '%B' %}
+  {% else %}
+    {% if dwday == "Mon" %}
+      {% assign dday = 'now' | date: '%s' | plus: dtime | plus: oneday | date: "%d" %}
+      {% assign dwday = 'today' | date: '%s' | plus: dtime | plus: oneday | date: '%a' %}
+      {% assign dmonth = 'today' | date: '%s' | plus: dtime | plus: oneday | date: '%B' %}
+    {% endif %}
+    {% if dwday == "Sun" %}
+      {% assign dday = 'now' | date: '%s' | plus: dtime | plus: twodays | date: "%d" %}
+      {% assign dwday = 'today' | date: '%s' | plus: dtime | plus: twodays | date: '%a' %}
+      {% assign dmonth = 'today' | date: '%s' | plus: dtime | plus: twodays | date: '%B' %}
+    {% endif %}
+  {% endif %}
+  
+  {% assign gdate = 'today' | date: "%a" %}
+  
+  {% case dwday %}
+    {% when 'Mon' %} {% assign ndday = "Lundi" %}
+    {% when 'Tue' %} {% assign ndday = "Mardi" %}
+    {% when 'Wed' %} {% assign ndday = "Mercredi" %}
+    {% when 'Thu' %} {% assign ndday = "Jeudi" %}
+    {% when 'Fri' %} {% assign ndday = "Vendredi" %}
+    {% when 'Sat' %} {% assign ndday = "Samedi" %}
+    {% else %} {% assign ndday = "Dimanche" %}
+  {% endcase %}
+  
+  <!-- Translation Months -->
+  {% case dmonth %}
+    {% when 'January' %} {% assign ndmonth = "Janvier" %}
+    {% when 'February' %} {% assign ndmonth = "Février" %}
+    {% when 'March' %} {% assign ndmonth = "Mars" %}
+    {% when 'April' %} {% assign ndmonth = "Avril" %}
+    {% when 'May' %} {% assign ndmonth = "Mai" %}
+    {% when 'June' %} {% assign ndmonth = "Juin" %}
+    {% when 'July' %} {% assign ndmonth = "Juillet" %}
+    {% when 'August' %} {% assign ndmonth = "Aout" %}
+    {% when 'September' %} {% assign ndmonth = "Septembre" %}
+    {% when 'October' %} {% assign ndmonth = "Octobre" %}
+    {% when 'November' %} {% assign ndmonth = "Novembre" %}
+    {% when 'December' %} {% assign ndmonth = "Décembre" %}
+  {% endcase %}
+
+  <!-- DELIVERY DATE -->  
+  <div class="mm-pdp-it">
+    {% if block.settings.text != blank %}
+      {% assign messageSplit = block.settings.text | split: '[date]' %}
+      <p>{{ messageSplit[0] }} <span>{{ dday }} {{ ndmonth }}</span> <br>{{ messageSplit[1] }}</p>
+    {% endif %}
+  </div>
+{% endif %}
+```
+
+## Explication du code
+
+### 1. Variables initiales
+
+```liquid
+{% assign wday = 'today' | date: "%a" %}
+{% assign dtime = block.settings.days | times: 86400 %}
+{% assign oneday = 1 | times: 86400 %}
+{% assign twodays = 2 | times: 86400 %}
+{% assign fourdays = 4 | times: 86400 %}
+```
+
+**Explication :**
+- `wday` : Jour de la semaine actuel (ex: "Mon", "Tue", etc.)
+- `dtime` : Nombre de jours de livraison converti en secondes (86400 secondes = 1 jour)
+- `oneday`, `twodays`, `fourdays` : Constantes pour les ajustements de dates
+
+### 2. Calcul de la date de base
+
+```liquid
+{% assign dmonth = 'today' | date: '%s' | plus: dtime | date: "%B" %}
+{% assign dday = 'now' | date: '%s' | plus: dtime | date: "%d" %}
+{% assign dwday = 'today' | date: '%s' | plus: dtime | date: '%a' %}
+```
+
+**Explication :**
+- Calcule la date de livraison en ajoutant le nombre de jours
+- `%s` : Timestamp Unix (secondes depuis le 1er janvier 1970)
+- `%B` : Nom complet du mois (ex: "January")
+- `%d` : Jour du mois (01-31)
+- `%a` : Abréviation du jour de la semaine (ex: "Mon")
+
+### 3. Gestion des weekends
+
+#### Si commande passée le samedi
+
+```liquid
+{% if wday == "Sat" %}
+  {% assign dday = 'now' | date: '%s' | plus: fourdays | date: "%d" %}
+  {% assign dwday = 'today' | date: '%s' | plus: fourdays | date: '%a' %}
+  {% assign dmonth = 'today' | date: '%s' | plus: fourdays | date: '%B' %}
+```
+
+**Explication :**
+- Si la commande est passée le samedi, on ajoute 4 jours pour arriver au mercredi suivant
+- Évite le dimanche et le lundi
+
+#### Si la date de livraison tombe un dimanche
+
+```liquid
+{% if dwday == "Sun" %}
+  {% assign dday = 'now' | date: '%s' | plus: dtime | plus: twodays | date: "%d" %}
+  {% assign dwday = 'today' | date: '%s' | plus: dtime | plus: twodays | date: '%a' %}
+  {% assign dmonth = 'today' | date: '%s' | plus: dtime | plus: twodays | date: '%B' %}
+{% endif %}
+```
+
+**Explication :**
+- Si la date calculée tombe un dimanche, on ajoute 2 jours pour arriver au mardi
+- Évite le dimanche et le lundi
+
+#### Si la date de livraison tombe un lundi
+
+```liquid
+{% if dwday == "Mon" %}
+  {% assign dday = 'now' | date: '%s' | plus: dtime | plus: oneday | date: "%d" %}
+  {% assign dwday = 'today' | date: '%s' | plus: dtime | plus: oneday | date: '%a' %}
+  {% assign dmonth = 'today' | date: '%s' | plus: dtime | plus: oneday | date: '%B' %}
+{% endif %}
+```
+
+**Explication :**
+- Si la date calculée tombe un lundi, on ajoute 1 jour pour arriver au mardi
+- Évite le lundi (peut être un jour férié ou non travaillé selon les pays)
+
+### 4. Traduction des jours
+
+```liquid
+{% case dwday %}
+  {% when 'Mon' %} {% assign ndday = "Lundi" %}
+  {% when 'Tue' %} {% assign ndday = "Mardi" %}
+  {% when 'Wed' %} {% assign ndday = "Mercredi" %}
+  {% when 'Thu' %} {% assign ndday = "Jeudi" %}
+  {% when 'Fri' %} {% assign ndday = "Vendredi" %}
+  {% when 'Sat' %} {% assign ndday = "Samedi" %}
+  {% else %} {% assign ndday = "Dimanche" %}
+{% endcase %}
+```
+
+**Explication :**
+- Convertit les abréviations anglaises en noms français complets
+- Utilisé pour l'affichage si nécessaire
+
+### 5. Traduction des mois
+
+```liquid
+{% case dmonth %}
+  {% when 'January' %} {% assign ndmonth = "Janvier" %}
+  {% when 'February' %} {% assign ndmonth = "Février" %}
+  {% when 'March' %} {% assign ndmonth = "Mars" %}
+  {% when 'April' %} {% assign ndmonth = "Avril" %}
+  {% when 'May' %} {% assign ndmonth = "Mai" %}
+  {% when 'June' %} {% assign ndmonth = "Juin" %}
+  {% when 'July' %} {% assign ndmonth = "Juillet" %}
+  {% when 'August' %} {% assign ndmonth = "Aout" %}
+  {% when 'September' %} {% assign ndmonth = "Septembre" %}
+  {% when 'October' %} {% assign ndmonth = "Octobre" %}
+  {% when 'November' %} {% assign ndmonth = "Novembre" %}
+  {% when 'December' %} {% assign ndmonth = "Décembre" %}
+{% endcase %}
+```
+
+**Explication :**
+- Convertit les noms de mois anglais en français
+- Utilisé pour l'affichage de la date
+
+### 6. Affichage de la date
+
+```liquid
+<div class="mm-pdp-it">
+  {% if block.settings.text != blank %}
+    {% assign messageSplit = block.settings.text | split: '[date]' %}
+    <p>{{ messageSplit[0] }} <span>{{ dday }} {{ ndmonth }}</span> <br>{{ messageSplit[1] }}</p>
+  {% endif %}
+</div>
+```
+
+**Explication :**
+- Affiche la date dans un message personnalisable
+- Le texte peut contenir `[date]` qui sera remplacé par la date calculée
+- Exemple : `"Livraison prévue le [date]"` → `"Livraison prévue le 15 Janvier"`
+
+## Schema du block
+
+Pour utiliser ce code, ajoutez ce block dans le schema de votre section :
+
+```json
+{
+  "type": "delivery_date",
+  "name": "Date de livraison",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "delivery_date",
+      "label": "Afficher la date de livraison",
+      "default": true
+    },
+    {
+      "type": "number",
+      "id": "days",
+      "label": "Nombre de jours de livraison",
+      "default": 3,
+      "info": "Nombre de jours ouvrés pour la livraison"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Texte à afficher",
+      "default": "Livraison prévue le [date]",
+      "info": "Utilisez [date] pour insérer la date"
+    }
+  ]
+}
+```
+
+## Exemple d'utilisation
+
+### Dans une section produit
+
+```liquid
+{% for block in section.blocks %}
+  {% case block.type %}
+    {% when 'delivery_date' %}
+      {% render 'delivery-date', block: block %}
+  {% endcase %}
+{% endfor %}
+```
+
+### Dans un snippet `delivery-date.liquid`
+
+Créez un snippet `snippets/delivery-date.liquid` avec le code complet, puis utilisez :
+
+```liquid
+{% render 'delivery-date', block: block %}
+```
+
+## Personnalisations
+
+### Ajouter les jours fériés
+
+Pour exclure des jours fériés spécifiques, vous pouvez ajouter :
+
+```liquid
+{% assign holidays = "2025-01-01,2025-05-01,2025-12-25" | split: "," %}
+{% assign delivery_timestamp = 'today' | date: '%s' | plus: dtime %}
+{% assign delivery_date = delivery_timestamp | date: "%Y-%m-%d" %}
+
+{% if holidays contains delivery_date %}
+  {% assign dtime = dtime | plus: oneday %}
+  {% assign dday = 'now' | date: '%s' | plus: dtime | date: "%d" %}
+  {% assign dmonth = 'today' | date: '%s' | plus: dtime | date: '%B' %}
+{% endif %}
+```
+
+### Format de date personnalisé
+
+Pour changer le format d'affichage :
+
+```liquid
+<!-- Format : 15 janvier 2025 -->
+<p>{{ dday }} {{ ndmonth }} {{ 'today' | date: '%s' | plus: dtime | date: "%Y" }}</p>
+
+<!-- Format : 15/01/2025 -->
+<p>{{ dday }}/{{ 'today' | date: '%s' | plus: dtime | date: "%m" }}/{{ 'today' | date: '%s' | plus: dtime | date: "%Y" }}</p>
+```
+
+### Version multilingue
+
+Pour supporter plusieurs langues :
+
+```liquid
+{% if request.locale.iso_code == 'fr' %}
+  {% case dmonth %}
+    {% when 'January' %} {% assign ndmonth = "Janvier" %}
+    {% when 'February' %} {% assign ndmonth = "Février" %}
+    <!-- ... -->
+  {% endcase %}
+{% elsif request.locale.iso_code == 'en' %}
+  {% assign ndmonth = dmonth %}
+{% endif %}
+```
+
+## Logique de calcul résumée
+
+1. **Date de base** : Aujourd'hui + nombre de jours de livraison
+2. **Si commande le samedi** : Ajouter 4 jours (arrive mercredi)
+3. **Si livraison un dimanche** : Ajouter 2 jours (arrive mardi)
+4. **Si livraison un lundi** : Ajouter 1 jour (arrive mardi)
+5. **Traduction** : Convertir mois et jour en français
+6. **Affichage** : Insérer dans le texte personnalisé
+
+## Exemples de résultats
+
+| Jour de commande | Jours de livraison | Date calculée | Résultat |
+|------------------|-------------------|---------------|----------|
+| Lundi | 3 jours | Jeudi | Jeudi (OK) |
+| Vendredi | 2 jours | Dimanche → Mardi | Mardi (ajusté) |
+| Samedi | 3 jours | Mardi → Mercredi | Mercredi (ajusté) |
+| Mercredi | 5 jours | Lundi → Mardi | Mardi (ajusté) |
+
+## Bonnes pratiques
+
+### 1. Gestion des erreurs
+
+```liquid
+{% if block.settings.days > 0 %}
+  <!-- Code de calcul -->
+{% else %}
+  <p>Date de livraison non disponible</p>
+{% endif %}
+```
+
+### 2. Cache de la date
+
+Si la date ne change pas souvent, vous pouvez utiliser un cache :
+
+```liquid
+{% assign cache_key = 'delivery_date_' | append: block.settings.days %}
+{% assign cached_date = cache[cache_key] %}
+{% if cached_date == blank %}
+  <!-- Calcul de la date -->
+  {% assign cache[cache_key] = dday | append: ' ' | append: ndmonth %}
+{% endif %}
+```
+
+### 3. Accessibilité
+
+Ajoutez des attributs sémantiques :
+
+```liquid
+<div class="mm-pdp-it" role="text" aria-label="Date de livraison prévue">
+  <p>
+    {{ messageSplit[0] }} 
+    <time datetime="{{ 'today' | date: '%s' | plus: dtime | date: '%Y-%m-%d' }}">
+      <span>{{ dday }} {{ ndmonth }}</span>
+    </time>
+    <br>{{ messageSplit[1] }}
+  </p>
+</div>
+```
+
+## Limitations
+
+- ⚠️ **Jours fériés** : Ne gère pas automatiquement les jours fériés (à ajouter manuellement)
+- ⚠️ **Fuseaux horaires** : Utilise le fuseau horaire du serveur Shopify
+- ⚠️ **Heure de commande** : Ne prend pas en compte l'heure de la commande
+- ⚠️ **Zones géographiques** : Ne différencie pas les zones de livraison
+
+## Ressources
+
+- **Shopify Liquid Date Filters** : [Documentation](https://shopify.dev/docs/api/liquid/filters/date)
+- **Date Formatting** : [Shopify Liquid Reference](https://shopify.dev/docs/api/liquid/filters/date)
+

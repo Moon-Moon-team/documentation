@@ -1,4 +1,13 @@
 {
-	"champs_shopify": "Champs Shopify",
-	"formation_onboarding_dev_shopify_liquid": "Formation Onboarding Dev Shopify Liquid"
+	"formation_onboarding_dev_shopify_liquid": "Formation Onboarding Dev Shopify Liquid",
+	"checklist_validation_section": "Checklist Validation Section",
+	"checkout_extensibility": "Checkout Extensibility",
+	"web_perf_workshop": "Web Perf Workshop",
+	"accessibilite": "Accessibilité",
+	"audit_perf": "Audit perf",
+	"modification_traductions_en_bloc": "Modification traductions en bloc T&A",
+	"migration_theme": "Migration de thème",
+	"gestion_erreurs_javascript": "Gestion des erreurs JavaScript",
+	"tests_compatibilite_navigateurs": "Tests de compatibilité navigateurs",
+	"debogage_liquid": "Débogage Liquid"
 }

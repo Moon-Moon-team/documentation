@@ -1,0 +1,378 @@
+# Migration de thème
+
+***
+
+<aside>
+<img src="/icons/barcode_green.svg" alt="/icons/barcode_green.svg" width="40px" /> **Guide complet pour migrer un thème Shopify d'un environnement à un autre**
+</aside>
+
+Guide étape par étape pour migrer un thème Shopify d'une boutique à une autre, ou d'un environnement à un autre, en préservant toutes les configurations et personnalisations.
+
+## Vue d'ensemble
+
+La migration d'un thème Shopify peut être nécessaire pour :
+- Passer d'un environnement de développement à la production
+- Dupliquer un thème sur une nouvelle boutique
+- Sauvegarder et restaurer un thème
+- Collaborer sur un thème entre développeurs
+
+## Préparation
+
+### Checklist avant migration
+
+- [ ] Vérifier que tous les fichiers sont sauvegardés
+- [ ] Noter les apps installées et leurs configurations
+- [ ] Documenter les customizations spécifiques
+- [ ] Vérifier les métadonnées (metafields, metafield definitions)
+- [ ] Lister les snippets et sections personnalisés
+
+### Outils nécessaires
+
+- **Shopify CLI** : pour l'export/import de thèmes
+- **Git** : pour la versioning (recommandé)
+- **Theme Kit** (optionnel) : alternative à Shopify CLI
+
+## Méthode 1 : Migration via Shopify CLI (Recommandé)
+
+### Étape 1 : Installer Shopify CLI
+
+```bash
+# Via npm
+npm install -g @shopify/cli @shopify/theme
+
+# Ou via Homebrew (Mac)
+brew tap shopify/shopify
+brew install shopify-cli
+```
+
+### Étape 2 : Connexion à la boutique source
+
+```bash
+# Se connecter à la boutique source
+shopify theme login --store VOTRE-BOUTIQUE-SOURCE.myshopify.com
+
+# Lister les thèmes disponibles
+shopify theme list
+```
+
+### Étape 3 : Télécharger le thème
+
+```bash
+# Télécharger un thème spécifique par ID
+shopify theme pull --theme=THEME_ID
+
+# Ou télécharger le thème live
+shopify theme pull --live
+
+# Ou télécharger le thème de développement
+shopify theme pull --development
+```
+
+### Étape 4 : Connexion à la boutique de destination
+
+```bash
+# Se connecter à la nouvelle boutique
+shopify theme login --store VOTRE-BOUTIQUE-DESTINATION.myshopify.com
+```
+
+### Étape 5 : Uploader le thème
+
+```bash
+# Uploader le thème (créera un nouveau thème)
+shopify theme push
+
+# Ou uploader comme thème de développement
+shopify theme push --unpublished
+```
+
+## Méthode 2 : Migration manuelle via Admin Shopify
+
+### Étape 1 : Exporter le thème
+
+1. Aller dans **Shopify Admin** → **En ligne** → **Thèmes**
+2. Cliquer sur **"..."** à côté du thème à exporter
+3. Sélectionner **"Télécharger"**
+4. Un fichier `.zip` sera téléchargé
+
+### Étape 2 : Préparer le fichier ZIP
+
+Le fichier ZIP contient tous les fichiers du thème :
+- `assets/`
+- `config/`
+- `layout/`
+- `locales/`
+- `sections/`
+- `snippets/`
+- `templates/`
+
+### Étape 3 : Uploader dans la nouvelle boutique
+
+1. Aller dans **Shopify Admin** → **En ligne** → **Thèmes**
+2. Cliquer sur **"Ajouter un thème"** → **"Télécharger un fichier"**
+3. Sélectionner le fichier `.zip`
+4. Le thème sera uploadé comme thème non publié
+
+### Étape 4 : Activer le thème
+
+1. Une fois uploadé, cliquer sur **"Personnaliser"** pour prévisualiser
+2. Si tout est correct, cliquer sur **"Publier"**
+
+## Méthode 3 : Migration via Git (Pour développeurs)
+
+### Étape 1 : Initialiser Git dans le thème
+
+```bash
+cd votre-theme/
+git init
+git add .
+git commit -m "Initial commit - Theme migration"
+```
+
+### Étape 2 : Créer un repository distant
+
+```bash
+# Sur GitHub/GitLab, créer un nouveau repository
+git remote add origin https://github.com/votre-username/votre-repo.git
+git branch -M main
+git push -u origin main
+```
+
+### Étape 3 : Cloner dans la nouvelle boutique
+
+```bash
+# Sur le nouveau projet
+git clone https://github.com/votre-username/votre-repo.git nouveau-theme
+cd nouveau-theme
+
+# Se connecter à la nouvelle boutique
+shopify theme login --store NOUVELLE-BOUTIQUE.myshopify.com
+
+# Push le thème
+shopify theme push
+```
+
+## Points d'attention
+
+### 1. Configurations spécifiques à la boutique
+
+Certaines configurations ne sont pas incluses dans le thème :
+
+#### Settings du thème (config/settings_schema.json)
+
+Les valeurs dans `config/settings_data.json` sont spécifiques à chaque boutique. Il faut :
+
+1. **Exporter les settings** (via Shopify CLI) :
+```bash
+shopify theme pull --only=config/settings_data.json
+```
+
+2. **Ou les copier manuellement** depuis :
+   - Shopify Admin → En ligne → Thèmes → Personnaliser → Paramètres du thème
+
+#### Assets partagés
+
+Les assets uploadés dans **Contenu → Fichiers** ne sont pas dans le thème :
+- Images de la bibliothèque média
+- Fichiers PDF
+- Vidéos
+
+**Solution** : Les ré-uploader manuellement ou utiliser une app de migration d'assets.
+
+#### Metafields
+
+Les metafields et leurs définitions doivent être recréés :
+
+1. Aller dans **Paramètres** → **Metafields**
+2. Exporter les définitions ou les recréer manuellement
+3. Les données des metafields seront perdues (sauf si utilisés via API)
+
+### 2. Apps et intégrations
+
+Les apps installées doivent être réinstallées :
+
+1. Noter toutes les apps de la boutique source
+2. Les installer dans la nouvelle boutique
+3. Reconfigurer les intégrations si nécessaire
+4. Vérifier que les snippets d'apps sont présents dans le thème
+
+### 3. Traductions et locales
+
+Les fichiers de traduction sont dans le thème (`locales/`), mais :
+
+- Vérifier que tous les fichiers `.json` sont présents
+- S'assurer que les clés de traduction sont complètes
+- Tester les différentes langues
+
+### 4. Snippets et sections personnalisés
+
+Vérifier que tous les fichiers personnalisés sont présents :
+
+```bash
+# Lister tous les snippets
+ls snippets/
+
+# Lister toutes les sections
+ls sections/
+```
+
+### 5. Templates personnalisés
+
+Vérifier les templates dans `templates/` :
+- Templates de pages personnalisés
+- Templates de produits alternatifs
+- Templates de collections
+
+## Checklist post-migration
+
+### Vérifications visuelles
+
+- [ ] Page d'accueil s'affiche correctement
+- [ ] Pages produit fonctionnent
+- [ ] Pages collection fonctionnent
+- [ ] Panier fonctionne
+- [ ] Checkout accessible
+- [ ] Footer et header corrects
+- [ ] Responsive design (mobile/tablette/desktop)
+
+### Vérifications fonctionnelles
+
+- [ ] Ajout au panier fonctionne
+- [ ] Formulaire de contact fonctionne
+- [ ] Newsletter fonctionne
+- [ ] Recherche fonctionne
+- [ ] Filtres de collection fonctionnent
+- [ ] Apps intégrées fonctionnent
+
+### Vérifications techniques
+
+- [ ] Pas d'erreurs dans la console navigateur
+- [ ] Images chargent correctement
+- [ ] CSS/JS chargent correctement
+- [ ] Performance acceptable
+- [ ] SEO (meta tags, structured data)
+
+## Scripts utiles
+
+### Script de vérification de fichiers
+
+Créer un script `check-migration.sh` :
+
+```bash
+#!/bin/bash
+
+echo "Vérification de la migration du thème..."
+
+# Vérifier les dossiers essentiels
+folders=("assets" "config" "layout" "locales" "sections" "snippets" "templates")
+
+for folder in "${folders[@]}"; do
+  if [ -d "$folder" ]; then
+    echo "✅ $folder existe"
+    echo "   Nombre de fichiers: $(find $folder -type f | wc -l)"
+  else
+    echo "❌ $folder manquant"
+  fi
+done
+
+# Vérifier les fichiers essentiels
+essential_files=("layout/theme.liquid" "config/settings_schema.json")
+
+for file in "${essential_files[@]}"; do
+  if [ -f "$file" ]; then
+    echo "✅ $file existe"
+  else
+    echo "❌ $file manquant"
+  fi
+done
+
+echo "Vérification terminée."
+```
+
+### Script de nettoyage avant migration
+
+```bash
+#!/bin/bash
+
+echo "Nettoyage avant migration..."
+
+# Supprimer les fichiers temporaires
+find . -name "*.DS_Store" -delete
+find . -name ".DS_Store" -delete
+
+# Supprimer les fichiers de cache
+find . -name "*.cache" -delete
+
+echo "Nettoyage terminé."
+```
+
+## Problèmes courants et solutions
+
+### Problème : Images cassées après migration
+
+**Cause** : Les URLs d'images peuvent pointer vers l'ancienne boutique.
+
+**Solution** :
+- Vérifier les assets dans `assets/`
+- Utiliser les filtres Liquid `asset_url` au lieu d'URLs absolues
+- Ré-uploader les images manquantes
+
+### Problème : CSS/JS ne se charge pas
+
+**Cause** : Chemins incorrects ou fichiers manquants.
+
+**Solution** :
+- Vérifier les balises `stylesheet_tag` et `script_tag` dans `theme.liquid`
+- S'assurer que les fichiers existent dans `assets/`
+- Vérifier la casse des noms de fichiers
+
+### Problème : Apps ne fonctionnent pas
+
+**Cause** : Apps non installées ou snippets manquants.
+
+**Solution** :
+- Réinstaller les apps dans la nouvelle boutique
+- Vérifier que les snippets d'apps sont présents
+- Vérifier les API keys si nécessaire
+
+### Problème : Traductions manquantes
+
+**Cause** : Fichiers de locale incomplets.
+
+**Solution** :
+- Vérifier tous les fichiers dans `locales/`
+- Tester chaque langue
+- Compléter les traductions manquantes
+
+## Bonnes pratiques
+
+### Versioning
+
+- ✅ Utiliser Git pour versionner votre thème
+- ✅ Faire des commits réguliers
+- ✅ Créer des branches pour les fonctionnalités
+- ✅ Taguer les versions importantes
+
+### Documentation
+
+- ✅ Documenter les customizations spécifiques
+- ✅ Noter les dépendances (apps, scripts externes)
+- ✅ Créer un README avec les instructions d'installation
+
+### Tests
+
+- ✅ Tester dans un environnement de développement d'abord
+- ✅ Utiliser un thème de développement pour les tests
+- ✅ Tester toutes les fonctionnalités avant de publier
+
+### Sauvegarde
+
+- ✅ Toujours avoir une sauvegarde avant migration
+- ✅ Exporter régulièrement les settings
+- ✅ Sauvegarder les metafields definitions
+
+## Ressources
+
+- [Shopify CLI Documentation](https://shopify.dev/themes/tools/cli)
+- [Theme Kit Documentation](https://shopify.dev/themes/tools/theme-kit)
+- [Shopify Theme Structure](https://shopify.dev/themes/architecture)
+

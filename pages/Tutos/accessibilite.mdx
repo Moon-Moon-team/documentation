@@ -1,0 +1,791 @@
+# Accessibilité
+
+***
+
+Guide complet pour améliorer l'accessibilité d'un site Shopify. Ce document couvre les bonnes pratiques, les erreurs courantes et les solutions pour rendre votre site accessible à tous les utilisateurs.
+
+## 1. Structure et Sémantique
+
+### Utiliser des balises HTML sémantiques
+
+Le site doit utiliser des balises HTML sémantiques (`<main>`, `<header>`, `<footer>`, `<nav>`, etc.).
+
+**Problèmes courants :**
+- ❌ Plusieurs balises `<footer>` : n'en garder qu'une et passer les autres sections en `<section>`
+- ❌ Événements `click` sur des `<div>` : utiliser des `<button>` à la place
+
+**Exemple correct :**
+```html
+<header>
+  <nav role="navigation" aria-label="Menu principal">
+    <!-- Navigation -->
+  </nav>
+</header>
+
+<main id="main-content">
+  <!-- Contenu principal -->
+</main>
+
+<footer>
+  <!-- Footer unique -->
+</footer>
+```
+
+### Hiérarchie des titres
+
+La hiérarchie des titres (`<h1>` à `<h6>`) doit être logique et respectée.
+
+**Bonnes pratiques :**
+- ✅ Un seul `<h1>` par page (titre principal)
+- ✅ Respecter l'ordre : h1 → h2 → h3 (pas de saut)
+- ✅ Utiliser les titres pour structurer le contenu, pas pour le style
+
+**Exemples de structure :**
+
+**Homepage :**
+```html
+<h1>Titre principal de la page d'accueil</h1>
+<h2>Sous-section 1</h2>
+<h2>Sous-section 2</h2>
+```
+
+**Collection :**
+```html
+<h1>Nom de la collection</h1>
+<h2>Produit 1</h2>
+<h2>Produit 2</h2>
+```
+
+**Produit :**
+```html
+<h1>Nom du produit</h1>
+<h2>Description</h2>
+<h3>Caractéristiques</h3>
+<h2>Avis clients</h2>
+```
+
+## 2. Navigation
+
+### Navigation au clavier
+
+La navigation doit être possible au clavier (Tab, Entrée, Échap). Les menus déroulants, carrousels, filtres et popups doivent être accessibles au clavier.
+
+### Menu accessible
+
+**Exemple de menu accessible :**
+
+```html
+<nav role="navigation" aria-label="Menu principal">
+  <ul>
+    <li>
+      <button 
+        aria-haspopup="true" 
+        aria-expanded="false" 
+        aria-controls="megamenu-products" 
+        id="menu-products"
+        onclick="toggleMenu('megamenu-products', this)">
+        Produits
+      </button>
+      <div 
+        id="megamenu-products" 
+        role="region" 
+        aria-labelledby="menu-products" 
+        hidden>
+        <ul>
+          <li><a href="/produits/nouveautes">Nouveautés</a></li>
+          <li><a href="/produits/homme">Homme</a></li>
+          <li><a href="/produits/femme">Femme</a></li>
+        </ul>
+      </div>
+    </li>
+    <li><a href="/a-propos">À propos</a></li>
+    <li><a href="/contact">Contact</a></li>
+  </ul>
+</nav>
+```
+
+**JavaScript pour gérer le menu :**
+```jsx
+function toggleMenu(menuId, button) {
+  const menu = document.getElementById(menuId);
+  const isExpanded = button.getAttribute('aria-expanded') === 'true';
+  
+  button.setAttribute('aria-expanded', !isExpanded);
+  menu.hidden = isExpanded;
+  
+  if (!isExpanded) {
+    menu.focus();
+  }
+}
+```
+
+### Événements accessibles
+
+❌ **À éviter :** Les événements `onclick` ou `hover` dépendants de la souris ne sont pas accessibles au clavier.
+
+✅ **Solution :** Utiliser des événements clavier en plus des événements souris :
+
+```jsx
+element.addEventListener('click', handleAction);
+element.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    handleAction();
+  }
+});
+```
+
+### Focus visible
+
+Un focus visible doit être présent sur tous les éléments interactifs.
+
+**CSS pour le focus :**
+```css
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Ou avec une classe personnalisée */
+.focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+```
+
+### Skip link (Lien "Aller au contenu principal")
+
+Il doit y avoir un lien « Aller au contenu principal » (skip link) fonctionnel.
+
+**Placez ce lien tout en haut du document, avant la navigation :**
+
+```html
+<a href="#main-content" class="skip-link">Aller au contenu principal</a>
+
+<style>
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  z-index: 100;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 0;
+}
+</style>
+
+<main id="main-content">
+  <!-- Contenu principal -->
+</main>
+```
+
+## 3. Contrastes, Couleurs et Textes
+
+### Contraste
+
+Le contraste entre texte et arrière-plan doit être d'au moins **4.5:1** (ou **3:1** pour le texte large).
+
+**Outils de vérification :**
+- [WAVE](https://wave.webaim.org/) : https://wave.webaim.org/report
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
+- [Colour Contrast Analyser](https://www.tpgi.com/color-contrast-checker/)
+
+### Informations par la couleur
+
+Les informations ne doivent pas être transmises uniquement par la couleur.
+
+✅ **Bon :** "Erreur : Le champ est requis" (texte + icône + couleur)
+❌ **Mauvais :** Champ en rouge sans texte explicatif
+
+### Liens dans le texte
+
+Les liens dans un texte doivent être visuellement distincts (couleur + soulignement ou autre).
+
+```css
+a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+a:hover,
+a:focus {
+  color: #0052a3;
+  text-decoration: underline;
+}
+```
+
+### Taille des textes
+
+Les textes doivent avoir une taille suffisante (minimum 16px recommandé pour le corps de texte).
+
+**Utiliser le rapport WAVE** pour repérer les textes trop petits : https://wave.webaim.org/report
+
+## 4. Images
+
+### Attributs alt descriptifs
+
+Toutes les images pertinentes doivent avoir des attributs `alt` descriptifs.
+
+**Exemples :**
+
+```html
+<!-- Image produit -->
+<img src="{{ product.featured_image | img_url: 'large' }}" 
+     alt="{{ product.title }} - {{ product.featured_image.alt | default: 'Image du produit' }}">
+
+<!-- Image de collection -->
+<img src="{{ collection.featured_image | img_url: 'large' }}" 
+     alt="{{ collection.title }} - Collection {{ collection.title }}">
+```
+
+### Images décoratives
+
+Les images décoratives doivent être marquées avec `alt=""` ou `role="presentation"`.
+
+```html
+<img src="decoration.jpg" alt="" role="presentation">
+```
+
+### Icônes avec alternative textuelle
+
+Les icônes (panier, favoris, etc.) doivent avoir une alternative textuelle.
+
+**Exemple d'optimisation du bouton search du header :**
+
+```html
+<button 
+  class="mm-header-icon-search-trigger mm-header-icon-search-desk mm-flex mm-align-center mm-h-full mm-close"
+  onclick="mmShowSearch(this)"
+  aria-label="Ouvrir la recherche">
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="12" height="12" 
+    viewBox="0 0 12 12" 
+    fill="none" 
+    aria-hidden="true" 
+    focusable="false">
+    <path d="M5.00032 9.33366C7.39356 9.33366 9.33366 7.39356 9.33366 5.00033C9.33366 2.60709 7.39356 0.666992 5.00032 0.666992C2.60709 0.666992 0.666992 2.60709 0.666992 5.00033C0.666992 7.39356 2.60709 9.33366 5.00032 9.33366Z" 
+          stroke="white" 
+          stroke-miterlimit="10"></path>
+    <path d="M8.66699 8.66699L11.3337 11.3337" 
+          stroke="white" 
+          stroke-miterlimit="10"></path>
+  </svg>
+</button>
+```
+
+**Explication des ajouts :**
+- ✅ `aria-label="Ouvrir la recherche"` : Permet de nommer l'action du bouton
+- ✅ `<button>` : Élément interactif nativement accessible
+- ✅ `aria-hidden="true"` sur le `<svg>` : Masque l'icône pour les lecteurs d'écran (puisque le bouton est déjà labellisé)
+- ✅ `focusable="false"` : Utile pour IE/Edge/Firefox qui rendent parfois les SVG focusables
+
+## 5. Formulaires
+
+### Erreurs et validation
+
+Les erreurs doivent être détectées et annoncées de manière compréhensible. Des messages de validation et d'erreur doivent être accessibles aux lecteurs d'écran.
+
+**Exemple de formulaire accessible :**
+
+```html
+<form action="/contact" method="post">
+  <div>
+    <label for="email">Email <span aria-label="requis">*</span></label>
+    <input 
+      type="email" 
+      id="email" 
+      name="email" 
+      required
+      aria-required="true"
+      aria-describedby="email-error email-help">
+    <div id="email-error" role="alert" aria-live="polite"></div>
+    <div id="email-help" class="help-text">Nous ne partagerons jamais votre email</div>
+  </div>
+  
+  <button type="submit">Envoyer</button>
+</form>
+```
+
+### Étiquettes et labels
+
+Chaque champ doit avoir une étiquette (`<label>` ou `aria-label`). Les boutons de soumission doivent être bien nommés et explicites.
+
+### Exemple d'optimisation du formulaire de recherche
+
+```html
+<predictive-search>
+  <form 
+    action="/search" 
+    method="get" 
+    role="search" 
+    aria-label="Recherche sur le site">
+    
+    <!-- Libellé accessible pour le champ de recherche -->
+    <label for="Search" class="sr-only">Recherche</label>
+
+    <div 
+      role="combobox"
+      aria-haspopup="listbox"
+      aria-owns="predictive-search-results"
+      aria-controls="predictive-search-results"
+      aria-expanded="false">
+         
+      <input 
+        id="Search"
+        type="search"
+        name="q"
+        aria-autocomplete="list"
+        aria-labelledby="search-label"
+        autocomplete="off"
+        placeholder="Rechercher un produit..."
+        aria-describedby="search-instruction"
+        role="searchbox">
+    </div>
+
+    <!-- Icône SVG masquée pour lecteurs d'écran -->
+    <svg 
+      class="mm-icon-search-input" 
+      xmlns="http://www.w3.org/2000/svg" 
+      width="46" height="46" 
+      viewBox="0 0 46 46" 
+      fill="none" 
+      aria-hidden="true" 
+      focusable="false">
+      <path d="M18.9993 36.4186C28.5723 36.4186 36.3327 28.6582 36.3327 19.0853C36.3327 9.51235 28.5723 1.75195 18.9993 1.75195C9.42641 1.75195 1.66602 9.51235 1.66602 19.0853C1.66602 28.6582 9.42641 36.4186 18.9993 36.4186Z" 
+            stroke="black" 
+            stroke-width="3" 
+            stroke-miterlimit="10"></path>
+      <path d="M33.666 33.752L44.3327 44.4186" 
+            stroke="black" 
+            stroke-width="3" 
+            stroke-miterlimit="10"></path>
+    </svg>
+
+    <!-- Bouton de réinitialisation accessible -->
+    <button 
+      type="button" 
+      id="mmSearchClear" 
+      onclick="document.getElementById('Search').value = ''; mmHideSearch()" 
+      aria-label="Effacer la recherche">
+      <svg width="45" height="88" viewBox="0 0 45 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10.9003 56.2992L23 44.1995M35.0997 32.0997L23 44.1995M23 44.1995L35.0997 56.2992M23 44.1995L10.9003 32.0997" stroke="#B2B2B2"></path>
+      </svg>
+    </button>
+
+    <input name="options[prefix]" type="hidden" value="last">
+
+    <!-- Liste des résultats de recherche -->
+    <ul 
+      id="predictive-search-results"
+      role="listbox"
+      aria-label="Suggestions de recherche"
+      style="display: none;"></ul>
+
+    <!-- Optionnel : instruction pour aider l'utilisateur -->
+    <div id="search-instruction" class="sr-only">
+      Utilisez les flèches haut et bas pour parcourir les suggestions
+    </div>
+  </form>
+</predictive-search>
+```
+
+**Changements clés expliqués :**
+
+| Élément | Amélioration |
+| --- | --- |
+| `<label for="Search">` | Fournit un nom clair au champ |
+| `aria-describedby` | Ajoute une aide contextuelle |
+| `aria-expanded` dynamiquement | Doit être géré en JS pour refléter l'ouverture/fermeture de la liste |
+| `role="listbox"` + `role="option"` dans JS | Nécessaire pour les résultats prédictifs |
+| `aria-label` sur bouton "clear" | Fournit une alternative textuelle claire |
+| `aria-hidden="true"` sur les SVG | Évite qu'ils soient lus inutilement |
+| `role="searchbox"` sur l'input | Améliore la reconnaissance dans certains lecteurs |
+
+**À prévoir côté JavaScript :**
+- Mettre à jour `aria-expanded="true"` quand les résultats sont visibles
+- Ajouter `role="option"` et `aria-selected` sur les `<li>` générés dynamiquement
+- Permettre la navigation clavier (`↑`, `↓`, `Enter`) dans les suggestions
+
+## 6. Composants Dynamiques et JS
+
+### Carrousels accessibles
+
+Les carrousels doivent être accessibles : focusable, contrôlables, lisibles par lecteur d'écran.
+
+**Splide et accessibilité :**
+- Splide est censé être accessible, mais il faut tester pour s'en assurer
+- Vérifier la navigation au clavier
+- Ajouter des labels ARIA si nécessaire
+
+**Exemple avec Splide :**
+```html
+<div class="splide" role="region" aria-label="Carrousel de produits">
+  <div class="splide__track">
+    <ul class="splide__list" role="list">
+      <li class="splide__slide" role="listitem">
+        <!-- Contenu -->
+      </li>
+    </ul>
+  </div>
+  
+  <div class="splide__arrows">
+    <button class="splide__arrow splide__arrow--prev" aria-label="Slide précédent">
+      Précédent
+    </button>
+    <button class="splide__arrow splide__arrow--next" aria-label="Slide suivant">
+      Suivant
+    </button>
+  </div>
+</div>
+```
+
+### Modales accessibles
+
+Les modales doivent pouvoir être ouvertes/fermées au clavier, et être annoncées (`role="dialog"`, `aria-labelledby`, etc.).
+
+**Exemple d'optimisation d'un panel produit :**
+
+```html
+<!-- Bouton d'ouverture -->
+<button 
+  class="mm-text-x-small mm-flex mm-justify-between mm-align-baseline"
+  onclick="mmOpenD(5)"
+  aria-expanded="false"
+  aria-controls="product-description-panel"
+  aria-label="Ouvrir la description du produit">
+  Description
+  <svg aria-hidden="true" focusable="false">
+    <!-- Icône -->
+  </svg>
+</button>
+
+<!-- Panel -->
+<div 
+  id="product-description-panel"
+  class="mm-product-form-description stop-lenis"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="panel-title"
+  tabindex="-1"
+  hidden>
+  
+  <div class="mm-sc-header">
+    <button 
+      class="mm-sc-close-btn"
+      onclick="mmCloseD()"
+      aria-label="Fermer la description du produit">
+      <svg aria-hidden="true" focusable="false">
+        <!-- Icône fermer -->
+      </svg>
+    </button>
+  </div>
+
+  <!-- Titre du panneau -->
+  <h2 id="panel-title" class="sr-only">Description du produit</h2>
+
+  <!-- Le reste du contenu ici -->
+</div>
+```
+
+**JavaScript pour gérer le panel :**
+
+```jsx
+function trapFocus(element) {
+  const focusableEls = element.querySelectorAll(
+    'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
+  );
+  const firstFocusableEl = focusableEls[0];  
+  const lastFocusableEl = focusableEls[focusableEls.length - 1];
+
+  element.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusableEl) {
+          e.preventDefault();
+          lastFocusableEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusableEl) {
+          e.preventDefault();
+          firstFocusableEl.focus();
+        }
+      }
+    }
+
+    if (e.key === 'Escape') {
+      mmCloseD();
+    }
+  });
+}
+
+function mmOpenD(id) {
+  const panel = document.getElementById('product-description-panel');
+  panel.hidden = false;
+  panel.focus();
+  trapFocus(panel);
+
+  const triggerBtn = document.querySelector('[onclick="mmOpenD(' + id + ')"]');
+  triggerBtn.setAttribute('aria-expanded', 'true');
+}
+
+function mmCloseD() {
+  const panel = document.getElementById('product-description-panel');
+  panel.hidden = true;
+  
+  const triggerBtn = document.querySelector('[aria-controls="product-description-panel"]');
+  triggerBtn.setAttribute('aria-expanded', 'false');
+  triggerBtn.focus();
+}
+```
+
+**Lors de l'ouverture du panel :**
+- Mettre `aria-expanded="true"` sur le bouton
+- Ajouter `hidden=false` ou `.style.display = "block"` sur le panel
+- Mettre le focus sur le panel ou un élément interne logique
+- Piéger le focus dans le panel (`focus trap`)
+
+**Lors de la fermeture :**
+- Mettre `aria-expanded="false"` sur le bouton
+- Cacher le panel (`hidden` ou `display: none`)
+- Rendre le focus au bouton déclencheur
+
+### Contenu dynamique avec ARIA
+
+Aucun contenu ne doit être ajouté dynamiquement sans mise à jour ARIA (`aria-live`, etc.).
+
+**Exemple :**
+```html
+<div aria-live="polite" aria-atomic="true" id="cart-update">
+  <!-- Contenu mis à jour dynamiquement -->
+</div>
+```
+
+```jsx
+function updateCart(message) {
+  const cartUpdate = document.getElementById('cart-update');
+  cartUpdate.textContent = message;
+}
+```
+
+## 7. Liens et Boutons
+
+### Liens explicites
+
+Les liens doivent être explicites (éviter "cliquez ici", "en savoir plus").
+
+**Exemples :**
+
+❌ **Mauvais :**
+```html
+<a href="/collection">Cliquez ici</a>
+<a href="/collection">En savoir plus</a>
+```
+
+✅ **Bon :**
+```html
+<a href="/collection">Découvrir la collection {{ collection.title }}</a>
+<a href="/collection" aria-label="Découvrir la collection {{ collection.title }}">Découvrir</a>
+```
+
+### Boutons avec texte ou aria-label
+
+Les boutons doivent avoir un texte visible ou un `aria-label`.
+
+**Exemples :**
+
+```html
+<!-- Bouton avec texte visible -->
+<button type="button">Ajouter au panier</button>
+
+<!-- Bouton avec icône uniquement -->
+<button type="button" aria-label="Ajouter au panier">
+  <svg aria-hidden="true">
+    <!-- Icône panier -->
+  </svg>
+</button>
+```
+
+### Pas de divs ou spans comme boutons
+
+❌ **À éviter :** Pas de divs ou spans utilisés comme boutons sans rôle et gestion du clavier.
+
+```html
+<!-- ❌ Mauvais -->
+<div onclick="addToCart()">Ajouter au panier</div>
+<span onclick="openMenu()">Menu</span>
+```
+
+✅ **Solution :** Remplacer par des boutons :
+
+```html
+<!-- ✅ Bon -->
+<button type="button" onclick="addToCart()">Ajouter au panier</button>
+<button type="button" onclick="openMenu()" aria-label="Ouvrir le menu">Menu</button>
+```
+
+**Exemples de remplacement :**
+
+**Homepage - Herobanner :**
+- ✅ Fait pour `mm-link`
+
+**Footer :**
+- ✅ Fait pour tous les liens
+
+## 8. Compatibilité lecteur d'écran
+
+### Navigation fluide
+
+La lecture par JAWS, NVDA, VoiceOver doit être fluide et logique.
+
+**Problèmes courants :**
+- Navigation clavier compliquée
+- Ordre de lecture illogique
+- Contenu masqué mais toujours dans le DOM
+
+**Solutions :**
+- Utiliser `tabindex` avec parcimonie
+- Utiliser `aria-hidden="true"` pour masquer le contenu décoratif
+- Tester avec un lecteur d'écran réel
+
+### Rôles ARIA pertinents
+
+Les rôles ARIA doivent être utilisés de manière pertinente sans excès.
+
+**Rôles ARIA courants :**
+- `role="navigation"` : Pour les menus de navigation
+- `role="main"` : Pour le contenu principal (ou utiliser `<main>`)
+- `role="dialog"` : Pour les modales
+- `role="alert"` : Pour les messages d'alerte
+- `role="region"` : Pour les sections importantes
+- `role="banner"` : Pour le header (ou utiliser `<header>`)
+- `role="contentinfo"` : Pour le footer (ou utiliser `<footer>`)
+
+**Exemple :**
+```html
+<nav role="navigation" aria-label="Menu principal">
+  <!-- Navigation -->
+</nav>
+
+<main role="main" id="main-content">
+  <!-- Contenu principal -->
+</main>
+
+<aside role="complementary" aria-label="Informations complémentaires">
+  <!-- Sidebar -->
+</aside>
+```
+
+## 9. Langue et Métadonnées
+
+### Attribut lang
+
+L'attribut `lang` doit être défini correctement (`<html lang="fr">`).
+
+```html
+<html lang="fr">
+  <!-- Contenu en français -->
+</html>
+```
+
+### Changements de langue
+
+Les changements de langue dans le contenu doivent être balisés (`lang="en"` si besoin).
+
+```html
+<p>
+  Bienvenue sur notre site. 
+  <span lang="en">Welcome to our website.</span>
+</p>
+```
+
+## Classes utilitaires
+
+### Classe sr-only (screen reader only)
+
+Pour masquer visuellement un élément tout en le gardant accessible aux lecteurs d'écran :
+
+```css
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+```
+
+**Utilisation :**
+```html
+<h2 class="sr-only">Titre visible uniquement pour les lecteurs d'écran</h2>
+```
+
+## Checklist d'accessibilité
+
+### Structure
+- [ ] Balises HTML sémantiques utilisées
+- [ ] Hiérarchie des titres respectée (h1 → h2 → h3)
+- [ ] Un seul footer par page
+- [ ] Pas de divs/spans utilisés comme boutons
+
+### Navigation
+- [ ] Navigation possible au clavier
+- [ ] Focus visible sur tous les éléments interactifs
+- [ ] Skip link présent et fonctionnel
+- [ ] Menus déroulants accessibles au clavier
+
+### Contraste et couleurs
+- [ ] Contraste minimum 4.5:1 (texte normal)
+- [ ] Contraste minimum 3:1 (texte large)
+- [ ] Informations pas uniquement par la couleur
+- [ ] Liens visuellement distincts
+- [ ] Tailles de texte suffisantes
+
+### Images
+- [ ] Toutes les images pertinentes ont un alt descriptif
+- [ ] Images décoratives avec alt=""
+- [ ] Icônes avec aria-label ou texte alternatif
+
+### Formulaires
+- [ ] Tous les champs ont des labels
+- [ ] Messages d'erreur accessibles
+- [ ] Validation annoncée aux lecteurs d'écran
+
+### Composants dynamiques
+- [ ] Carrousels accessibles au clavier
+- [ ] Modales avec role="dialog" et focus trap
+- [ ] Contenu dynamique avec aria-live
+
+### Liens et boutons
+- [ ] Liens explicites (pas "cliquez ici")
+- [ ] Boutons avec texte ou aria-label
+- [ ] Pas de divs/spans comme boutons
+
+## Outils de test
+
+- **WAVE** : https://wave.webaim.org/ - Extension navigateur et outil en ligne
+- **axe DevTools** : Extension Chrome/Firefox pour l'audit d'accessibilité
+- **Lighthouse** : Audit d'accessibilité intégré dans Chrome DevTools
+- **NVDA** : Lecteur d'écran gratuit pour Windows
+- **VoiceOver** : Lecteur d'écran intégré à macOS/iOS
+- **JAWS** : Lecteur d'écran professionnel pour Windows
+
+## Ressources
+
+- **WCAG 2.1** : [Web Content Accessibility Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- **ARIA Authoring Practices** : [WAI-ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/)
+- **A11y Project** : [The A11y Project](https://www.a11yproject.com/)
+- **WebAIM** : [Web Accessibility In Mind](https://webaim.org/)
+

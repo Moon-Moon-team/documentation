@@ -1,0 +1,371 @@
+# Checkout Extensibility
+
+***
+
+Les Checkout Extensions permettent de personnaliser l'expérience de checkout Shopify en ajoutant des blocs, des champs ou des fonctionnalités personnalisées directement dans le processus de commande.
+
+## Installation et création
+
+### 1. Créer une nouvelle app
+
+```bash
+pnpm create @shopify/app
+```
+
+- Sélectionnez **"build an extension only app"**
+- Choisissez le premier **Moon Moon**
+- Créez une nouvelle app
+
+### 2. Aller dans le dossier de l'app
+
+```bash
+cd votre-app-folder
+```
+
+### 3. Générer une extension
+
+```bash
+pnpm generate extension
+```
+
+### 4. Lancer le serveur de développement
+
+```bash
+pnpm run dev
+```
+
+- Sélectionnez la **demo store**
+- Appuyez sur la touche **"p"** pour ouvrir le checkout
+- Cliquez sur **"install your app"** puis **"installer"**
+- Retournez sur la page d'avant et cliquez sur le dernier lien **"purchase.checkout.block.render"**
+
+## Types d'extensions
+
+### Extension de type "block" (drag & drop)
+
+Ce bloc de code nous permet de spécifier que l'extension est de type `block` (on peut donc la placer où on veut en drag & drop) :
+
+```jsx
+export default reactExtension("purchase.checkout.block.render", () => (
+  <Extension />
+));
+```
+
+### Extension avec target fixe
+
+Il est possible de spécifier une target fixe, par exemple :
+
+```jsx
+export default reactExtension("purchase.checkout.header.render-after", () => (
+  <Extension />
+));
+```
+
+### Configuration dans shopify.extension.tml
+
+⚠️ **Attention** : Si on update un fichier de configuration, on doit rerun le dev console (l'aperçu).
+
+```toml
+[[extensions.targeting]]
+module = "./src/Checkout.jsx"
+target = "purchase.checkout.header.render-after"
+```
+
+**Liste des targets** : [Extension Targets Overview](https://shopify.dev/docs/api/checkout-ui-extensions/2025-01/extension-targets-overview)
+
+## Utiliser des settings
+
+### 1. Dé-commenter la partie extension.settings
+
+Dans `shopify.extension.tml`, dé-commentez la section `extension.settings` :
+
+```toml
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "banner_title"
+type = "single_line_text_field"
+name = "Banner Title"
+```
+
+### 2. Utiliser les settings dans le composant
+
+Dans `Checkout.jsx` :
+
+```jsx
+import {
+  reactExtension,
+  Banner,
+  useSettings,
+} from '@shopify/ui-extensions-react/checkout';
+
+export default reactExtension(
+  'purchase.checkout.block.render',
+  () => <Extension />,
+);
+
+function Extension() {
+  const {banner_title} = useSettings();
+  return <Banner title={banner_title} />;
+}
+```
+
+**Documentation** : [Settings API](https://shopify.dev/docs/api/checkout-ui-extensions/2025-01/apis/settings)
+
+## Exemple complet
+
+### shopify.extension.toml
+
+```toml
+# Configuration de l'extension
+api_version = "2025-01"
+
+[[extensions]]
+type = "checkout_ui_extension"
+name = "Checkout Extension"
+handle = "checkout-extension"
+
+[extensions.targeting]
+module = "./src/Checkout.jsx"
+target = "purchase.checkout.block.render"
+
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "banner_title"
+type = "single_line_text_field"
+name = "Banner Title"
+default = "Bienvenue !"
+
+[[extensions.settings.fields]]
+key = "show_banner"
+type = "boolean"
+name = "Afficher le banner"
+default = true
+```
+
+### Checkout.jsx
+
+```jsx
+import {
+  reactExtension,
+  Banner,
+  useSettings,
+  useBuyerJourney,
+} from '@shopify/ui-extensions-react/checkout';
+
+export default reactExtension(
+  'purchase.checkout.block.render',
+  () => <Extension />,
+);
+
+function Extension() {
+  const {banner_title, show_banner} = useSettings();
+  const {intercept} = useBuyerJourney();
+
+  if (!show_banner) {
+    return null;
+  }
+
+  return (
+    <Banner title={banner_title}>
+      Contenu personnalisé du checkout
+    </Banner>
+  );
+}
+```
+
+## Targets courants
+
+### Header
+
+```jsx
+"purchase.checkout.header.render-before"  // Avant le header
+"purchase.checkout.header.render-after"   // Après le header
+```
+
+### Delivery
+
+```jsx
+"purchase.checkout.delivery-address.render-before"
+"purchase.checkout.delivery-address.render-after"
+```
+
+### Payment
+
+```jsx
+"purchase.checkout.payment-methods.render-before"
+"purchase.checkout.payment-methods.render-after"
+```
+
+### Order Summary
+
+```jsx
+"purchase.checkout.order-summary.render-before"
+"purchase.checkout.order-summary.render-after"
+```
+
+### Block (drag & drop)
+
+```jsx
+"purchase.checkout.block.render"  // Peut être placé n'importe où
+```
+
+## Composants disponibles
+
+### Composants de base
+
+```jsx
+import {
+  Banner,
+  BlockStack,
+  InlineStack,
+  Text,
+  Button,
+  TextField,
+  Checkbox,
+  Select,
+  Image,
+} from '@shopify/ui-extensions-react/checkout';
+```
+
+### Exemple d'utilisation
+
+```jsx
+function Extension() {
+  return (
+    <BlockStack>
+      <Text size="large">Titre</Text>
+      <Banner status="info">
+        Message d'information
+      </Banner>
+      <Button onPress={() => console.log('Clicked')}>
+        Cliquer ici
+      </Button>
+    </BlockStack>
+  );
+}
+```
+
+## Hooks utiles
+
+### useSettings
+
+Accéder aux paramètres de l'extension :
+
+```jsx
+const {banner_title, show_banner} = useSettings();
+```
+
+### useBuyerJourney
+
+Intercepter le parcours d'achat :
+
+```jsx
+const {intercept} = useBuyerJourney();
+
+intercept('progress', async ({canBlockProgress}) => {
+  // Logique personnalisée
+  return {
+    behavior: 'allow',
+  };
+});
+```
+
+### useCartLines
+
+Accéder aux lignes du panier :
+
+```jsx
+const {lines} = useCartLines();
+
+lines.forEach((line) => {
+  console.log(line.merchandise.title);
+});
+```
+
+### useApplyCartLinesChange
+
+Modifier le panier :
+
+```jsx
+const {applyCartLinesChange} = useApplyCartLinesChange();
+
+applyCartLinesChange({
+  type: 'updateCart',
+  lines: [
+    {
+      id: 'line-id',
+      quantity: 2,
+    },
+  ],
+});
+```
+
+## Déploiement
+
+### Quand l'extension est prête
+
+Quand l'extension est ok, il faut déployer les changements :
+
+```bash
+pnpm run deploy
+```
+
+### Processus de déploiement
+
+1. Le code est compilé et optimisé
+2. L'extension est uploadée sur Shopify
+3. Vous pouvez l'activer dans les paramètres de checkout
+4. Les changements sont immédiatement visibles sur le checkout
+
+## Bonnes pratiques
+
+### Performance
+
+- ✅ Minimiser les appels API
+- ✅ Utiliser le lazy loading si nécessaire
+- ✅ Optimiser les images
+- ✅ Éviter les re-renders inutiles
+
+### UX
+
+- ✅ Garder les extensions légères et non intrusives
+- ✅ Tester sur mobile et desktop
+- ✅ S'assurer que l'extension ne bloque pas le checkout
+- ✅ Fournir des messages d'erreur clairs
+
+### Code
+
+- ✅ Utiliser TypeScript si possible
+- ✅ Commenter le code complexe
+- ✅ Suivre les conventions React
+- ✅ Tester les différents cas d'usage
+
+## Dépannage
+
+### L'extension ne s'affiche pas
+
+- Vérifiez que l'app est bien installée
+- Vérifiez que l'extension est activée dans les paramètres
+- Vérifiez la console pour les erreurs
+- Relancez `pnpm run dev`
+
+### Les settings ne fonctionnent pas
+
+- Vérifiez que la section est dé-commentée dans `shopify.extension.toml`
+- Vérifiez que les clés correspondent entre le toml et le code
+- Redémarrez le serveur de développement
+
+### Erreurs de compilation
+
+- Vérifiez la syntaxe du code
+- Vérifiez que tous les imports sont corrects
+- Vérifiez la version de l'API dans `shopify.extension.toml`
+
+## Ressources
+
+- **Documentation officielle** : [Checkout UI Extensions](https://shopify.dev/docs/api/checkout-ui-extensions)
+- **Extension Targets** : [Targets Overview](https://shopify.dev/docs/api/checkout-ui-extensions/2025-01/extension-targets-overview)
+- **Settings API** : [Settings Documentation](https://shopify.dev/docs/api/checkout-ui-extensions/2025-01/apis/settings)
+- **Composants UI** : [UI Components](https://shopify.dev/docs/api/checkout-ui-extensions/2025-01/components)
+- **Hooks** : [Hooks Documentation](https://shopify.dev/docs/api/checkout-ui-extensions/2025-01/apis)
+

@@ -1,0 +1,177 @@
+# Dynamic Checkout Button
+
+***
+
+Le Dynamic Checkout Button (bouton de paiement dynamique) est une fonctionnalité Shopify qui permet d'afficher automatiquement les options de paiement rapide comme Shop Pay, Apple Pay, Google Pay, etc., selon les méthodes disponibles pour le client.
+
+## Formulaire produit
+
+Pour utiliser le Dynamic Checkout Button, vous devez d'abord créer un formulaire produit avec le tag `form` :
+
+```liquid showLineNumbers
+{% form 'product', product, id: 'product-form', novalidate: 'novalidate', data-type: 'add-to-cart-form' %}
+  <!-- Contenu du formulaire -->
+{% endform %}
+```
+
+> ⚠️ **Attention** : Il ne faut pas qu'il y ait le `javascript:void` dans le tag form !
+
+## Block Dynamique CTA avec checkbox
+
+### HTML/Liquid
+
+Dans votre section produit, ajoutez le code suivant pour afficher conditionnellement le bouton de checkout dynamique :
+
+```liquid showLineNumbers
+{%- if block.settings.show_dynamic_checkout -%}
+    {{ form | payment_button }}
+{%- endif -%}
+```
+
+> ⚠️ **Attention** : 
+> 
+> - Il faut un (et un seul) input avec `name="id"` ayant la variant id en value.
+> - Si on utilise de l'abonnement, il faut un (et un seul) input avec `name="selling_plan"` ayant le selling plan id en value (par défaut la value doit être vide si on sélectionne un plan one shot par défaut)
+
+### Schema
+
+Ajoutez ce block dans le schema de votre section produit :
+
+```json
+{
+    "type": "buy_button",
+    "name": "t:sections.main-product.blocks.buy_buttons.name",
+    "limit": 1,
+    "settings": [
+        {
+            "type": "checkbox",
+            "id": "show_dynamic_checkout",
+            "default": true,
+            "label": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.label",
+            "info": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.info"
+        }
+    ]
+}
+```
+
+## Exemple complet
+
+### Section produit avec Dynamic CTA
+
+```liquid showLineNumbers
+{% form 'product', product, id: 'product-form', novalidate: 'novalidate', data-type: 'add-to-cart-form' %}
+  
+  <!-- Informations produit -->
+  <h1>{{ product.title }}</h1>
+  <p>{{ product.price | money }}</p>
+  
+  <!-- Variantes -->
+  <select name="id" id="product-select">
+    {% for variant in product.variants %}
+      <option value="{{ variant.id }}">{{ variant.title }} - {{ variant.price | money }}</option>
+    {% endfor %}
+  </select>
+  
+  <!-- Quantité -->
+  <input type="number" name="quantity" value="1" min="1">
+  
+  <!-- Bouton Ajouter au panier -->
+  <button type="submit" name="add">
+    Ajouter au panier
+  </button>
+  
+  <!-- Dynamic Checkout Button -->
+  {%- if block.settings.show_dynamic_checkout -%}
+    {{ form | payment_button }}
+  {%- endif -%}
+  
+{% endform %}
+```
+
+## Utilisation dans le panier
+
+Pour afficher les boutons de checkout dynamique dans la page panier, utilisez :
+
+```liquid showLineNumbers
+{{ content_for_additional_checkout_buttons }}
+```
+
+Cette variable contient automatiquement les boutons de paiement rapide disponibles pour le client.
+
+## Explication
+
+### Le tag `payment_button`
+
+Le filtre `payment_button` appliqué au formulaire (`{{ form | payment_button }}`) génère automatiquement :
+
+- **Shop Pay** : Pour les clients ayant enregistré Shop Pay
+- **Apple Pay** : Sur les appareils Apple compatibles
+- **Google Pay** : Sur les appareils Android compatibles
+- **PayPal** : Si configuré dans les paramètres de paiement
+- **Autres méthodes** : Selon la configuration de votre boutique
+
+### Condition avec checkbox
+
+La condition `{%- if block.settings.show_dynamic_checkout -%}` permet de :
+
+- Activer/désactiver le bouton depuis l'éditeur de thème
+- Donner le contrôle au marchand sur l'affichage du Dynamic Checkout
+- Respecter les préférences de chaque boutique
+
+## Personnalisation
+
+### Styling du Dynamic Checkout Button
+
+Le bouton généré par Shopify a des classes CSS que vous pouvez personnaliser :
+
+```css
+.shopify-payment-button {
+  margin-top: 1rem;
+}
+
+.shopify-payment-button__button {
+  border-radius: 4px;
+  padding: 12px 24px;
+}
+
+.shopify-payment-button__button--unbranded {
+  background-color: #000;
+  color: #fff;
+}
+```
+
+### Afficher toujours le Dynamic Checkout
+
+Si vous voulez toujours afficher le bouton sans checkbox :
+
+```liquid
+{{ form | payment_button }}
+```
+
+### Afficher conditionnellement selon d'autres critères
+
+```liquid
+{%- if product.available and block.settings.show_dynamic_checkout -%}
+    {{ form | payment_button }}
+{%- endif -%}
+```
+
+## Bonnes pratiques
+
+1. **Positionnement** : Placez le Dynamic Checkout Button juste après le bouton "Ajouter au panier"
+2. **Visibilité** : Assurez-vous qu'il soit bien visible et accessible
+3. **Mobile** : Le Dynamic Checkout est particulièrement utile sur mobile pour accélérer le processus d'achat
+4. **Test** : Testez avec différents navigateurs et appareils pour vérifier l'affichage des différentes options de paiement
+5. **Inputs requis** : Assurez-vous d'avoir exactement un input avec `name="id"` et, si nécessaire, un input avec `name="selling_plan"` pour les abonnements
+
+## Limitations
+
+- Le Dynamic Checkout Button ne fonctionne que pour les produits avec une seule variante ou des variantes simples
+- Il nécessite que le produit soit en stock et disponible
+- Certaines méthodes de paiement peuvent ne pas être disponibles selon la région du client
+- Le formulaire ne doit pas contenir `javascript:void` dans l'attribut action
+
+## Ressources
+
+- **Documentation Shopify** : [Dynamic Checkout Buttons](https://shopify.dev/themes/architecture/templates/product#dynamic-checkout-buttons)
+- **Shop Pay** : [Documentation](https://shopify.dev/themes/architecture/templates/product#shop-pay)

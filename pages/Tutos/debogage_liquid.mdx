@@ -1,0 +1,478 @@
+# Débogage Liquid
+
+***
+
+<aside>
+<img src="/icons/barcode_green.svg" alt="/icons/barcode_green.svg" width="40px" /> **Guide complet pour déboguer et résoudre les problèmes dans le code Liquid Shopify**
+</aside>
+
+Guide pour identifier, comprendre et résoudre les problèmes courants dans le code Liquid de votre thème Shopify.
+
+## Vue d'ensemble
+
+Le débogage Liquid permet de :
+- Identifier les erreurs de syntaxe
+- Comprendre pourquoi des données ne s'affichent pas
+- Optimiser les performances
+- Vérifier la logique conditionnelle
+- Tracer le flux de données
+
+## Outils de débogage
+
+### 1. Console Liquid dans l'éditeur de thème
+
+L'éditeur de thème Shopify offre une console pour tester le code Liquid :
+
+1. Aller dans **En ligne** → **Thèmes** → **Personnaliser**
+2. Cliquer sur **"..."** → **Thème éditeur de code**
+3. Utiliser la console pour tester des expressions Liquid
+
+### 2. Extension VS Code
+
+#### Shopify Liquid
+
+Extension officielle pour VS Code :
+- Syntaxe highlighting
+- Autocomplétion
+- Validation de syntaxe
+- Snippets utiles
+
+Installation :
+```bash
+code --install-extension shopify.liquid
+```
+
+### 3. Outils en ligne
+
+#### Liquid Parser
+
+- [Liquid Parser](https://liquidjs.com/playground.html) : Tester du code Liquid en ligne
+
+## Techniques de débogage
+
+### 1. Affichage de valeurs avec `{{ }}`
+
+La méthode la plus simple pour voir la valeur d'une variable :
+
+```liquid
+{% comment %} Afficher une variable {% endcomment %}
+{{ product.title }}
+
+{% comment %} Afficher plusieurs valeurs {% endcomment %}
+Produit: {{ product.title }}
+Prix: {{ product.price | money }}
+ID: {{ product.id }}
+```
+
+### 2. Debug avec `inspect`
+
+Le filtre `inspect` affiche la structure complète d'un objet :
+
+```liquid
+{% comment %} Afficher toutes les propriétés d'un produit {% endcomment %}
+{{ product | inspect }}
+
+{% comment %} Afficher les propriétés d'une collection {% endcomment %}
+{{ collection | inspect }}
+
+{% comment %} Afficher les settings d'une section {% endcomment %}
+{{ section.settings | inspect }}
+```
+
+**Exemple de sortie** :
+```
+{"id":123456,"title":"Produit","handle":"produit","vendor":"Marque",...}
+```
+
+### 3. Vérifier si une variable existe
+
+```liquid
+{% comment %} Vérifier si une variable est définie {% endcomment %}
+{% if product %}
+  Le produit existe : {{ product.title }}
+{% else %}
+  Le produit n'existe pas
+{% endif %}
+
+{% comment %} Vérifier si une propriété existe {% endcomment %}
+{% if product.metafields.custom.field %}
+  Metafield existe : {{ product.metafields.custom.field }}
+{% else %}
+  Metafield n'existe pas
+{% endif %}
+```
+
+### 4. Vérifier si une valeur est vide
+
+```liquid
+{% comment %} Vérifier si une valeur est vide {% endcomment %}
+{% if product.description != blank %}
+  Description : {{ product.description }}
+{% else %}
+  Pas de description
+{% endif %}
+
+{% comment %} Alternative avec unless {% endcomment %}
+{% unless product.description == blank %}
+  Description : {{ product.description }}
+{% endunless %}
+```
+
+### 5. Compteur de boucles
+
+Pour déboguer les boucles, afficher l'index :
+
+```liquid
+{% for product in collection.products %}
+  {% comment %} Afficher l'index et le produit {% endcomment %}
+  Index: {{ forloop.index }} - {{ product.title }}
+  
+  {% comment %} Vérifier si c'est le premier ou dernier {% endcomment %}
+  {% if forloop.first %}
+    Premier produit
+  {% endif %}
+  
+  {% if forloop.last %}
+    Dernier produit
+  {% endif %}
+{% endfor %}
+```
+
+### 6. Limiter les boucles pour le debug
+
+Limiter le nombre d'itérations pour tester :
+
+```liquid
+{% comment %} Limiter à 3 produits pour le debug {% endcomment %}
+{% assign limit = 3 %}
+{% for product in collection.products limit: limit %}
+  {{ product.title }}
+{% endfor %}
+```
+
+## Problèmes courants et solutions
+
+### 1. Variable non définie ou vide
+
+#### Problème : Variable retourne vide
+
+```liquid
+{% comment %} ❌ Problème {% endcomment %}
+{{ product.custom_field }}
+```
+
+**Solution** :
+
+```liquid
+{% comment %} ✅ Vérifier d'abord si la variable existe {% endcomment %}
+{% if product.custom_field != blank %}
+  {{ product.custom_field }}
+{% else %}
+  Valeur par défaut ou message d'erreur
+{% endif %}
+
+{% comment %} ✅ Utiliser assign avec une valeur par défaut {% endcomment %}
+{% assign custom_field = product.custom_field | default: 'Valeur par défaut' %}
+{{ custom_field }}
+```
+
+### 2. Erreurs de syntaxe dans les conditions
+
+#### Problème : Condition ne fonctionne pas
+
+```liquid
+{% comment %} ❌ Problème : comparaison incorrecte {% endcomment %}
+{% if product.price == 0 %}
+  Gratuit
+{% endif %}
+```
+
+**Solution** :
+
+```liquid
+{% comment %} ✅ Utiliser les bonnes comparaisons {% endcomment %}
+{% if product.price == 0 %}
+  Gratuit
+{% elsif product.compare_at_price > product.price %}
+  En promotion
+{% endif %}
+
+{% comment %} ✅ Pour les strings {% endcomment %}
+{% if product.vendor == "Nike" %}
+  Produit Nike
+{% endif %}
+
+{% comment %} ✅ Vérifier si contient {% endcomment %}
+{% if product.tags contains "nouveau" %}
+  Nouveau produit
+{% endif %}
+```
+
+### 3. Problèmes avec les filtres
+
+#### Problème : Filtre ne fonctionne pas comme attendu
+
+```liquid
+{% comment %} ❌ Problème : format incorrect {% endcomment %}
+{{ product.price | money }}
+```
+
+**Solution** :
+
+```liquid
+{% comment %} ✅ Vérifier les paramètres du filtre {% endcomment %}
+{{ product.price | money }}
+
+{% comment %} ✅ Avec paramètres {% endcomment %}
+{{ product.price | money_with_currency }}
+
+{% comment %} ✅ Debug : voir la valeur avant filtre {% endcomment %}
+Prix brut: {{ product.price }}
+Prix formaté: {{ product.price | money }}
+
+{% comment %} ✅ Tester différents formats {% endcomment %}
+{{ product.price | divided_by: 100.0 | round: 2 }}
+```
+
+### 4. Problèmes avec les boucles
+
+#### Problème : Boucle ne s'exécute pas
+
+```liquid
+{% comment %} ❌ Problème : collection vide {% endcomment %}
+{% for product in collection.products %}
+  {{ product.title }}
+{% endfor %}
+```
+
+**Solution** :
+
+```liquid
+{% comment %} ✅ Vérifier si la collection existe et a des produits {% endcomment %}
+{% if collection.products.size > 0 %}
+  {% for product in collection.products %}
+    {{ product.title }}
+  {% endfor %}
+{% else %}
+  Aucun produit dans cette collection
+{% endif %}
+
+{% comment %} ✅ Debug : afficher la taille {% endcomment %}
+Nombre de produits: {{ collection.products.size }}
+
+{% comment %} ✅ Vérifier la collection {% endcomment %}
+{{ collection | inspect }}
+```
+
+### 5. Problèmes avec les metafields
+
+#### Problème : Metafield ne s'affiche pas
+
+```liquid
+{% comment %} ❌ Problème : chemin incorrect {% endcomment %}
+{{ product.metafields.custom.color }}
+```
+
+**Solution** :
+
+```liquid
+{% comment %} ✅ Debug : voir la structure complète {% endcomment %}
+{{ product.metafields | inspect }}
+
+{% comment %} ✅ Vérifier le namespace et la clé {% endcomment %}
+{% if product.metafields.custom.color %}
+  {{ product.metafields.custom.color }}
+{% endif %}
+
+{% comment %} ✅ Afficher tous les metafields custom {% endcomment %}
+{% for metafield in product.metafields.custom %}
+  {{ metafield[0] }}: {{ metafield[1] }}
+{% endfor %}
+```
+
+### 6. Problèmes avec les sections et blocks
+
+#### Problème : Block ne s'affiche pas
+
+```liquid
+{% comment %} ❌ Problème : block non vérifié {% endcomment %}
+{% for block in section.blocks %}
+  {{ block.settings.text }}
+{% endfor %}
+```
+
+**Solution** :
+
+```liquid
+{% comment %} ✅ Vérifier le type de block {% endcomment %}
+{% for block in section.blocks %}
+  {% case block.type %}
+    {% when 'text' %}
+      {{ block.settings.text }}
+    {% when 'image' %}
+      <img src="{{ block.settings.image | image_url }}" alt="{{ block.settings.alt }}">
+  {% endcase %}
+{% endfor %}
+
+{% comment %} ✅ Debug : afficher tous les blocks {% endcomment %}
+{% for block in section.blocks %}
+  Block type: {{ block.type }}
+  Block settings: {{ block.settings | inspect }}
+{% endfor %}
+```
+
+## Techniques avancées
+
+### 1. Créer un snippet de debug
+
+Créer `snippets/debug.liquid` :
+
+```liquid
+{% comment %}
+  Snippet de debug pour afficher des informations
+  
+  Usage:
+  {% render 'debug', variable: product, label: 'Product' %}
+{% endcomment %}
+
+{% if variable != blank %}
+  <div class="debug-info" style="background: #f0f0f0; padding: 1rem; margin: 1rem 0; border-left: 4px solid #007bff;">
+    <strong>{{ label | default: 'Debug' }}:</strong>
+    <pre style="margin: 0.5rem 0; overflow: auto;">{{ variable | inspect }}</pre>
+  </div>
+{% else %}
+  <div class="debug-info" style="background: #fff3cd; padding: 1rem; margin: 1rem 0; border-left: 4px solid #ffc107;">
+    <strong>{{ label | default: 'Debug' }}:</strong> Variable vide ou non définie
+  </div>
+{% endif %}
+```
+
+Utilisation :
+
+```liquid
+{% render 'debug', variable: product, label: 'Product Info' %}
+{% render 'debug', variable: collection, label: 'Collection Info' %}
+```
+
+### 2. Mode debug conditionnel
+
+Créer un setting pour activer/désactiver le debug :
+
+```liquid
+{% comment %} Dans le schema de la section {% endcomment %}
+{
+  "type": "checkbox",
+  "id": "enable_debug",
+  "label": "Activer le mode debug",
+  "default": false
+}
+
+{% comment %} Dans le code Liquid {% endcomment %}
+{% if section.settings.enable_debug %}
+  <div class="debug-mode">
+    {{ product | inspect }}
+    {{ collection | inspect }}
+  </div>
+{% endif %}
+```
+
+### 3. Logger les valeurs dans la console
+
+Pour les valeurs complexes, utiliser JavaScript :
+
+```liquid
+<script>
+  console.log('Product Data:', {
+    id: {{ product.id | json }},
+    title: {{ product.title | json }},
+    price: {{ product.price | json }},
+    variants: {{ product.variants | json }}
+  });
+</script>
+```
+
+### 4. Afficher les chemins de fichiers
+
+Pour déboguer les inclusions de snippets :
+
+```liquid
+{% comment %} Vérifier si un snippet existe {% endcomment %}
+{% if snippets['mm-product-card'] %}
+  Snippet existe
+{% else %}
+  Snippet n'existe pas
+{% endif %}
+```
+
+## Checklist de débogage
+
+### Avant de commencer
+
+- [ ] Vérifier la syntaxe Liquid (pas d'erreurs dans l'éditeur)
+- [ ] Vérifier que les fichiers sont sauvegardés
+- [ ] Vider le cache du navigateur
+- [ ] Vérifier la console du navigateur pour les erreurs JS
+
+### Étapes de débogage
+
+1. **Identifier le problème**
+   - [ ] Qu'est-ce qui ne fonctionne pas ?
+   - [ ] Quand est-ce que ça se produit ?
+   - [ ] Sur quelle page/section ?
+
+2. **Isoler le code**
+   - [ ] Simplifier le code au maximum
+   - [ ] Tester avec des valeurs hardcodées
+   - [ ] Vérifier chaque variable individuellement
+
+3. **Vérifier les données**
+   - [ ] Les données existent-elles ?
+   - [ ] Les données ont-elles le bon format ?
+   - [ ] Les données sont-elles accessibles ?
+
+4. **Tester les conditions**
+   - [ ] Les conditions sont-elles correctes ?
+   - [ ] Les opérateurs de comparaison sont-ils bons ?
+   - [ ] Les valeurs par défaut sont-elles définies ?
+
+5. **Vérifier les filtres**
+   - [ ] Le filtre est-il correctement utilisé ?
+   - [ ] Les paramètres du filtre sont-ils bons ?
+   - [ ] Y a-t-il une alternative au filtre ?
+
+## Erreurs courantes et solutions rapides
+
+### Erreur : "Liquid syntax error"
+
+**Causes possibles** :
+- Balises non fermées : `{% if %}` sans `{% endif %}`
+- Filtres mal formés : `| filter param` au lieu de `| filter: param`
+- Variables mal référencées
+
+**Solution** : Vérifier la syntaxe avec un validateur Liquid
+
+### Erreur : Variable retourne `null` ou vide
+
+**Causes possibles** :
+- Variable non définie dans le contexte
+- Chemin incorrect (ex: `product.custom` au lieu de `product.metafields.custom`)
+- Données non disponibles pour l'objet
+
+**Solution** : Utiliser `inspect` pour voir la structure, vérifier le contexte
+
+### Erreur : Boucle infinie ou très lente
+
+**Causes possibles** :
+- Boucle sans limite sur une grande collection
+- Récursion dans les snippets
+- Trop de produits chargés
+
+**Solution** : Ajouter des limites, utiliser la pagination
+
+## Ressources
+
+- [Shopify Liquid Documentation](https://shopify.dev/docs/api/liquid)
+- [Liquid Filters Reference](https://shopify.dev/docs/api/liquid/filters)
+- [Liquid Objects Reference](https://shopify.dev/docs/api/liquid/objects)
+- [VS Code Shopify Liquid Extension](https://marketplace.visualstudio.com/items?itemName=shopify.liquid)
+

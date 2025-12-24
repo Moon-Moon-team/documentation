@@ -1,0 +1,415 @@
+# Judge.me
+
+***
+
+<aside>
+<img src="/icons/barcode_green.svg" alt="/icons/barcode_green.svg" width="40px" /> **Intégration Judge.me pour les avis clients et les questions-réponses**
+</aside>
+
+Guide d'intégration de Judge.me dans votre thème Shopify pour afficher les avis clients et les questions-réponses.
+
+## Vue d'ensemble
+
+Judge.me est une application d'avis clients qui permet de :
+- Collecter des avis clients après achat
+- Afficher les avis sur les pages produit
+- Gérer les questions-réponses (Q&A)
+- Afficher des widgets de recommandation
+- Créer des pages d'avis dédiées
+
+## Installation
+
+### Étape 1 : Installer l'app Judge.me
+
+1. Aller dans **Shopify Admin** → **Apps**
+2. Rechercher **"Judge.me Product Reviews"**
+3. Installer l'app (version gratuite disponible)
+4. Suivre le processus de configuration initiale
+
+### Étape 2 : Récupérer votre Shop Domain
+
+Après l'installation, vous obtiendrez votre Shop Domain (ex: `votre-boutique.judge.me`). Vous en aurez besoin pour les intégrations.
+
+### Étape 3 : Configuration dans Judge.me
+
+1. Se connecter à votre compte [Judge.me](https://judge.me/)
+2. Aller dans **Settings** → **Widgets** pour configurer l'apparence
+3. Personnaliser les couleurs, polices et styles selon votre thème
+
+## Intégrations de base
+
+### 1. Widget d'avis sur la page produit
+
+#### Méthode 1 : Utiliser le widget Judge.me (recommandé)
+
+Dans votre template `product.liquid` ou section produit, ajoutez :
+
+```liquid showLineNumbers
+{% comment %} Judge.me Reviews Widget {% endcomment %}
+<div id="judge-me-product-reviews"></div>
+
+{% comment %} Script Judge.me - à ajouter une seule fois dans theme.liquid {% endcomment %}
+{% unless judge_me_loaded %}
+  <script>
+    (function() {
+      // Configuration Judge.me
+      window.judgemeSettings = {
+        shopDomain: '{{ shop.permanent_domain | replace: '.myshopify.com', '' }}.judge.me'
+      };
+      
+      // Charger le script Judge.me
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = 'https://cdn.judge.me/widget_preloader.js';
+      script.async = true;
+      document.head.appendChild(script);
+    })();
+  </script>
+  {% assign judge_me_loaded = true %}
+{% endunless %}
+```
+
+#### Méthode 2 : Utiliser l'ID de produit Shopify
+
+```liquid showLineNumbers
+<div id="judge-me-product-reviews" data-product-id="{{ product.id }}"></div>
+<script>
+  (function() {
+    window.judgemeSettings = {
+      shopDomain: '{{ shop.permanent_domain | replace: '.myshopify.com', '' }}.judge.me'
+    };
+    
+    var script = document.createElement('script');
+    script.src = 'https://cdn.judge.me/widget_preloader.js';
+    script.async = true;
+    document.head.appendChild(script);
+  })();
+</script>
+```
+
+### 2. Badge d'étoiles dans les cards produits
+
+Ajouter dans votre snippet `card-product.liquid` :
+
+```liquid showLineNumbers
+{% comment %} Judge.me Star Rating Badge {% endcomment %}
+<div 
+  class="judge-me-product-rating" 
+  data-id="{{ product.id }}"
+  data-product-handle="{{ product.handle }}"
+></div>
+```
+
+Puis dans `theme.liquid`, ajouter le script pour les badges :
+
+```liquid showLineNumbers
+<script>
+  (function() {
+    // Charger les badges d'étoiles
+    var script = document.createElement('script');
+    script.src = 'https://cdn.judge.me/widget_preloader.js';
+    script.async = true;
+    script.onload = function() {
+      if (typeof JudgeMe !== 'undefined') {
+        JudgeMe.loadProductReviews();
+      }
+    };
+    document.head.appendChild(script);
+  })();
+</script>
+```
+
+### 3. Widget Questions & Réponses
+
+Ajouter dans votre page produit :
+
+```liquid showLineNumbers
+{% comment %} Judge.me Q&A Widget {% endcomment %}
+<div id="judge-me-product-qa"></div>
+```
+
+### 4. Page d'avis dédiée
+
+Créer un template `page.reviews.liquid` :
+
+```liquid showLineNumbers
+<div class="mm-reviews-page">
+  <h1>{{ page.title }}</h1>
+  
+  <div id="judge-me-all-reviews">
+    {% comment %} Tous les avis seront affichés ici {% endcomment %}
+  </div>
+</div>
+
+<script>
+  (function() {
+    window.judgemeSettings = {
+      shopDomain: '{{ shop.permanent_domain | replace: '.myshopify.com', '' }}.judge.me'
+    };
+    
+    var script = document.createElement('script');
+    script.src = 'https://cdn.judge.me/widget_preloader.js';
+    script.async = true;
+    document.head.appendChild(script);
+  })();
+</script>
+```
+
+## Personnalisation CSS
+
+### Styler les widgets Judge.me
+
+Créer un fichier `judge-me-custom.css` dans `assets/` :
+
+```css showLineNumbers
+/* Personnalisation des avis Judge.me */
+
+/* Container principal */
+#judge-me-product-reviews {
+  margin: 2rem 0;
+}
+
+/* Titre de la section */
+.judgeme_header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* Étoiles */
+.judgeme_star {
+  color: #ffc107; /* Couleur des étoiles */
+}
+
+/* Bouton d'écriture d'avis */
+.judgeme_write_review_button {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.judgeme_write_review_button:hover {
+  opacity: 0.9;
+}
+
+/* Avis individuel */
+.judgeme_review {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.5rem 0;
+}
+
+.judgeme_review:last-child {
+  border-bottom: none;
+}
+
+/* Nom de l'auteur */
+.judgeme_review_author {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Date de l'avis */
+.judgeme_review_date {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+/* Texte de l'avis */
+.judgeme_review_text {
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+/* Badge d'étoiles dans les cards */
+.judge-me-product-rating .jdgm-star {
+  font-size: 0.875rem;
+}
+```
+
+Ajouter le CSS dans `theme.liquid` :
+
+```liquid showLineNumbers
+{{ 'judge-me-custom.css' | asset_url | stylesheet_tag }}
+```
+
+## Intégrations avancées
+
+### Afficher le nombre d'avis dans les cards
+
+```liquid showLineNumbers
+{% comment %} Dans card-product.liquid {% endcomment %}
+<div 
+  class="judge-me-product-rating-count" 
+  data-id="{{ product.id }}"
+  data-product-handle="{{ product.handle }}"
+>
+  {% comment %} Le nombre d'avis sera injecté par Judge.me {% endcomment %}
+</div>
+```
+
+Puis dans JavaScript :
+
+```javascript showLineNumbers
+// Attendre que Judge.me soit chargé
+function waitForJudgeMe(callback) {
+  if (typeof JudgeMe !== 'undefined' && JudgeMe.api) {
+    callback();
+  } else {
+    setTimeout(() => waitForJudgeMe(callback), 100);
+  }
+}
+
+// Récupérer le nombre d'avis pour un produit
+function getReviewCount(productId) {
+  waitForJudgeMe(() => {
+    JudgeMe.api.getProductReviews(productId, function(reviews) {
+      const count = reviews.total_count || 0;
+      const element = document.querySelector(`[data-id="${productId}"]`);
+      if (element) {
+        element.textContent = `(${count} avis)`;
+      }
+    });
+  });
+}
+
+// Appliquer à tous les produits
+document.addEventListener('DOMContentLoaded', function() {
+  const ratingElements = document.querySelectorAll('.judge-me-product-rating-count');
+  ratingElements.forEach(element => {
+    const productId = element.dataset.id;
+    if (productId) {
+      getReviewCount(productId);
+    }
+  });
+});
+```
+
+### Afficher les avis vérifiés uniquement
+
+Dans les paramètres Judge.me :
+1. Aller dans **Settings** → **Reviews**
+2. Activer **"Show only verified reviews"**
+3. Configurer les critères de vérification
+
+### Filtres d'avis personnalisés
+
+```liquid showLineNumbers
+{% comment %} Afficher seulement les avis 5 étoiles {% endcomment %}
+<div 
+  id="judge-me-product-reviews" 
+  data-filter-rating="5"
+  data-product-id="{{ product.id }}"
+></div>
+```
+
+## Configuration de l'envoi d'emails
+
+### Activer les emails de demande d'avis
+
+1. Dans Judge.me → **Settings** → **Email Settings**
+2. Activer **"Review Request Emails"**
+3. Personnaliser le délai d'envoi (ex: 7 jours après achat)
+4. Personnaliser le template d'email
+
+### Configurer les incitatifs
+
+Dans **Settings** → **Review Incentives** :
+- Offrir des coupons pour les avis
+- Programmer des emails de rappel
+- Créer des campagnes ciblées
+
+## Intégration avec les metafields Shopify
+
+### Afficher le score moyen dans les metafields
+
+Utiliser l'API Judge.me pour mettre à jour un metafield :
+
+```javascript showLineNumbers
+// Mettre à jour un metafield avec le score Judge.me
+async function updateProductMetafield(productId, rating) {
+  const mutation = `
+    mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+      metafieldsSet(metafields: $metafields) {
+        metafields {
+          id
+          key
+          namespace
+          value
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    metafields: [{
+      ownerId: `gid://shopify/Product/${productId}`,
+      namespace: 'judge_me',
+      key: 'average_rating',
+      type: 'number_decimal',
+      value: rating.toString()
+    }]
+  };
+
+  // Appeler l'API Shopify Admin GraphQL
+  // (nécessite une app Shopify ou un script)
+}
+```
+
+## Tests et débogage
+
+### Vérifier que Judge.me est chargé
+
+Ouvrir la console du navigateur :
+
+```javascript
+// Vérifier si Judge.me est chargé
+console.log(typeof JudgeMe); // Devrait retourner "object"
+
+// Vérifier les paramètres
+console.log(window.judgemeSettings);
+
+// Lister les avis d'un produit
+JudgeMe.api.getProductReviews(PRODUCT_ID, function(reviews) {
+  console.log('Avis:', reviews);
+});
+```
+
+### Debug dans Judge.me Dashboard
+
+1. Aller dans **Reviews** → **All Reviews**
+2. Vérifier que les avis sont bien enregistrés
+3. Tester l'affichage sur le site avec le mode preview
+
+## Bonnes pratiques
+
+### Performance
+
+- ✅ Charger le script Judge.me en asynchrone
+- ✅ Utiliser le widget preloader pour éviter les blocages
+- ✅ Limiter le nombre d'avis affichés initialement (pagination)
+
+### SEO
+
+- ✅ Utiliser les données structurées Schema.org pour les avis
+- ✅ Judge.me génère automatiquement le schema, mais vérifier qu'il est présent
+
+### Expérience utilisateur
+
+- ✅ Afficher les avis de manière lisible et accessible
+- ✅ Permettre le tri et le filtrage des avis
+- ✅ Responsive design pour mobile
+
+## Ressources
+
+- [Documentation officielle Judge.me](https://judge.me/support)
+- [Judge.me Widget Documentation](https://judge.me/support/widget)
+- [Judge.me API Documentation](https://judge.me/support/api)
+

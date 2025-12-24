@@ -1,0 +1,365 @@
+# Stimulus
+
+***
+
+Guide d'installation et de configuration de Stimulus dans un thème Shopify avec lazy loading des contrôleurs.
+
+## Vue d'ensemble
+
+Stimulus est un framework JavaScript modeste pour les développeurs qui ont déjà choisi leur HTML. Il permet d'ajouter du comportement interactif à vos pages avec des contrôleurs légers et réutilisables.
+
+Cette installation inclut :
+- Configuration de Stimulus avec lazy loading
+- Système de chargement automatique des contrôleurs
+- Exemple de contrôleur
+- Configuration de l'importmap
+
+## Fichiers à créer
+
+### 1. application.js
+
+Créez le fichier `assets/application.js` :
+
+```jsx
+import { Application } from "@hotwired/stimulus"
+import { lazyLoadControllersFrom } from "controllers"
+
+const application = Application.start()
+
+// Configure Stimulus development experience
+application.debug = false
+window.Stimulus   = application
+
+// Lazy load controllers as they appear in the DOM (remember not to preload controllers!)
+lazyLoadControllersFrom("controllers", application)
+```
+
+**Explication :**
+- Démarre l'application Stimulus
+- Configure le mode debug (désactivé en production)
+- Active le lazy loading des contrôleurs pour optimiser les performances
+
+### 2. hello_controller.js
+
+Créez le fichier `assets/hello_controller.js` comme exemple de contrôleur :
+
+```jsx
+import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  connect() {
+    console.log("hello there!");
+  }
+}
+```
+
+**Explication :**
+- Exemple basique de contrôleur Stimulus
+- La méthode `connect()` est appelée automatiquement quand l'élément avec `data-controller="hello"` apparaît dans le DOM
+
+### 3. stimulus_controllers_index.js
+
+Créez le fichier `assets/stimulus_controllers_index.js` pour le système de lazy loading :
+
+```jsx
+// Import and register all your controllers from the importmap under controllers/*
+
+// FIXME: es-module-shim won't shim the dynamic import without this explicit import
+// import "@hotwired/stimulus"
+const controllerAttribute = "data-controller"
+
+// Lazy load controllers registered beneath the `under` path in the import map to the passed application instance.
+function lazyLoadControllersFrom(under, application, element = document) {
+  lazyLoadExistingControllers(under, application, element)
+  lazyLoadNewControllers(under, application, element)
+}
+
+function lazyLoadExistingControllers(under, application, element) {
+  queryControllerNamesWithin(element).forEach(controllerName => loadController(controllerName, under, application))
+}
+
+function lazyLoadNewControllers(under, application, element) {
+  new MutationObserver((mutationsList) => {
+    for (const { attributeName, target, type } of mutationsList) {
+      switch (type) {
+        case "attributes": {
+          if (attributeName == controllerAttribute && target.getAttribute(controllerAttribute)) {
+            extractControllerNamesFrom(target).forEach(controllerName => loadController(controllerName, under, application))
+          }
+        }
+
+        case "childList": {
+          lazyLoadExistingControllers(under, application, target)
+        }
+      }
+    }
+  }).observe(element, { attributeFilter: [controllerAttribute], subtree: true, childList: true })
+}
+
+function queryControllerNamesWithin(element) {
+  return Array.from(element.querySelectorAll(`[${controllerAttribute}]`)).map(extractControllerNamesFrom).flat()
+}
+
+function extractControllerNamesFrom(element) {
+  return element.getAttribute(controllerAttribute).split(/\s+/).filter(content => content.length)
+}
+
+function loadController(name, under, application) {
+  if (canRegisterController(name, application)) {
+    import(controllerFilename(name, under))
+      .then(module => registerController(name, module, application))
+      .catch(error => console.error(`Failed to autoload controller: ${name}`, error))
+  }
+}
+
+function controllerFilename(name, under) {
+  return `${under}/${name.replace(/--/g, "/").replace(/-/g, "_")}_controller`
+}
+
+function registerController(name, module, application) {
+  if (canRegisterController(name, application)) {
+    application.register(name, module.default)
+  }
+}
+
+function canRegisterController(name, application){
+  return !application.router.modulesByIdentifier.has(name)
+}
+
+export { lazyLoadControllersFrom }
+```
+
+**Explication :**
+- Système de lazy loading automatique des contrôleurs
+- Détecte les nouveaux éléments avec `data-controller` via `MutationObserver`
+- Charge les contrôleurs uniquement quand ils sont nécessaires
+- Convertit les noms de contrôleurs (ex: `hello-world` → `hello_world_controller`)
+
+### 4. snippets/mm-head.liquid
+
+Créez le snippet `snippets/mm-head.liquid` :
+
+```liquid
+<!-- MM HEAD [BEGIN] -->
+{% comment %}
+Exemple css :
+    <link rel="stylesheet" href="{{ 'mm-accordion.css' | asset_url }}"/>
+Exemple js: (a rajouter dans imports: {})
+    "mm_cart": "{{ 'mm_cart.js' | asset_url }}"
+{% endcomment %}
+
+<!-- polyfill to make sure importmaps work on all browsers -->
+<script async src="https://ga.jspm.io/npm:es-module-shims@1.8.3/dist/es-module-shims.js" crossorigin="anonymous"></script>
+
+<script type="importmap">
+    {
+        "imports": {
+            "@splidejs/splide": "https://ga.jspm.io/npm:@splidejs/splide@4.1.4/dist/js/splide.esm.js",
+            "@splidejs/splide-extension-auto-scroll": "https://cdn.jsdelivr.net/npm/@splidejs/splide-extension-auto-scroll@0.5.3/dist/js/splide-extension-auto-scroll.min.js",
+            "@hotwired/stimulus": "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js",
+            "application": "{{ 'application.js' | asset_url }}",
+            "controllers": "{{ 'stimulus_controllers_index.js' | asset_url }}",
+            "controllers/hello_controller": "{{ 'hello_controller.js' | asset_url }}"
+        }
+    }
+</script>
+
+<!-- load application -->
+<script type="module">
+    import "application"
+</script>
+
+<!-- preload top priority assets -->
+<link rel="modulepreload" href="https://unpkg.com/@hotwired/stimulus/dist/stimulus.js">
+<link rel="modulepreload" href="{{ 'application.js' | asset_url }}">
+<link rel="modulepreload" href="{{ 'stimulus_controllers_index.js' | asset_url }}">
+
+<!-- Internal assets -->
+{% comment %} ... {% endcomment %}
+
+<!-- External libs assets -->
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/css/splide.min.css" as="style">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/css/splide.min.css">
+
+<!-- MM HEAD [END] -->
+```
+
+**Explication :**
+- Polyfill `es-module-shims` pour la compatibilité navigateurs
+- Importmap pour définir les alias des modules
+- Preload des assets prioritaires pour optimiser le chargement
+- Configuration pour Stimulus et autres librairies (Splide, etc.)
+
+## Installation dans theme.liquid
+
+Dans votre fichier `layout/theme.liquid`, ajoutez le snippet dans le `<head>`, **avant** `{{ content_for_header }}` :
+
+```liquid
+<head>
+  <!-- ... autres balises head ... -->
+  
+  {% render 'mm-head' %}
+  
+  {{ content_for_header }}
+  
+  <!-- ... reste du head ... -->
+</head>
+```
+
+## Utilisation
+
+### Exemple basique
+
+Pour utiliser le contrôleur `hello` dans votre HTML :
+
+```html
+<div data-controller="hello">
+  <!-- Le contrôleur sera automatiquement chargé et connecté -->
+</div>
+```
+
+### Créer un nouveau contrôleur
+
+1. **Créer le fichier** : `assets/my_controller.js`
+
+```jsx
+import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static targets = ["input", "output"]
+  static values = { count: Number }
+
+  connect() {
+    console.log("My controller connected!");
+  }
+
+  increment() {
+    this.countValue++
+    this.outputTarget.textContent = this.countValue
+  }
+}
+```
+
+2. **Ajouter dans l'importmap** (dans `mm-head.liquid`) :
+
+```liquid
+"controllers/my_controller": "{{ 'my_controller.js' | asset_url }}"
+```
+
+3. **Utiliser dans le HTML** :
+
+```html
+<div data-controller="my" 
+     data-my-count-value="0">
+  <button data-my-target="input" 
+          data-action="click->my#increment">
+    Increment
+  </button>
+  <span data-my-target="output">0</span>
+</div>
+```
+
+## Convention de nommage
+
+Le système de lazy loading convertit automatiquement les noms :
+
+- **HTML** : `data-controller="hello-world"` 
+- **Fichier** : `hello_world_controller.js`
+- **Importmap** : `"controllers/hello_world_controller": "{{ 'hello_world_controller.js' | asset_url }}"`
+
+### Exemples
+
+| Nom dans HTML | Nom du fichier | Importmap |
+|---------------|----------------|-----------|
+| `hello` | `hello_controller.js` | `controllers/hello_controller` |
+| `cart-item` | `cart_item_controller.js` | `controllers/cart_item_controller` |
+| `product--variant` | `product/variant_controller.js` | `controllers/product/variant_controller` |
+
+## Avantages du lazy loading
+
+1. **Performance** : Les contrôleurs ne sont chargés que quand nécessaire
+2. **Automatique** : Détection automatique des nouveaux éléments dans le DOM
+3. **Dynamique** : Fonctionne avec du contenu chargé via AJAX ou JavaScript
+4. **Optimisé** : Pas de chargement inutile de code non utilisé
+
+## Bonnes pratiques
+
+### Organisation des contrôleurs
+
+```
+assets/
+  ├── application.js
+  ├── stimulus_controllers_index.js
+  ├── hello_controller.js
+  ├── cart_controller.js
+  ├── product_controller.js
+  └── ...
+```
+
+### Ajout d'un nouveau contrôleur
+
+1. Créer le fichier `assets/nom_controller.js`
+2. Ajouter dans l'importmap de `mm-head.liquid`
+3. Utiliser avec `data-controller="nom"` dans le HTML
+
+### Debug
+
+Pour activer le mode debug (développement uniquement) :
+
+```jsx
+// Dans application.js
+application.debug = true
+```
+
+Cela affichera des logs dans la console pour le cycle de vie des contrôleurs.
+
+## Exemple complet : Contrôleur de panier
+
+```jsx
+// assets/cart_controller.js
+import { Controller } from "@hotwired/stimulus";
+
+export default class extends Controller {
+  static targets = ["quantity", "total"]
+  static values = { variantId: Number }
+
+  connect() {
+    console.log(`Cart controller connected for variant ${this.variantIdValue}`);
+  }
+
+  increase() {
+    const currentQty = parseInt(this.quantityTarget.textContent);
+    this.quantityTarget.textContent = currentQty + 1;
+    this.updateCart();
+  }
+
+  decrease() {
+    const currentQty = parseInt(this.quantityTarget.textContent);
+    if (currentQty > 1) {
+      this.quantityTarget.textContent = currentQty - 1;
+      this.updateCart();
+    }
+  }
+
+  async updateCart() {
+    // Logique de mise à jour du panier
+  }
+}
+```
+
+```html
+<div data-controller="cart" 
+     data-cart-variant-id-value="123">
+  <button data-action="click->cart#decrease">-</button>
+  <span data-cart-target="quantity">1</span>
+  <button data-action="click->cart#increase">+</button>
+  <span data-cart-target="total">$29.99</span>
+</div>
+```
+
+## Ressources
+
+- **Stimulus Documentation** : https://stimulus.hotwired.dev/
+- **Import Maps** : https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap
+- **ES Module Shims** : https://github.com/guybedford/es-module-shims
+

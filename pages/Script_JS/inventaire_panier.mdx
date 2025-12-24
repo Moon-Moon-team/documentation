@@ -1,0 +1,259 @@
+# Récupérer l'inventaire d'un item pour éviter les bugs lors des spam de quantités dans le panier
+
+***
+
+Solution pour éviter les bugs lorsque les utilisateurs cliquent rapidement sur les boutons d'augmentation/diminution de quantité dans le panier, en vérifiant l'inventaire disponible avant chaque modification.
+
+## 1. Ajouter un dataset `data-max-quantity` à l'item
+
+Dans votre fichier `mm-cart-item.liquid`, ajoutez l'attribut `data-max-quantity` avec la quantité d'inventaire disponible :
+
+```html
+{% comment %} Dans mm-cart-item.liquid {% endcomment %}
+
+<div class="mm-dc-product-container mm-flex mm-column" 
+     data-cart-item-id="{{ item.variant_id }}" 
+     data-line-index="{{ forloopIndex }}" 
+     data-max-quantity="{{ item.product.selected_or_first_available_variant.inventory_quantity }}">
+```
+
+### Explication
+
+- `data-max-quantity` : Stocke la quantité maximale disponible en inventaire
+- `item.product.selected_or_first_available_variant.inventory_quantity` : Récupère la quantité disponible de la variante
+
+## 2. Modifier la fonction `mmDebouncedPushNewQuantity`
+
+Modifiez la fonction pour vérifier que la quantité ne dépasse pas le maximum disponible :
+
+```jsx
+const mmDebouncedPushNewQuantity = debounce(function (variantId, maxQtty) {
+    const quantity = mmGetCartItemQuantity(variantId);
+
+    if (quantity > maxQtty) {
+        return;
+    }
+
+    mmPushNewQuantity(variantId);
+}, 300);
+```
+
+### Explication
+
+- La fonction vérifie si la quantité demandée dépasse le stock disponible
+- Si c'est le cas, elle retourne immédiatement sans mettre à jour le panier
+- Le `debounce` de 300ms évite les appels multiples lors de clics rapides
+
+## 3. Modifier la fonction `mmDecreaseProductQuantity`
+
+Ajoutez la vérification de l'inventaire lors de la diminution de quantité :
+
+```jsx
+function mmDecreaseProductQuantity(variantId) {
+    const itemCart = document.querySelector(`[data-cart-item-id="${variantId}"]`); // Récupération de l'item card
+    const quantity = mmGetCartItemQuantity(variantId); // Corrige l'utilisation de productVariantId -> variantId
+    const maxQtty = parseInt(itemCart.dataset.maxQuantity, 10); // Récupération du max_quantity de l'item via le dataset
+    const newQuantity = quantity - 1;
+    
+    if (newQuantity > maxQtty) {
+        return;
+    }
+    
+    mmSetCartItemQuantity(variantId, newQuantity);
+    mmDebouncedPushNewQuantity(variantId, maxQtty);
+}
+```
+
+### Explication
+
+- Récupère l'élément du panier via `data-cart-item-id`
+- Extrait la quantité maximale depuis `data-max-quantity`
+- Vérifie que la nouvelle quantité ne dépasse pas le stock
+- Met à jour uniquement si la quantité est valide
+
+## 4. Modifier la fonction `mmIncreaseProductQuantity`
+
+Ajoutez la vérification de l'inventaire lors de l'augmentation de quantité :
+
+```jsx
+function mmIncreaseProductQuantity(variantId) {
+    const itemCart = document.querySelector(`[data-cart-item-id="${variantId}"]`); // Récupération de l'item card
+    const quantity = mmGetCartItemQuantity(variantId); // Corrige l'utilisation de productVariantId -> variantId
+    const maxQtty = parseInt(itemCart.dataset.maxQuantity, 10); // Récupération du max_quantity de l'item via le dataset
+    const newQuantity = quantity + 1;
+    
+    if (newQuantity > maxQtty) {
+        return; 
+    }
+
+    mmSetCartItemQuantity(variantId, newQuantity);
+    mmDebouncedPushNewQuantity(variantId, maxQtty);
+}
+```
+
+### Explication
+
+- Même logique que pour la diminution
+- Empêche l'ajout de quantités supérieures au stock disponible
+- Protège contre les clics rapides multiples
+
+## 5. Résultat
+
+✅ **Plus de bug possible à cause des énervés du click !** 😄
+
+## Exemple complet
+
+### Structure HTML (Liquid)
+
+```html
+{% comment %} mm-cart-item.liquid {% endcomment %}
+<div class="mm-dc-product-container mm-flex mm-column" 
+     data-cart-item-id="{{ item.variant_id }}" 
+     data-line-index="{{ forloop.index0 }}" 
+     data-max-quantity="{{ item.product.selected_or_first_available_variant.inventory_quantity }}">
+  
+  <div class="mm-cart-item-info">
+    <h3>{{ item.product.title }}</h3>
+    <p>{{ item.variant.title }}</p>
+  </div>
+  
+  <div class="mm-cart-item-quantity">
+    <button onclick="mmDecreaseProductQuantity({{ item.variant_id }})">-</button>
+    <span class="mm-quantity-display">{{ item.quantity }}</span>
+    <button onclick="mmIncreaseProductQuantity({{ item.variant_id }})">+</button>
+  </div>
+  
+</div>
+```
+
+### Code JavaScript complet
+
+```jsx
+// Fonction de debounce
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Fonction pour récupérer la quantité actuelle
+function mmGetCartItemQuantity(variantId) {
+    const itemCart = document.querySelector(`[data-cart-item-id="${variantId}"]`);
+    const quantityInput = itemCart.querySelector('.mm-quantity-display');
+    return parseInt(quantityInput.textContent, 10) || 0;
+}
+
+// Fonction pour définir la quantité
+function mmSetCartItemQuantity(variantId, quantity) {
+    const itemCart = document.querySelector(`[data-cart-item-id="${variantId}"]`);
+    const quantityInput = itemCart.querySelector('.mm-quantity-display');
+    quantityInput.textContent = quantity;
+}
+
+// Fonction pour pousser la nouvelle quantité (avec vérification)
+const mmDebouncedPushNewQuantity = debounce(function (variantId, maxQtty) {
+    const quantity = mmGetCartItemQuantity(variantId);
+
+    if (quantity > maxQtty) {
+        return;
+    }
+
+    mmPushNewQuantity(variantId);
+}, 300);
+
+// Fonction pour diminuer la quantité
+function mmDecreaseProductQuantity(variantId) {
+    const itemCart = document.querySelector(`[data-cart-item-id="${variantId}"]`);
+    const quantity = mmGetCartItemQuantity(variantId);
+    const maxQtty = parseInt(itemCart.dataset.maxQuantity, 10);
+    const newQuantity = quantity - 1;
+    
+    if (newQuantity > maxQtty) {
+        return;
+    }
+    
+    mmSetCartItemQuantity(variantId, newQuantity);
+    mmDebouncedPushNewQuantity(variantId, maxQtty);
+}
+
+// Fonction pour augmenter la quantité
+function mmIncreaseProductQuantity(variantId) {
+    const itemCart = document.querySelector(`[data-cart-item-id="${variantId}"]`);
+    const quantity = mmGetCartItemQuantity(variantId);
+    const maxQtty = parseInt(itemCart.dataset.maxQuantity, 10);
+    const newQuantity = quantity + 1;
+    
+    if (newQuantity > maxQtty) {
+        return; 
+    }
+
+    mmSetCartItemQuantity(variantId, newQuantity);
+    mmDebouncedPushNewQuantity(variantId, maxQtty);
+}
+```
+
+## Bonnes pratiques
+
+### Gestion des erreurs
+
+1. **Vérifier que l'élément existe** avant d'accéder à ses propriétés
+2. **Gérer les cas où `inventory_quantity` est null** ou indéfini
+3. **Afficher un message** à l'utilisateur si le stock est insuffisant
+
+### Amélioration possible
+
+```jsx
+function mmIncreaseProductQuantity(variantId) {
+    const itemCart = document.querySelector(`[data-cart-item-id="${variantId}"]`);
+    
+    if (!itemCart) {
+        console.error('Item cart not found');
+        return;
+    }
+    
+    const quantity = mmGetCartItemQuantity(variantId);
+    const maxQtty = parseInt(itemCart.dataset.maxQuantity, 10) || 0;
+    const newQuantity = quantity + 1;
+    
+    if (newQuantity > maxQtty) {
+        // Afficher un message à l'utilisateur
+        alert(`Stock insuffisant. Quantité disponible : ${maxQtty}`);
+        return; 
+    }
+
+    mmSetCartItemQuantity(variantId, newQuantity);
+    mmDebouncedPushNewQuantity(variantId, maxQtty);
+}
+```
+
+## Cas particuliers
+
+### Produits sans gestion d'inventaire
+
+Si un produit n'a pas de gestion d'inventaire, `inventory_quantity` peut être `null`. Dans ce cas :
+
+```liquid
+data-max-quantity="{% if item.product.selected_or_first_available_variant.inventory_quantity %}{{ item.product.selected_or_first_available_variant.inventory_quantity }}{% else %}9999{% endif %}"
+```
+
+### Mise à jour en temps réel
+
+Si l'inventaire change pendant que l'utilisateur est sur la page, vous devrez peut-être mettre à jour `data-max-quantity` après chaque modification du panier.
+
+## Limitations
+
+- Cette solution fonctionne côté client et peut être contournée
+- Pour une sécurité maximale, validez également côté serveur lors de l'ajout au panier
+- L'inventaire peut changer entre le chargement de la page et l'ajout au panier
+
+## Ressources
+
+- **Shopify Liquid** : [Variants](https://shopify.dev/docs/api/liquid/objects/product#product-selected_or_first_available_variant)
+- **Debounce** : Technique pour limiter les appels de fonction
+

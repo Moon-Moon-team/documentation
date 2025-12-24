@@ -1,0 +1,537 @@
+# Closable Announcement bar
+
+***
+
+<aside>
+<img src="/icons/barcode_green.svg" alt="/icons/barcode_green.svg" width="40px" /> **Announcement bar avec icone pour fermer la barre et choix du bg color**
+</aside>
+
+Barre d'annonce avec slider Splide, possibilité de fermer la barre et choix de la couleur de fond.
+
+## Vue d'ensemble
+
+Cette section permet de :
+- Afficher plusieurs annonces en slider (Splide)
+- Fermer la barre d'annonce avec une icône
+- Personnaliser la couleur de fond
+- Aligner le texte (gauche, centre, droite)
+- Animation de fermeture avec slide up
+
+## Structure des fichiers
+
+### 1. Section principale
+
+Créez le fichier `sections/mm-announcement-bar.liquid` :
+
+```liquid
+{{ 'mm-announcement.css' | asset_url | stylesheet_tag }}
+
+<div class="mm-section-announcement">
+    <div class="splide announce-splide-{{ section.id }}">
+        <div class="splide__track">
+            <ul class="splide__list">
+                {% for block in section.blocks %}
+                    {% if block.settings.text != blank %}
+                        <li class="splide__slide mm-section-annoucement mm-flex mm-align-center {{ block.settings.text_alignment }}">
+                            <div class="mm-annoucement mm-text-sm-semibold">{{ block.settings.text }}</div>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="mm-annoucement-close">
+        {% render 'mm-icon-close' %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener( 'DOMContentLoaded', function () {
+        var id = '.announce-splide-{{ section.id }}';
+        var splideElem = document.querySelector(id);
+
+        new Splide( splideElem, {
+            type: 'slide',
+            autoplay: true,
+            rewind: true,
+            arrows: false,
+            pagination: false,
+            perPage: 1,
+            gap: 8
+        }).mount();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var closeButton = document.querySelector('.mm-section-announcement .mm-annoucement-close');
+        var announcementBar = document.querySelector('.mm-section-announcement-bar');
+
+        closeButton.addEventListener('click', function() {
+            announcementBar.classList.add('hide');
+        });
+        announcementBar.addEventListener('animationend', function() {
+            announcementBar.style.display = 'none';
+        });
+    });
+</script>
+
+<style>
+    .mm-section-announcement-bar {
+        background-color: {{ section.settings.background }};
+        height: var(--announcement-bar-height);
+        position: relative;
+    }
+
+    .mm-section-announcement,
+    .announce-splide-{{ section.id }},
+    .announce-splide-{{ section.id }} .splide__track,
+    .announce-splide-{{ section.id }} .splide__slide {
+        height: 100%;
+    }
+    .announce-splide-{{ section.id }} {
+        max-width: 410px;
+        margin: auto;
+    }
+
+    @media(max-width:900px) {
+        .announce-splide-{{ section.id }} {
+            max-width: 100%;
+        }
+    }
+</style>
+
+{% schema %}
+{
+    "name": "t:sections.announcement-bar.name",
+    "tag": "section",
+    "max_blocks": 4,
+    "class": "mm-section-announcement-bar",
+    "blocks": [
+        {
+            "type": "announcement",
+            "name": "t:sections.announcement-bar.blocks.announcement.name",
+            "settings": [
+                {
+                    "type": "inline_richtext",
+                    "id": "text",
+                    "default": "Welcome to our store",
+                    "label": "t:sections.announcement-bar.blocks.announcement.settings.text.label"
+                },
+                {
+                    "type": "select",
+                    "id": "text_alignment",
+                    "options": [
+                        {
+                            "value": "mm-flex-start",
+                            "label": "t:sections.announcement-bar.blocks.announcement.settings.text_alignment.options__1.label"
+                        },
+                        {
+                            "value": "mm-justify-center",
+                            "label": "t:sections.announcement-bar.blocks.announcement.settings.text_alignment.options__2.label"
+                        },
+                        {
+                            "value": "mm-flex-end",
+                            "label": "t:sections.announcement-bar.blocks.announcement.settings.text_alignment.options__3.label"
+                        }
+                    ],
+                    "default": "mm-justify-center",
+                    "label": "t:sections.announcement-bar.blocks.announcement.settings.text_alignment.label"
+                }
+            ]
+        }
+    ],
+    "settings": [
+        {
+            "type": "color",
+            "id": "background",
+            "label": "Couleur de fond"
+        }
+    ]
+}
+{% endschema %}
+```
+
+### 2. Snippet icon close
+
+Créez le snippet `snippets/mm-icon-close.liquid` :
+
+```liquid
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <g opacity="0.2">
+        <path d="M4.50486 11.4951L7.99995 8M11.495 4.50491L7.99995 8M7.99995 8L4.50486 4.50491M7.99995 8L11.495 11.4951" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+</svg>
+```
+
+### 3. CSS - Barre d'annonce
+
+Ajoutez dans `assets/mm-announcement.css` :
+
+```css
+.mm-section-announcement-bar a {
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    text-decoration-line: underline;
+}
+.mm-annoucement-close svg {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+}
+
+@keyframes slideUp {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+.mm-section-announcement-bar.hide {
+    animation: slideUp 0.5s forwards;
+}
+```
+
+## Explication du code
+
+### Structure HTML
+
+```liquid
+<div class="mm-section-announcement">
+    <div class="splide announce-splide-{{ section.id }}">
+        <!-- Slider Splide -->
+    </div>
+    <div class="mm-annoucement-close">
+        <!-- Icône de fermeture -->
+    </div>
+</div>
+```
+
+**Rôle :**
+- Conteneur principal avec le slider et le bouton de fermeture
+- Le slider affiche les annonces en rotation
+- Le bouton permet de fermer la barre
+
+### Configuration Splide
+
+```jsx
+new Splide( splideElem, {
+    type: 'slide',
+    autoplay: true,
+    rewind: true,
+    arrows: false,
+    pagination: false,
+    perPage: 1,
+    gap: 8
+}).mount();
+```
+
+**Explication :**
+- `type: 'slide'` : Type de transition
+- `autoplay: true` : Défilement automatique
+- `rewind: true` : Retour au début après la dernière slide
+- `arrows: false` : Pas de flèches de navigation
+- `pagination: false` : Pas de pagination
+- `perPage: 1` : Une annonce à la fois
+- `gap: 8` : Espacement entre les slides
+
+### Fonctionnalité de fermeture
+
+```jsx
+var closeButton = document.querySelector('.mm-section-announcement .mm-annoucement-close');
+var announcementBar = document.querySelector('.mm-section-announcement-bar');
+
+closeButton.addEventListener('click', function() {
+    announcementBar.classList.add('hide');
+});
+announcementBar.addEventListener('animationend', function() {
+    announcementBar.style.display = 'none';
+});
+```
+
+**Explication :**
+- Au clic sur l'icône, ajoute la classe `hide`
+- L'animation `slideUp` se déclenche
+- À la fin de l'animation, masque complètement l'élément
+
+### Animation CSS
+
+```css
+@keyframes slideUp {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+.mm-section-announcement-bar.hide {
+    animation: slideUp 0.5s forwards;
+}
+```
+
+**Explication :**
+- Animation qui fait glisser la barre vers le haut
+- Durée de 0.5 secondes
+- `forwards` : Garde l'état final de l'animation
+
+## Personnalisations
+
+### Sauvegarder l'état de fermeture
+
+Pour que la barre reste fermée après rechargement de la page :
+
+```jsx
+document.addEventListener('DOMContentLoaded', function() {
+    var closeButton = document.querySelector('.mm-section-announcement .mm-annoucement-close');
+    var announcementBar = document.querySelector('.mm-section-announcement-bar');
+
+    // Vérifier si la barre a été fermée précédemment
+    if (localStorage.getItem('announcementBarClosed') === 'true') {
+        announcementBar.style.display = 'none';
+        return;
+    }
+
+    closeButton.addEventListener('click', function() {
+        announcementBar.classList.add('hide');
+        // Sauvegarder dans localStorage
+        localStorage.setItem('announcementBarClosed', 'true');
+    });
+    
+    announcementBar.addEventListener('animationend', function() {
+        announcementBar.style.display = 'none';
+    });
+});
+```
+
+### Personnaliser la vitesse du slider
+
+```jsx
+new Splide( splideElem, {
+    type: 'slide',
+    autoplay: true,
+    interval: 3000, // 3 secondes entre chaque slide
+    speed: 500, // Durée de la transition
+    rewind: true,
+    arrows: false,
+    pagination: false,
+    perPage: 1,
+    gap: 8
+}).mount();
+```
+
+### Ajouter un délai avant l'auto-play
+
+```jsx
+new Splide( splideElem, {
+    type: 'slide',
+    autoplay: true,
+    interval: 4000,
+    pauseOnHover: true, // Pause au survol
+    rewind: true,
+    arrows: false,
+    pagination: false,
+    perPage: 1,
+    gap: 8
+}).mount();
+```
+
+### Changer la couleur de l'icône selon le fond
+
+```css
+.mm-section-announcement-bar[data-bg-dark="true"] .mm-annoucement-close svg path {
+    stroke: white;
+}
+```
+
+Avec le schema :
+
+```json
+{
+    "type": "checkbox",
+    "id": "dark_background",
+    "label": "Fond sombre",
+    "default": false
+}
+```
+
+Et dans le HTML :
+
+```liquid
+<div class="mm-section-announcement-bar" data-bg-dark="{{ section.settings.dark_background }}">
+```
+
+## CSS amélioré
+
+### Version avec transition plus fluide
+
+```css
+.mm-section-announcement-bar {
+    background-color: {{ section.settings.background }};
+    height: var(--announcement-bar-height);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.5s ease-in-out;
+}
+
+.mm-section-announcement-bar.hide {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+```
+
+### Version avec effet de hover sur l'icône
+
+```css
+.mm-annoucement-close {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    padding: 8px;
+    transition: opacity 0.2s;
+}
+
+.mm-annoucement-close:hover {
+    opacity: 0.7;
+}
+
+.mm-annoucement-close svg {
+    display: block;
+}
+```
+
+### Version responsive améliorée
+
+```css
+.mm-section-announcement-bar {
+    background-color: {{ section.settings.background }};
+    height: var(--announcement-bar-height);
+    position: relative;
+    font-size: 12px;
+}
+
+@media (min-width: 768px) {
+    .mm-section-announcement-bar {
+        font-size: 14px;
+    }
+}
+
+.announce-splide-{{ section.id }} {
+    max-width: 410px;
+    margin: auto;
+    padding: 0 40px; /* Espace pour l'icône */
+}
+
+@media(max-width: 900px) {
+    .announce-splide-{{ section.id }} {
+        max-width: 100%;
+        padding: 0 30px;
+    }
+}
+```
+
+## Bonnes pratiques
+
+### 1. Accessibilité
+
+Ajouter des attributs ARIA :
+
+```liquid
+<div class="mm-section-announcement" role="region" aria-label="Annonces">
+    <div class="splide announce-splide-{{ section.id }}" aria-label="Slider d'annonces">
+        <!-- ... -->
+    </div>
+    <button class="mm-annoucement-close" aria-label="Fermer la barre d'annonce">
+        {% render 'mm-icon-close' %}
+    </button>
+</div>
+```
+
+### 2. Gestion des erreurs
+
+Vérifier que les éléments existent :
+
+```jsx
+document.addEventListener('DOMContentLoaded', function() {
+    var closeButton = document.querySelector('.mm-section-announcement .mm-annoucement-close');
+    var announcementBar = document.querySelector('.mm-section-announcement-bar');
+
+    if (!closeButton || !announcementBar) {
+        return;
+    }
+
+    closeButton.addEventListener('click', function() {
+        announcementBar.classList.add('hide');
+    });
+    
+    announcementBar.addEventListener('animationend', function() {
+        announcementBar.style.display = 'none';
+    });
+});
+```
+
+### 3. Variable CSS pour la hauteur
+
+Définir la hauteur dans votre CSS global :
+
+```css
+:root {
+    --announcement-bar-height: 40px;
+}
+
+@media (min-width: 768px) {
+    :root {
+        --announcement-bar-height: 50px;
+    }
+}
+```
+
+## Exemple avec plusieurs annonces
+
+Le schema permet jusqu'à 4 blocks. Exemple d'utilisation :
+
+1. **Annonce 1** : "Livraison gratuite à partir de 50€"
+2. **Annonce 2** : "Nouveautés disponibles maintenant"
+3. **Annonce 3** : "Réduction de 20% sur tous les produits"
+4. **Annonce 4** : "Retours gratuits sous 30 jours"
+
+Toutes ces annonces défilent automatiquement dans le slider.
+
+## Limitations
+
+- ⚠️ **Dépendance Splide** : Nécessite que Splide soit chargé
+- ⚠️ **Maximum 4 blocks** : Limité à 4 annonces (configurable dans le schema)
+- ⚠️ **Hauteur fixe** : La hauteur doit être définie via la variable CSS
+
+## Dépannage
+
+### Le slider ne fonctionne pas
+
+1. Vérifier que Splide est bien chargé
+2. Vérifier que le sélecteur correspond bien à l'ID de la section
+3. Vérifier la console pour les erreurs JavaScript
+
+### L'animation ne se déclenche pas
+
+1. Vérifier que la classe `hide` est bien ajoutée
+2. Vérifier que l'animation CSS est bien définie
+3. Vérifier que `animationend` est bien écouté
+
+### L'icône n'est pas visible
+
+1. Vérifier que le snippet `mm-icon-close` existe
+2. Vérifier le positionnement CSS (position: absolute)
+3. Vérifier le z-index si nécessaire
+
+## Ressources
+
+- **Splide.js** : [Documentation](https://splidejs.com/)
+- **CSS Animations** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations)
+- **Shopify Sections** : [Documentation](https://shopify.dev/docs/themes/architecture/sections)
+
