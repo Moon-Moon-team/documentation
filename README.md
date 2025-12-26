@@ -101,8 +101,7 @@ documentation/
 │   ├── Markdown/      # Documentation Markdown
 │   ├── Script_JS/     # Scripts JavaScript
 │   ├── Sections/      # Sections Shopify
-│   ├── Splide/        # Documentation Splide
-│   └── Tutos/         # Tutoriels
+│   └── Tutos/         # Tutoriels et formations
 ├── components/        # Composants React réutilisables
 ├── theme.config.tsx   # Configuration du thème Nextra
 ├── next.config.js     # Configuration Next.js
