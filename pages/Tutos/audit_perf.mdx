@@ -1,0 +1,289 @@
+# Audit perf
+
+***
+
+Guide complet pour réaliser un audit de performance en utilisant le template Figma et les outils d'analyse Shopify, PageSpeed Insights et WebPageTest.
+
+## Préparation
+
+### Dupliquer le template Figma
+
+1. Ouvrir Figma
+2. Dupliquer le template **"Optis perfs - Template"**
+3. Renommer avec le nom du projet/client
+
+## Page 1: Présentation
+
+### Mettre le nom du client
+
+- Modifier le nom du client sur la page de présentation
+- Adapter les autres informations si nécessaire
+
+## Page 7: Répartition Mobile / Desktop
+
+### Récupérer les données dans Shopify
+
+1. Aller dans **Shopify Admin** → **Analyse de données** → **Rapports**
+2. Sélectionner **"Visites par emplacement"**
+3. Modifier les paramètres :
+   - **Métriques** : Visites
+   - **Visualisation** : Donut
+   - **Dimensions** : Type d'appareil
+   - **Filtre** : Plage d'un mois
+4. Copier les données du donut
+
+### Ajouter dans Figma
+
+- Ajouter le donut sur la page 7
+- Modifier le texte en fonction des données récupérées
+- Adapter les couleurs si nécessaire
+
+## Page 8: Visites par type de page
+
+### Récupérer les données dans Shopify
+
+1. Aller dans **Shopify Admin** → **Analyse de données** → **Rapports**
+2. Sélectionner **"Visites par emplacement"**
+3. Modifier les paramètres :
+   - **Métriques** : Visites
+   - **Visualisation** : Donut
+   - **Dimensions** : Type de page
+   - **Filtre** : Plage d'un mois
+4. Copier les données du donut
+
+### Ajouter dans Figma
+
+- Ajouter le donut sur la page 8
+- Modifier le texte en fonction des données récupérées
+- Identifier les 2-3 types de pages les plus visités pour les analyser ensuite
+
+## Page 9: Visites par URL
+
+### Récupérer les données dans Shopify
+
+1. Aller dans **Shopify Admin** → **Analyse de données** → **Rapports**
+2. Sélectionner **"Visites par emplacement"**
+3. Modifier les paramètres :
+   - **Métriques** : Visites
+   - **Visualisation** : Tableau
+   - **Dimensions** : URL de la page
+   - **Filtre** : Plage d'un mois
+4. Copier le tableau avec les URLs les plus visitées
+
+### Ajouter dans Figma
+
+- Ajouter le tableau sur la page 9
+- Modifier le texte en fonction des données récupérées
+- Identifier les URLs les plus importantes pour les tests de performance
+
+## Page 16: CWV sur le site au global
+
+### Analyser avec PageSpeed Insights
+
+1. Se rendre sur [PageSpeed Insights](https://pagespeed.web.dev/?hl=fr)
+2. Entrer l'URL générale du site (ex: `https://monsite.com`)
+3. Analyser en **Mobile** et **Desktop**
+4. Capturer les screenshots des résultats
+
+### Ajouter dans Figma
+
+- Ajouter les screenshots des résultats Mobile et Desktop
+- Faire l'analyse des Core Web Vitals :
+  - **LCP** (Largest Contentful Paint)
+  - **FID/INP** (First Input Delay / Interaction to Next Paint)
+  - **CLS** (Cumulative Layout Shift)
+- Noter les scores et les problèmes identifiés
+
+## Page 17 & 18: CWV sur les pages spécifiques
+
+### Sélectionner les pages à analyser
+
+Basé sur les analyses précédentes (Page 8 et 9), sélectionner les pages les plus visitées :
+- Page d'accueil
+- Pages de collection
+- Pages produit
+- Pages spécifiques importantes
+
+### Analyser chaque page
+
+Pour chaque page sélectionnée :
+
+1. Se rendre sur [PageSpeed Insights](https://pagespeed.web.dev/?hl=fr)
+2. Analyser l'URL la plus visitée de ce type de page en **Mobile** et **Desktop**
+3. Capturer les screenshots des résultats
+
+### Ajouter dans Figma
+
+- Créer une page par type de page analysée (Page 17, 18, etc.)
+- Adapter le titre en fonction de la page analysée
+- Ajouter les screenshots Mobile et Desktop
+- Faire l'analyse des Core Web Vitals pour chaque page
+
+## Page 19: Zoning des optimisations
+
+### Remplir avec les analyses précédentes
+
+- Lister les problèmes identifiés sur chaque page
+- Organiser par type d'optimisation :
+  - Images
+  - JavaScript
+  - CSS
+  - Fonts
+  - TTFB
+  - LCP
+  - CLS
+  - INP
+- Prioriser les optimisations selon l'impact
+
+## Page 21: Tests "avant"
+
+### Faire les tests avant optimisation
+
+Pour chaque page identifiée dans le zoning (Page 19) :
+
+1. Lancer les tests sur [WebPageTest](https://www.webpagetest.org/)
+2. Documenter les résultats avant optimisation
+3. Identifier les problèmes à régler
+
+## Page 22: Résultats Page (générique)
+
+### Modifier le nom de la page
+
+- Adapter le titre en fonction de la page testée
+- Exemple : "Résultats Page Produit", "Résultats Page Collection", etc.
+
+## Page 23: Résultats Page d'accueil
+
+### Configuration WebPageTest
+
+1. Se rendre sur [WebPageTest](https://www.webpagetest.org/)
+2. Se connecter à son compte
+3. Entrer le lien de la page d'accueil
+4. Faire une **configuration avancée** :
+   - **Localisation** : Paris
+   - **Browser** : iPhone 12
+   - **Connexion** : 4G
+   - **Runs** : 3-5
+5. Lancer le test
+
+### Ajouter les résultats
+
+- Ajouter le lien du test sur la **Page 26: Cet audit a été conduit par X**
+- Faire un screenshot des résultats du **FCP au TBT** (First Contentful Paint à Total Blocking Time)
+- Documenter les métriques clés
+
+## Page 24: Résultats Page d'accueil suite
+
+### Visual Page Loading Process
+
+1. Sur la page de test WebPageTest, cliquer sur **"Explore"** à côté de **"Visual Page Loading Process"**
+2. Faire un screenshot du **Filmstrip View de 0.0s à 5.0s**
+3. Analyser les étapes de chargement
+
+### Ajouter dans Figma
+
+- Ajouter le screenshot du filmstrip
+- Annoter les moments clés du chargement
+- Identifier les éléments qui se chargent en premier
+
+## Dupliquer les pages de résultats
+
+### Pour chaque page à tester
+
+Dupliquer les pages 22, 23 et 24 en fonction des pages mentionnées dans **Page 19: Zoning des optimisations**.
+
+**Pages à dupliquer :**
+- Page 22 → Résultats Page [Nom]
+- Page 23 → Résultats Page [Nom]
+- Page 24 → Résultats Page [Nom] suite
+
+**Processus pour chaque page :**
+1. Dupliquer les 3 pages
+2. Modifier les titres
+3. Lancer les tests WebPageTest
+4. Ajouter les screenshots
+5. Documenter les résultats
+
+## Page 26: Cet audit a été conduit par X
+
+### Informations à ajouter
+
+- **Liens des tests** : Ajouter tous les liens WebPageTest
+- **Prénom** : Ajouter le prénom de la personne qui a conduit l'audit
+- **Photo** : Ajouter la photo de la personne
+
+**Exemple :**
+```
+Cet audit a été conduit par [Prénom]
+
+Liens des tests :
+- Page d'accueil : [lien WebPageTest]
+- Page Collection : [lien WebPageTest]
+- Page Produit : [lien WebPageTest]
+```
+
+## Checklist complète
+
+### Données Shopify
+- [ ] Page 7 : Répartition Mobile/Desktop (donut)
+- [ ] Page 8 : Visites par type de page (donut)
+- [ ] Page 9 : Visites par URL (tableau)
+
+### Tests PageSpeed Insights
+- [ ] Page 16 : CWV site global (Mobile + Desktop)
+- [ ] Page 17 : CWV page [type 1] (Mobile + Desktop)
+- [ ] Page 18 : CWV page [type 2] (Mobile + Desktop)
+- [ ] Pages supplémentaires selon besoins
+
+### Zoning
+- [ ] Page 19 : Zoning des optimisations rempli
+
+### Tests WebPageTest
+- [ ] Page 21 : Tests "avant" documentés
+- [ ] Page 22 : Résultats Page [nom] (générique)
+- [ ] Page 23 : Résultats Page d'accueil (FCP à TBT)
+- [ ] Page 24 : Résultats Page d'accueil suite (Filmstrip)
+- [ ] Pages dupliquées pour chaque type de page
+
+### Finalisation
+- [ ] Page 26 : Informations audit (liens, prénom, photo)
+- [ ] Vérification de toutes les pages
+- [ ] Cohérence des données
+
+## Bonnes pratiques
+
+### Organisation Figma
+
+- Utiliser des frames nommés clairement
+- Grouper les éléments par page
+- Maintenir la cohérence visuelle
+- Utiliser les composants pour les éléments répétitifs
+
+### Tests de performance
+
+- **Toujours tester en Mobile ET Desktop**
+- **Faire plusieurs runs** pour avoir une moyenne
+- **Documenter les conditions de test** (localisation, browser, connexion)
+- **Comparer avant/après** pour mesurer l'impact
+
+### Analyse des résultats
+
+- **Identifier les problèmes prioritaires** (impact élevé)
+- **Documenter les solutions** proposées
+- **Estimer l'effort** pour chaque optimisation
+- **Prioriser** selon l'impact business
+
+## Outils utilisés
+
+- **Figma** : Template et visualisation
+- **Shopify Analytics** : Données de trafic
+- **PageSpeed Insights** : Core Web Vitals
+- **WebPageTest** : Tests détaillés de performance
+
+## Ressources
+
+- **PageSpeed Insights** : https://pagespeed.web.dev/
+- **WebPageTest** : https://www.webpagetest.org/
+- **Shopify Analytics** : Admin Shopify → Analyse de données
+- **Core Web Vitals** : https://web.dev/vitals/
+

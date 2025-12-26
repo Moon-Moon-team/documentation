@@ -1,0 +1,344 @@
+# Avis custom affichage des demi-étoiles
+
+***
+
+Ce système permet d'afficher des avis avec des étoiles, incluant la possibilité d'afficher des demi-étoiles pour des notes comme 4.5/5.
+
+## Code complet
+
+```html
+{%-  liquid
+    assign half_value = false
+    assign info_half = product_infos[value] | modulo: 1
+    if info_half == 0.5
+        assign half_value = true
+        assign info_value = product_infos[value] | round: 0 | minus: 1
+        assign rest_value = 4 | minus: info_value
+    else
+        assign info_value = product_infos[value] | round: 0
+        assign rest_value = 5 | minus: info_value
+    endif
+%}
+
+{% for i in (1..info_value) %}
+		<!-- Etoile pleine -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="11" fill="none"><circle cx="5" cy="5.5" r="5" fill="var(--{{ product_color }}-hover)"/></svg>
+{% endfor %}
+{% if half_value %}
+		<!-- Demi-étoile -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="11" fill="none"><circle cx="5" cy="5.5" r="5" fill="{{ product_infos.color_empty_value }}"/><path fill="var(--{{ product_color }}-hover)" d="M0 5.5a5 5 0 0 1 5-5v10a5 5 0 0 1-5-5Z"/></svg>
+{% endif %}
+{% for y in (1..rest_value) %}
+   <!-- Etoile vide -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="11" fill="none"><circle cx="5" cy="5.5" r="5" fill="{{ product_infos.color_empty_value }}"/></svg>
+{% endfor %}
+```
+
+## Explication du code
+
+### Calcul de la valeur
+
+```liquid
+assign info_half = product_infos[value] | modulo: 1
+```
+
+- Utilise `modulo: 1` pour obtenir la partie décimale (0.5 pour 4.5, 0 pour 4 ou 5)
+- Si le résultat est 0.5, on a une demi-étoile à afficher
+
+### Gestion de la demi-étoile
+
+```liquid
+if info_half == 0.5
+    assign half_value = true
+    assign info_value = product_infos[value] | round: 0 | minus: 1
+    assign rest_value = 4 | minus: info_value
+```
+
+- Si demi-étoile : `info_value` = nombre d'étoiles pleines (ex: 4.5 → 4 étoiles pleines)
+- `rest_value` = nombre d'étoiles vides restantes (4 - 4 = 0, car on a une demi-étoile)
+
+### Sans demi-étoile
+
+```liquid
+else
+    assign info_value = product_infos[value] | round: 0
+    assign rest_value = 5 | minus: info_value
+```
+
+- Arrondit la valeur (ex: 4.3 → 4, 4.7 → 5)
+- Calcule les étoiles vides : 5 - nombre d'étoiles pleines
+
+## Exemples de résultats
+
+### Note 4.5/5
+
+- 4 étoiles pleines
+- 1 demi-étoile
+- 0 étoile vide
+
+### Note 4/5
+
+- 4 étoiles pleines
+- 0 demi-étoile
+- 1 étoile vide
+
+### Note 3.5/5
+
+- 3 étoiles pleines
+- 1 demi-étoile
+- 1 étoile vide
+
+### Note 5/5
+
+- 5 étoiles pleines
+- 0 demi-étoile
+- 0 étoile vide
+
+## Utilisation dans une section
+
+### Exemple avec un produit
+
+```html
+<div class="product-rating">
+  {%- liquid
+      assign rating = product.metafields.custom.rating | default: 4.5
+      assign half_value = false
+      assign info_half = rating | modulo: 1
+      if info_half == 0.5
+          assign half_value = true
+          assign info_value = rating | round: 0 | minus: 1
+          assign rest_value = 4 | minus: info_value
+      else
+          assign info_value = rating | round: 0
+          assign rest_value = 5 | minus: info_value
+      endif
+  -%}
+
+  <div class="stars">
+    {% for i in (1..info_value) %}
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+        <circle cx="8" cy="8" r="8" fill="#FFD700"/>
+      </svg>
+    {% endfor %}
+    
+    {% if half_value %}
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+        <circle cx="8" cy="8" r="8" fill="#E0E0E0"/>
+        <path fill="#FFD700" d="M0 8a8 8 0 0 1 8-8v16a8 8 0 0 1-8-8Z"/>
+      </svg>
+    {% endif %}
+    
+    {% for y in (1..rest_value) %}
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+        <circle cx="8" cy="8" r="8" fill="#E0E0E0"/>
+      </svg>
+    {% endfor %}
+  </div>
+  
+  <span class="rating-value">{{ rating }}/5</span>
+</div>
+```
+
+### Exemple avec un avis client
+
+```html
+{% for block in section.blocks %}
+  <div class="review-card">
+    <h3>{{ block.settings.customer_name }}</h3>
+    
+    {%- liquid
+        assign rating = block.settings.rating
+        assign half_value = false
+        assign info_half = rating | modulo: 1
+        if info_half == 0.5
+            assign half_value = true
+            assign info_value = rating | round: 0 | minus: 1
+            assign rest_value = 4 | minus: info_value
+        else
+            assign info_value = rating | round: 0
+            assign rest_value = 5 | minus: info_value
+        endif
+    -%}
+    
+    <div class="stars">
+      {% for i in (1..info_value) %}
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <path d="M8 0l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" fill="#FFD700"/>
+        </svg>
+      {% endfor %}
+      
+      {% if half_value %}
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <defs>
+            <clipPath id="half-star">
+              <rect x="0" y="0" width="8" height="16"/>
+            </clipPath>
+          </defs>
+          <path d="M8 0l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" fill="#E0E0E0"/>
+          <path d="M8 0l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" fill="#FFD700" clip-path="url(#half-star)"/>
+        </svg>
+      {% endif %}
+      
+      {% for y in (1..rest_value) %}
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <path d="M8 0l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" fill="#E0E0E0"/>
+        </svg>
+      {% endfor %}
+    </div>
+    
+    <p>{{ block.settings.review_text }}</p>
+  </div>
+{% endfor %}
+```
+
+## Personnalisation
+
+### Changer les couleurs
+
+Remplacez les valeurs de couleur dans les SVG :
+
+```html
+<!-- Etoile pleine -->
+<circle cx="5" cy="5.5" r="5" fill="#FFD700"/>
+
+<!-- Demi-étoile -->
+<circle cx="5" cy="5.5" r="5" fill="#E0E0E0"/>
+<path fill="#FFD700" d="M0 5.5a5 5 0 0 1 5-5v10a5 5 0 0 1-5-5Z"/>
+
+<!-- Etoile vide -->
+<circle cx="5" cy="5.5" r="5" fill="#E0E0E0"/>
+```
+
+### Utiliser des variables CSS
+
+```html
+<!-- Etoile pleine -->
+<circle cx="5" cy="5.5" r="5" fill="var(--star-filled-color)"/>
+
+<!-- Etoile vide -->
+<circle cx="5" cy="5.5" r="5" fill="var(--star-empty-color)"/>
+```
+
+Avec le CSS :
+
+```css
+:root {
+  --star-filled-color: #FFD700;
+  --star-empty-color: #E0E0E0;
+}
+```
+
+### Changer la taille
+
+Modifiez les attributs `width` et `height` des SVG :
+
+```html
+<svg width="20" height="20" viewBox="0 0 10 11">
+  <!-- Contenu SVG -->
+</svg>
+```
+
+## CSS pour le style
+
+```css
+.stars {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.stars svg {
+  flex-shrink: 0;
+}
+
+.rating-value {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #666;
+}
+```
+
+## Snippet réutilisable
+
+Créez un snippet `rating-stars.liquid` :
+
+```liquid
+{% comment %}
+  Usage: {% render 'rating-stars', rating: 4.5, size: 16 %}
+  
+  Parameters:
+  - rating: La note sur 5 (ex: 4.5)
+  - size: Taille des étoiles (défaut: 16)
+  - filled_color: Couleur des étoiles pleines (défaut: #FFD700)
+  - empty_color: Couleur des étoiles vides (défaut: #E0E0E0)
+{% endcomment %}
+
+{%- liquid
+    assign star_size = size | default: 16
+    assign filled = filled_color | default: '#FFD700'
+    assign empty = empty_color | default: '#E0E0E0'
+    assign half_value = false
+    assign info_half = rating | modulo: 1
+    if info_half == 0.5
+        assign half_value = true
+        assign info_value = rating | round: 0 | minus: 1
+        assign rest_value = 4 | minus: info_value
+    else
+        assign info_value = rating | round: 0
+        assign rest_value = 5 | minus: info_value
+    endif
+-%}
+
+<div class="rating-stars">
+  {% for i in (1..info_value) %}
+    <svg width="{{ star_size }}" height="{{ star_size }}" viewBox="0 0 10 11">
+      <circle cx="5" cy="5.5" r="5" fill="{{ filled }}"/>
+    </svg>
+  {% endfor %}
+  
+  {% if half_value %}
+    <svg width="{{ star_size }}" height="{{ star_size }}" viewBox="0 0 10 11">
+      <circle cx="5" cy="5.5" r="5" fill="{{ empty }}"/>
+      <path fill="{{ filled }}" d="M0 5.5a5 5 0 0 1 5-5v10a5 5 0 0 1-5-5Z"/>
+    </svg>
+  {% endif %}
+  
+  {% for y in (1..rest_value) %}
+    <svg width="{{ star_size }}" height="{{ star_size }}" viewBox="0 0 10 11">
+      <circle cx="5" cy="5.5" r="5" fill="{{ empty }}"/>
+    </svg>
+  {% endfor %}
+</div>
+```
+
+Utilisation :
+
+```liquid
+{% render 'rating-stars', rating: 4.5, size: 20 %}
+```
+
+## Notes importantes
+
+1. **Valeur de base** : Le code suppose une note sur 5 étoiles
+2. **Demi-étoiles** : Seules les valeurs avec .5 (4.5, 3.5, etc.) affichent une demi-étoile
+3. **Arrondi** : Les autres valeurs décimales sont arrondies (4.3 → 4, 4.7 → 5)
+4. **Variables** : Assurez-vous que `product_infos[value]` et `product_color` sont bien définis dans votre contexte
+
+## Dépannage
+
+### Les étoiles ne s'affichent pas
+
+- Vérifiez que la valeur `product_infos[value]` est bien définie
+- Vérifiez que la valeur est entre 0 et 5
+- Vérifiez que les variables CSS (`product_color`) sont définies
+
+### La demi-étoile ne s'affiche pas
+
+- Vérifiez que la valeur contient bien .5 (ex: 4.5, pas 4.4 ou 4.6)
+- Vérifiez la logique du `modulo: 1`
+
+### Les couleurs ne s'appliquent pas
+
+- Vérifiez que les variables CSS sont définies
+- Utilisez des couleurs hexadécimales directes si les variables ne fonctionnent pas
+

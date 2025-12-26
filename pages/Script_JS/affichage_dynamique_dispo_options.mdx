@@ -1,0 +1,423 @@
+# Affichage dynamique de la dispo des options (product form)
+
+***
+
+Système permettant de "griser" les options non disponibles selon la sélection actuelle de l'utilisateur dans un formulaire produit. Cela améliore l'expérience utilisateur en évitant les sélections impossibles.
+
+![Exemple d'affichage](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/b802da80-f3e4-43ad-a1ed-328374cdb448/Untitled.png)
+
+## Vue d'ensemble
+
+Ce système vérifie en temps réel la disponibilité des combinaisons de variantes et désactive visuellement les options qui ne sont pas disponibles selon la sélection actuelle.
+
+## 1. Ajouter `updateOptionsStocks()` dans `onVariantChange()`
+
+Dans votre fonction `onVariantChange()`, ajoutez l'appel à la fonction de mise à jour :
+
+![Ajout dans onVariantChange](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/51f0f564-a6ac-4e8a-9589-c9bf2f5e6b31/Untitled.png)
+
+```jsx
+onVariantChange() {
+  // ... votre code existant ...
+  
+  this.updateOptionsStocks();
+}
+```
+
+**Explication :**
+- Appelle la fonction de mise à jour à chaque changement de variante
+- Assure que les options sont toujours à jour selon la sélection
+
+## 2. Ajouter la fonction `updateOptionsStocks()` dans la classe
+
+Ajoutez cette fonction dans votre classe de gestion des variantes :
+
+```jsx
+updateOptionsStocks() {
+  const JSONoptions = this.variantData;
+  const optionsValues = document.querySelectorAll('.mm-product-form-variant-values');
+
+  optionsValues.forEach(function(optionValues, index) {
+    let mainIndex = index;
+    let optionIndex = index;
+    let options = optionValues.querySelectorAll('input');
+
+    options.forEach(function(option) {
+       let currentOptionTested = option;
+       let valuesToTest = [];
+       valuesToTest.push(option.value);
+       optionsValues.forEach(function(optionValues, index) {
+         if (index != optionIndex) {
+           let options = optionValues.querySelectorAll('input');
+           options.forEach(function(option) {
+             if (option.checked) {
+               valuesToTest.push(option.value);
+             }
+           })
+         }
+         if (index == (optionsValues.length - 1)) {
+           if(checkIfAvailable(JSONoptions, valuesToTest) == false) {
+             currentOptionTested.classList.add('mm-disabled');
+           } else {
+             currentOptionTested.classList.remove('mm-disabled');                   
+           }
+         }
+       })
+    });
+  });
+}
+```
+
+**Explication :**
+- Parcourt toutes les options de variantes
+- Pour chaque option, teste si elle est disponible avec les autres sélections actuelles
+- Ajoute ou retire la classe `mm-disabled` selon la disponibilité
+
+### Logique de la fonction
+
+1. **Récupération des données** : Utilise `this.variantData` qui contient toutes les combinaisons de variantes
+2. **Parcours des options** : Pour chaque groupe d'options (taille, couleur, etc.)
+3. **Test de disponibilité** : Pour chaque option, teste si elle est disponible avec les autres sélections
+4. **Mise à jour visuelle** : Ajoute/retire la classe CSS `mm-disabled`
+
+## 3. Ajouter la fonction `checkIfAvailable()` et l'event au chargement
+
+Ajoutez cette fonction à la fin de votre script, ainsi que l'événement de chargement :
+
+![Ajout des fonctions](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/fff5dee7-40d7-4f1d-8ba0-6c503d114c25/Untitled.png)
+
+```jsx
+function checkIfAvailable(JSONoptions, valuesToTest) {
+  const valuesToTestSorted = valuesToTest.slice().sort();
+
+  for (let option of JSONoptions) {
+    let optionsSorted = option.options.slice().sort();
+
+    if (optionsSorted.every((val, index) => val === valuesToTestSorted[index])) {
+      return option.available;
+    }
+  }
+
+  return false;
+}
+
+document.addEventListener("DOMContentLoaded", (event) => {
+  var event = new Event('change');
+  document.querySelector('variant-selector').dispatchEvent(event);
+});
+```
+
+**Explication :**
+- `checkIfAvailable()` : Compare les valeurs testées avec les combinaisons disponibles dans `variantData`
+- Tri les valeurs pour une comparaison fiable
+- Retourne `true` si la combinaison existe et est disponible, `false` sinon
+- L'événement `DOMContentLoaded` déclenche la mise à jour au chargement de la page
+
+### Structure de `variantData`
+
+Le `variantData` doit être un tableau d'objets avec cette structure :
+
+```jsx
+[
+  {
+    options: ["Small", "Red"],
+    available: true
+  },
+  {
+    options: ["Small", "Blue"],
+    available: false
+  },
+  {
+    options: ["Large", "Red"],
+    available: true
+  }
+]
+```
+
+## 4. Ajouter le CSS
+
+Ajoutez ce style CSS pour griser visuellement les options désactivées :
+
+```css
+.mm-product-form-variant-value input.mm-disabled + label {
+  opacity: .5;
+}
+```
+
+**Explication :**
+- Cible les labels des inputs avec la classe `mm-disabled`
+- Réduit l'opacité à 50% pour indiquer visuellement que l'option n'est pas disponible
+- Utilise le sélecteur adjacent (`+`) pour cibler le label suivant l'input
+
+### CSS amélioré (optionnel)
+
+Pour une meilleure expérience utilisateur, vous pouvez ajouter :
+
+```css
+.mm-product-form-variant-value input.mm-disabled + label {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.mm-product-form-variant-value input.mm-disabled {
+  pointer-events: none;
+}
+```
+
+Cela empêche également les clics sur les options désactivées.
+
+## Exemple complet
+
+### Structure HTML (Liquid)
+
+```liquid
+<div class="mm-product-form-variant-values">
+  {% for option in product.options_with_values %}
+    <div class="mm-product-form-variant-option">
+      <label>{{ option.name }}</label>
+      <div class="mm-product-form-variant-value">
+        {% for value in option.values %}
+          <input 
+            type="radio" 
+            name="option-{{ forloop.parentloop.index }}" 
+            value="{{ value }}"
+            id="option-{{ forloop.parentloop.index }}-{{ forloop.index }}"
+            {% if forloop.first %}checked{% endif %}>
+          <label for="option-{{ forloop.parentloop.index }}-{{ forloop.index }}">
+            {{ value }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+```
+
+### Code JavaScript complet
+
+```jsx
+class VariantSelector {
+  constructor(product) {
+    this.product = product;
+    this.variantData = this.buildVariantData();
+    this.init();
+  }
+
+  buildVariantData() {
+    // Construire variantData depuis les données du produit
+    const variants = this.product.variants;
+    return variants.map(variant => ({
+      options: variant.options,
+      available: variant.available
+    }));
+  }
+
+  init() {
+    // Écouter les changements sur les options
+    document.querySelectorAll('.mm-product-form-variant-values input').forEach(input => {
+      input.addEventListener('change', () => this.onVariantChange());
+    });
+  }
+
+  onVariantChange() {
+    // Votre logique existante de changement de variante
+    const selectedOptions = this.getSelectedOptions();
+    const variant = this.findVariant(selectedOptions);
+    
+    if (variant) {
+      this.updateVariantInfo(variant);
+    }
+    
+    // Mettre à jour la disponibilité des options
+    this.updateOptionsStocks();
+  }
+
+  getSelectedOptions() {
+    const options = [];
+    document.querySelectorAll('.mm-product-form-variant-values input:checked').forEach(input => {
+      options.push(input.value);
+    });
+    return options;
+  }
+
+  findVariant(selectedOptions) {
+    return this.product.variants.find(variant => {
+      return variant.options.every((option, index) => option === selectedOptions[index]);
+    });
+  }
+
+  updateVariantInfo(variant) {
+    // Mettre à jour le prix, l'image, etc.
+    document.querySelector('.product-price').textContent = variant.price;
+  }
+
+  updateOptionsStocks() {
+    const JSONoptions = this.variantData;
+    const optionsValues = document.querySelectorAll('.mm-product-form-variant-values');
+
+    optionsValues.forEach(function(optionValues, index) {
+      let mainIndex = index;
+      let optionIndex = index;
+      let options = optionValues.querySelectorAll('input');
+
+      options.forEach(function(option) {
+         let currentOptionTested = option;
+         let valuesToTest = [];
+         valuesToTest.push(option.value);
+         optionsValues.forEach(function(optionValues, index) {
+           if (index != optionIndex) {
+             let options = optionValues.querySelectorAll('input');
+             options.forEach(function(option) {
+               if (option.checked) {
+                 valuesToTest.push(option.value);
+               }
+             })
+           }
+           if (index == (optionsValues.length - 1)) {
+             if(checkIfAvailable(JSONoptions, valuesToTest) == false) {
+               currentOptionTested.classList.add('mm-disabled');
+             } else {
+               currentOptionTested.classList.remove('mm-disabled');                   
+             }
+           }
+         })
+      });
+    });
+  }
+}
+
+function checkIfAvailable(JSONoptions, valuesToTest) {
+  const valuesToTestSorted = valuesToTest.slice().sort();
+
+  for (let option of JSONoptions) {
+    let optionsSorted = option.options.slice().sort();
+
+    if (optionsSorted.every((val, index) => val === valuesToTestSorted[index])) {
+      return option.available;
+    }
+  }
+
+  return false;
+}
+
+// Initialisation au chargement
+document.addEventListener("DOMContentLoaded", (event) => {
+  // Récupérer les données du produit depuis Liquid
+  const productData = {{ product | json }};
+  const variantSelector = new VariantSelector(productData);
+  
+  // Déclencher la mise à jour initiale
+  var event = new Event('change');
+  document.querySelector('.mm-product-form-variant-values')?.dispatchEvent(event);
+});
+```
+
+## Bonnes pratiques
+
+### 1. Performance
+
+Pour optimiser les performances avec beaucoup de variantes :
+
+```jsx
+updateOptionsStocks() {
+  // Utiliser requestAnimationFrame pour éviter les calculs inutiles
+  if (this.updateTimeout) {
+    cancelAnimationFrame(this.updateTimeout);
+  }
+  
+  this.updateTimeout = requestAnimationFrame(() => {
+    // ... code de mise à jour ...
+  });
+}
+```
+
+### 2. Accessibilité
+
+Ajouter des attributs ARIA pour les lecteurs d'écran :
+
+```jsx
+if(checkIfAvailable(JSONoptions, valuesToTest) == false) {
+  currentOptionTested.classList.add('mm-disabled');
+  currentOptionTested.setAttribute('aria-disabled', 'true');
+  currentOptionTested.setAttribute('tabindex', '-1');
+} else {
+  currentOptionTested.classList.remove('mm-disabled');
+  currentOptionTested.removeAttribute('aria-disabled');
+  currentOptionTested.removeAttribute('tabindex');
+}
+```
+
+### 3. Feedback visuel amélioré
+
+Ajouter une animation de transition :
+
+```css
+.mm-product-form-variant-value input + label {
+  transition: opacity 0.2s ease;
+}
+
+.mm-product-form-variant-value input.mm-disabled + label {
+  opacity: .5;
+  cursor: not-allowed;
+}
+```
+
+## Cas particuliers
+
+### Produits avec une seule option
+
+Si le produit n'a qu'une seule option, la fonction fonctionne toujours mais peut être simplifiée :
+
+```jsx
+if (optionsValues.length === 1) {
+  // Logique simplifiée pour une seule option
+}
+```
+
+### Gestion des variantes sans stock
+
+Si vous voulez aussi gérer les variantes en rupture de stock :
+
+```jsx
+function checkIfAvailable(JSONoptions, valuesToTest) {
+  const valuesToTestSorted = valuesToTest.slice().sort();
+
+  for (let option of JSONoptions) {
+    let optionsSorted = option.options.slice().sort();
+
+    if (optionsSorted.every((val, index) => val === valuesToTestSorted[index])) {
+      // Vérifier aussi le stock si nécessaire
+      return option.available && option.inventory_quantity > 0;
+    }
+  }
+
+  return false;
+}
+```
+
+## Dépannage
+
+### Les options ne se mettent pas à jour
+
+1. Vérifier que `variantData` est correctement construit
+2. Vérifier que les sélecteurs CSS correspondent à votre HTML
+3. Vérifier que `onVariantChange()` est bien appelé
+
+### Les options restent grisées
+
+1. Vérifier que `checkIfAvailable()` retourne bien `true` pour les combinaisons disponibles
+2. Vérifier la structure de `variantData`
+3. Vérifier que les valeurs dans `variantData` correspondent aux valeurs dans le HTML
+
+### Performance lente
+
+1. Limiter le nombre de variantes testées
+2. Utiliser `requestAnimationFrame` ou `debounce`
+3. Mettre en cache les résultats de `checkIfAvailable()`
+
+## Ressources
+
+- **Shopify Variants** : [Documentation](https://shopify.dev/docs/api/liquid/objects/product#product-variants)
+- **Event Listeners** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+

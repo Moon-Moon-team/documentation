@@ -1,0 +1,285 @@
+# Checklist de validation de section
+
+***
+
+Cette checklist vous permet de valider une section Shopify avant de la mettre en production. Suivez chaque point pour vous assurer que votre section est prête.
+
+## Design et visuel
+
+### Vérifier le CSS en desktop et mobile VS la maquette
+
+- ✅ **Couleurs** : Vérifiez que toutes les couleurs correspondent à la maquette
+- ✅ **Typographie** : 
+  - Taille des textes (font-size)
+  - Graisse des textes (font-weight)
+  - Famille de polices (font-family)
+  - Hauteur de ligne (line-height)
+- ✅ **Spacings** : 
+  - Marges (margin)
+  - Padding
+  - Espacements entre les éléments
+  - Gap dans les grilles/flexbox
+
+### Vérifier qu'il n'y a pas de souci d'affichage sur différents appareils
+
+- ✅ **Desktop** : Résolutions courantes (1920px, 1440px, 1280px)
+- ✅ **Petit laptop** : 1024px, 1366px
+- ✅ **Tablette** : 768px, 1024px (portrait et paysage)
+- ✅ **Smartphone** : 320px, 375px, 414px, 480px
+- ✅ **Grands écrans** : 2560px et plus
+
+**Outils de test** :
+- DevTools du navigateur (responsive mode)
+- [BrowserStack](https://www.browserstack.com/)
+- Test sur appareils réels
+
+## Code qualité
+
+### Vérifier qu'il n'y a pas de code non utilisé
+
+- ✅ Supprimer les classes CSS inutilisées
+- ✅ Supprimer les variables Liquid non utilisées
+- ✅ Supprimer les fonctions JavaScript non appelées
+- ✅ Supprimer les commentaires obsolètes
+- ✅ Vérifier les imports inutiles
+
+**Outils** :
+- [PurgeCSS](https://purgecss.com/) pour le CSS
+- Analyse manuelle du code
+
+### Vérifier que le code est bien DRY (Don't Repeat Yourself)
+
+- ✅ Éviter la duplication de code
+- ✅ Créer des snippets réutilisables pour les éléments répétitifs
+- ✅ Utiliser des boucles Liquid au lieu de répéter le HTML
+- ✅ Extraire les styles communs dans des classes CSS réutilisables
+- ✅ Créer des fonctions JavaScript réutilisables
+
+**Exemple** :
+```liquid
+{% comment %} ❌ Mauvais - Répétition {% endcomment %}
+<div class="product-card">{{ products[0].title }}</div>
+<div class="product-card">{{ products[1].title }}</div>
+<div class="product-card">{{ products[2].title }}</div>
+
+{% comment %} ✅ Bon - DRY {% endcomment %}
+{% for product in products limit: 3 %}
+  <div class="product-card">{{ product.title }}</div>
+{% endfor %}
+```
+
+### Vérifier que le code est bien indenté
+
+- ✅ Utiliser une indentation cohérente (2 ou 4 espaces, ou tabs)
+- ✅ Respecter la hiérarchie HTML/Liquid
+- ✅ Aligner les attributs
+- ✅ Indenter correctement les boucles et conditions
+
+**Exemple** :
+```liquid
+{% comment %} ✅ Bien indenté {% endcomment %}
+<div class="section">
+  {% if condition %}
+    <div class="content">
+      <p>Texte</p>
+    </div>
+  {% endif %}
+</div>
+```
+
+## Fonctionnalités
+
+### Vérifier que le code ne génère pas d'erreur JS
+
+- ✅ Ouvrir la console du navigateur (F12)
+- ✅ Vérifier qu'il n'y a pas d'erreurs JavaScript
+- ✅ Vérifier les warnings
+- ✅ Tester toutes les interactions (clics, scroll, etc.)
+- ✅ Vérifier les appels API (si présents)
+
+**Points à vérifier** :
+- Erreurs de syntaxe
+- Variables non définies
+- Fonctions manquantes
+- Erreurs de type
+
+### Vérifier que toutes les options de la section sont bien fonctionnelles
+
+- ✅ Tester chaque champ du schema
+- ✅ Vérifier que les changements dans l'éditeur de thème se reflètent sur le front
+- ✅ Tester les valeurs par défaut
+- ✅ Tester les valeurs limites (min/max)
+- ✅ Vérifier les conditions d'affichage
+- ✅ Tester les blocs (ajout, suppression, réorganisation)
+
+**Checklist des options** :
+- [ ] Champs texte
+- [ ] Zones de texte
+- [ ] Éditeur de texte riche
+- [ ] Sélecteurs d'images
+- [ ] Sélecteurs de couleurs
+- [ ] Curseurs (range)
+- [ ] Cases à cocher
+- [ ] Boutons radio
+- [ ] Listes déroulantes
+- [ ] Sélecteurs de produits/collections
+- [ ] Blocs (si présents)
+
+### Vérifier qu'il n'y a pas de bug d'affichage
+
+- ✅ Tester avec différents contenus (texte court, long, vide)
+- ✅ Tester avec différentes images (petites, grandes, absentes)
+- ✅ Tester avec différents nombres d'éléments
+- ✅ Vérifier les cas limites (0 élément, 1 élément, beaucoup d'éléments)
+- ✅ Vérifier les états vides (pas de contenu)
+
+## Expérience utilisateur
+
+### S'assurer que les options de section sont user-friendly
+
+- ✅ **Labels clairs** : Les labels doivent être compréhensibles
+- ✅ **Descriptions** : Ajouter des descriptions/help text pour les options complexes
+- ✅ **Valeurs par défaut** : Définir des valeurs par défaut pertinentes
+- ✅ **Organisation** : Grouper les options logiquement
+- ✅ **Ordre** : Placer les options les plus importantes en premier
+- ✅ **Limites** : Définir des limites min/max appropriées
+
+**Exemple de schema user-friendly** :
+```json
+{
+  "type": "text",
+  "id": "title",
+  "label": "Titre de la section",
+  "default": "Mon titre",
+  "info": "Ce titre s'affichera en haut de la section"
+}
+```
+
+## Performance
+
+### Vérifier les performances
+
+- ✅ **Temps de chargement** : La section ne doit pas ralentir la page
+- ✅ **Images optimisées** : Utiliser les filtres Liquid pour optimiser les images
+- ✅ **Lazy loading** : Activer le lazy loading pour les images
+- ✅ **JavaScript** : Minimiser et optimiser le code JS
+- ✅ **CSS** : Éviter les styles inutiles
+
+**Outils** :
+- [Google PageSpeed Insights](https://pagespeed.web.dev/)
+- [Lighthouse](https://developers.google.com/web/tools/lighthouse)
+- DevTools Performance tab
+
+### Vérifier l'accessibilité
+
+- ✅ **Contraste** : Vérifier le contraste des couleurs (WCAG AA minimum)
+- ✅ **Alt text** : Toutes les images doivent avoir un texte alternatif
+- ✅ **Navigation clavier** : La section doit être navigable au clavier
+- ✅ **ARIA labels** : Ajouter des labels ARIA si nécessaire
+- ✅ **Focus visible** : Les éléments interactifs doivent avoir un état focus visible
+
+**Outils** :
+- [WAVE](https://wave.webaim.org/)
+- [axe DevTools](https://www.deque.com/axe/devtools/)
+
+## Compatibilité
+
+### Vérifier la compatibilité navigateurs
+
+- ✅ **Chrome** : Dernière version et version -1
+- ✅ **Firefox** : Dernière version et version -1
+- ✅ **Safari** : Dernière version (Mac et iOS)
+- ✅ **Edge** : Dernière version
+- ✅ **Navigateurs mobiles** : Chrome Mobile, Safari iOS
+
+### Vérifier la compatibilité avec les apps Shopify
+
+- ✅ Tester avec les apps de paiement actives
+- ✅ Vérifier qu'il n'y a pas de conflit avec d'autres sections
+- ✅ Tester avec les apps de reviews/avis si présentes
+- ✅ Vérifier la compatibilité avec les apps de traduction
+
+## SEO
+
+### Vérifier l'optimisation SEO
+
+- ✅ **Balises sémantiques** : Utiliser les bonnes balises HTML5 (header, section, article, etc.)
+- ✅ **Hiérarchie des titres** : Respecter la hiérarchie h1, h2, h3
+- ✅ **Meta descriptions** : Si la section génère du contenu important
+- ✅ **Structured data** : Ajouter du schema.org si pertinent
+- ✅ **Liens** : Vérifier que tous les liens sont valides
+
+## Sécurité
+
+### Vérifier la sécurité
+
+- ✅ **Échappement** : Utiliser `escape` pour les contenus utilisateur
+- ✅ **XSS** : Éviter l'injection de code malveillant
+- ✅ **Validation** : Valider les entrées utilisateur
+- ✅ **Permissions** : Vérifier les permissions d'accès si nécessaire
+
+**Exemple** :
+```liquid
+{% comment %} ✅ Bon - Échappement {% endcomment %}
+<h1>{{ section.settings.title | escape }}</h1>
+
+{% comment %} ❌ Mauvais - Pas d'échappement {% endcomment %}
+<h1>{{ section.settings.title }}</h1>
+```
+
+## Documentation
+
+### Documenter la section
+
+- ✅ **Commentaires** : Ajouter des commentaires pour les parties complexes
+- ✅ **README** : Documenter l'utilisation de la section
+- ✅ **Exemples** : Fournir des exemples d'utilisation
+- ✅ **Dépendances** : Lister les dépendances (JS, CSS externes)
+
+## Tests finaux
+
+### Tests de régression
+
+- ✅ Vérifier que la section n'a pas cassé d'autres sections
+- ✅ Tester sur différentes pages (homepage, collection, produit)
+- ✅ Vérifier que les autres sections fonctionnent toujours
+- ✅ Tester avec différents thèmes si possible
+
+### Tests utilisateur
+
+- ✅ Faire tester par quelqu'un d'autre
+- ✅ Vérifier que les options sont compréhensibles
+- ✅ Vérifier que le résultat visuel correspond aux attentes
+- ✅ Recueillir les retours
+
+## Checklist rapide
+
+Utilisez cette checklist rapide avant chaque déploiement :
+
+- [ ] CSS vérifié desktop/mobile vs maquette
+- [ ] Testé sur desktop, laptop, tablette, smartphone
+- [ ] Code non utilisé supprimé
+- [ ] Code DRY (pas de duplication)
+- [ ] Code bien indenté
+- [ ] Pas d'erreurs JS dans la console
+- [ ] Toutes les options fonctionnelles
+- [ ] Pas de bugs d'affichage
+- [ ] Options user-friendly
+- [ ] Performances vérifiées
+- [ ] Accessibilité vérifiée
+- [ ] Compatibilité navigateurs vérifiée
+- [ ] SEO optimisé
+- [ ] Sécurité vérifiée
+- [ ] Documentation à jour
+- [ ] Tests de régression effectués
+
+## Outils recommandés
+
+- **Validation HTML** : [W3C Validator](https://validator.w3.org/)
+- **Validation CSS** : [W3C CSS Validator](https://jigsaw.w3.org/css-validator/)
+- **Performance** : [Google PageSpeed Insights](https://pagespeed.web.dev/)
+- **Accessibilité** : [WAVE](https://wave.webaim.org/)
+- **Responsive** : DevTools Chrome/Firefox
+- **Linting** : ESLint, Stylelint
+- **Code quality** : [SonarQube](https://www.sonarqube.org/)
+

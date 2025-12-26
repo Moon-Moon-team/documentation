@@ -1,0 +1,79 @@
+# Redirect from Cart to HP + drawer open
+
+***
+
+Ce script permet de rediriger automatiquement les utilisateurs depuis la page panier vers la page d'accueil et d'ouvrir automatiquement le drawer du panier.
+
+## Code à placer dans le Theme.liquid
+
+Ajoutez ce code dans votre fichier `theme.liquid`, idéalement dans la section `<head>` ou juste avant la fermeture de `</body>` :
+
+```jsx
+<!-- Redirection Panier > Homepage + Drawer Cart -->
+{% if template == 'cart' %}
+<style>
+body {
+opacity: 0;
+}
+</style>
+<script>
+window.location.href = '/?open_cart=true';
+</script>
+{% else %}
+<script>
+if (window.location.href == 'https://{{shop.domain}}/?open_cart=true') {
+mmOpenCart();
+}
+</script>
+{% endif %}
+```
+
+## Explication
+
+### Fonctionnement
+
+1. **Sur la page panier** (`template == 'cart'`) :
+   - Le body devient invisible (`opacity: 0`) pour éviter le flash de contenu
+   - Redirection vers la page d'accueil avec le paramètre `open_cart=true`
+
+2. **Sur la page d'accueil** (ou autres pages) :
+   - Vérifie si l'URL contient le paramètre `open_cart=true`
+   - Si oui, appelle la fonction `mmOpenCart()` pour ouvrir le drawer du panier
+
+### Prérequis
+
+- La fonction `mmOpenCart()` doit être définie dans votre thème
+- Le drawer du panier doit être implémenté dans votre thème
+
+## Personnalisation
+
+### Changer l'URL de redirection
+
+Si vous souhaitez rediriger vers une autre page que la homepage :
+
+```jsx
+window.location.href = '/pages/autre-page/?open_cart=true';
+```
+
+### Utiliser un paramètre différent
+
+Vous pouvez utiliser un autre paramètre d'URL :
+
+```jsx
+window.location.href = '/?cart_open=1';
+```
+
+Et dans la vérification :
+
+```jsx
+if (window.location.href.includes('cart_open=1')) {
+  mmOpenCart();
+}
+```
+
+## Notes importantes
+
+1. **Fonction mmOpenCart()** : Assurez-vous que cette fonction existe et fonctionne correctement dans votre thème
+2. **Performance** : Le `opacity: 0` évite le flash de contenu lors de la redirection
+3. **UX** : Cette approche améliore l'expérience utilisateur en gardant l'utilisateur sur la page d'accueil tout en affichant le panier
+

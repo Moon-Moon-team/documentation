@@ -1,0 +1,293 @@
+# Masquer un produit (search interne Shopify + SEO Google)
+
+***
+
+Très utile pour faire des tests sur des produits, ou bien pour les produits gratuits du panier (produits offerts). Attention bien vérifier que c'est fonctionnel avec le thème en cours.
+
+## Méthode 1 : Utiliser un metafield personnalisé
+
+### Créer le metafield
+
+1. Allez dans **Paramètres** → **Metafields** → **Produits**
+2. Cliquez sur **Ajouter une définition**
+3. Configurez le metafield :
+   - **Type de contenu** : Nombre (Number)
+   - **Nom** : Masquer le produit
+   - **Namespace et clé** : `seo.hidden`
+   - **Description** : Entrez "1" si vous souhaitez masquer ce produit (Search et Google)
+
+### Utilisation dans le code
+
+#### Masquer de la recherche interne Shopify
+
+Dans votre template de recherche (`templates/search.liquid` ou section de recherche) :
+
+```liquid
+{% for product in search.results %}
+  {% if product.metafields.seo.hidden != 1 %}
+    {% render 'product-card', product: product %}
+  {% endif %}
+{% endfor %}
+```
+
+#### Masquer des collections
+
+Dans vos sections de collection :
+
+```liquid
+{% for product in collection.products %}
+  {% unless product.metafields.seo.hidden == 1 %}
+    {% render 'product-card', product: product %}
+  {% endunless %}
+{% endfor %}
+```
+
+#### Masquer du sitemap et du SEO
+
+Dans votre `theme.liquid` ou dans les balises meta, ajoutez une condition pour exclure les produits masqués :
+
+```liquid
+{% if product.metafields.seo.hidden == 1 %}
+  <meta name="robots" content="noindex, nofollow">
+{% endif %}
+```
+
+#### Exemple complet dans une section produit
+
+```liquid
+{% unless product.metafields.seo.hidden == 1 %}
+  <div class="product-card">
+    <h2>{{ product.title }}</h2>
+    <p>{{ product.price | money }}</p>
+    <a href="{{ product.url }}">Voir le produit</a>
+  </div>
+{% endunless %}
+```
+
+## Méthode 2 : Utiliser la fonctionnalité "Non répertorié" de Shopify
+
+Shopify propose maintenant une fonctionnalité native pour masquer un produit de la recherche et du référencement.
+
+### Activer "Non répertorié" sur un produit
+
+1. Allez dans **Produits** → Sélectionnez un produit
+2. Dans la section **Visibilité**, cochez **"Non répertorié"**
+3. Le produit sera automatiquement :
+   - Masqué de la recherche interne Shopify
+   - Masqué des moteurs de recherche (noindex)
+   - Accessible uniquement via son URL directe
+
+### Vérifier dans le code
+
+Vous pouvez vérifier si un produit est non répertorié avec :
+
+```liquid
+{% if product.status == 'active' %}
+  {# Produit actif et répertorié #}
+{% elsif product.status == 'archived' %}
+  {# Produit archivé #}
+{% endif %}
+```
+
+Pour vérifier si un produit est accessible :
+
+```liquid
+{% if product.available %}
+  {# Le produit est disponible et peut être acheté #}
+{% endif %}
+```
+
+## Comparaison des deux méthodes
+
+### Metafield personnalisé (`seo.hidden`)
+
+**Avantages :**
+- Contrôle total sur l'affichage
+- Peut être utilisé pour des cas spécifiques (produits offerts, tests)
+- Flexible : vous pouvez créer votre propre logique
+- Compatible avec tous les thèmes
+
+**Inconvénients :**
+- Nécessite de modifier le code partout où les produits sont affichés
+- Doit être géré manuellement dans chaque template/section
+- Risque d'oublier certains endroits
+
+### Fonctionnalité native "Non répertorié"
+
+**Avantages :**
+- Géré automatiquement par Shopify
+- Pas besoin de modifier le code
+- Masqué automatiquement de la recherche et du SEO
+- Plus simple à utiliser
+
+**Inconvénients :**
+- Moins de contrôle sur l'affichage
+- Le produit est complètement masqué (pas de logique conditionnelle)
+
+## Cas d'usage
+
+### Produits offerts (gratuits)
+
+Pour les produits offerts qui ne doivent pas apparaître dans la recherche :
+
+```liquid
+{% for product in collection.products %}
+  {% if product.price == 0 and product.metafields.seo.hidden == 1 %}
+    {# Produit gratuit masqué - ne pas afficher #}
+  {% else %}
+    {% render 'product-card', product: product %}
+  {% endif %}
+{% endfor %}
+```
+
+### Produits en test
+
+Pour tester des produits sans les rendre visibles :
+
+```liquid
+{% if product.metafields.seo.hidden != 1 %}
+  {# Afficher le produit normalement #}
+{% else %}
+  {# Produit en test - afficher uniquement pour les admins #}
+  {% if customer.tags contains 'admin' %}
+    {% render 'product-card', product: product %}
+  {% endif %}
+{% endif %}
+```
+
+### Masquer conditionnellement dans différentes sections
+
+```liquid
+{% comment %} Dans une section de produits vedettes {% endcomment %}
+{% for product in collections.featured.products %}
+  {% unless product.metafields.seo.hidden == 1 %}
+    {% render 'product-card', product: product %}
+  {% endunless %}
+{% endfor %}
+
+{% comment %} Dans une section de produits récents {% endcomment %}
+{% for product in collections.new.products %}
+  {% if product.metafields.seo.hidden != 1 %}
+    {% render 'product-card', product: product %}
+  {% endif %}
+{% endfor %}
+```
+
+## Implémentation complète
+
+### Template de recherche
+
+```liquid
+{% paginate search.results by 24 %}
+  <div class="search-results">
+    {% for item in search.results %}
+      {% if item.object_type == 'product' %}
+        {% assign product = item %}
+        {% unless product.metafields.seo.hidden == 1 %}
+          {% render 'product-card', product: product %}
+        {% endunless %}
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endpaginate %}
+```
+
+### Section de collection
+
+```liquid
+<div class="collection-products">
+  {% for product in collection.products %}
+    {% if product.metafields.seo.hidden != 1 %}
+      <div class="product-item">
+        {% render 'product-card', product: product %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+```
+
+### Snippet product-card avec vérification
+
+```liquid
+{% comment %} snippets/product-card.liquid {% endcomment %}
+{% unless product.metafields.seo.hidden == 1 %}
+  <div class="product-card">
+    <a href="{{ product.url }}">
+      <img src="{{ product.featured_image | img_url: 'medium' }}" alt="{{ product.title }}">
+      <h3>{{ product.title }}</h3>
+      <p>{{ product.price | money }}</p>
+    </a>
+  </div>
+{% endunless %}
+```
+
+## SEO et référencement
+
+### Balises meta pour les produits masqués
+
+```liquid
+{% if product.metafields.seo.hidden == 1 %}
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+{% endif %}
+```
+
+### Sitemap XML
+
+Si vous générez un sitemap personnalisé, excluez les produits masqués :
+
+```liquid
+{% for product in collections.all.products %}
+  {% if product.metafields.seo.hidden != 1 %}
+    <url>
+      <loc>{{ shop.url }}{{ product.url }}</loc>
+      <lastmod>{{ product.updated_at | date: '%Y-%m-%d' }}</lastmod>
+    </url>
+  {% endif %}
+{% endfor %}
+```
+
+## Vérifications importantes
+
+### Tester avec le thème en cours
+
+Avant de mettre en production, vérifiez que le masquage fonctionne dans :
+
+1. ✅ **Page de recherche** : Les produits masqués n'apparaissent pas
+2. ✅ **Collections** : Les produits masqués sont exclus
+3. ✅ **Produits vedettes** : Les produits masqués ne sont pas affichés
+4. ✅ **Produits récents** : Les produits masqués sont exclus
+5. ✅ **Sitemap** : Les produits masqués ne sont pas référencés
+6. ✅ **Balises meta** : Les produits masqués ont `noindex`
+
+### Test rapide
+
+```liquid
+{% comment %} Test pour vérifier que le metafield fonctionne {% endcomment %}
+{% if product.metafields.seo.hidden == 1 %}
+  <!-- PRODUIT MASQUÉ - Ne pas afficher -->
+{% else %}
+  <!-- Produit normal - Afficher -->
+{% endif %}
+```
+
+## Bonnes pratiques
+
+1. **Documentation** : Documentez l'utilisation du metafield `seo.hidden` dans votre équipe
+2. **Cohérence** : Utilisez toujours la même logique partout (`== 1` ou `!= 1`)
+3. **Tests** : Testez régulièrement que les produits masqués ne s'affichent pas
+4. **Alternative native** : Considérez d'abord la fonctionnalité "Non répertorié" de Shopify si elle répond à vos besoins
+5. **Performance** : Les conditions Liquid sont rapides, mais évitez les boucles trop complexes
+
+## Notes importantes
+
+- ⚠️ **Vérification du thème** : Assurez-vous que cette fonctionnalité est compatible avec votre thème
+- ⚠️ **Produits offerts** : Les produits gratuits peuvent être masqués pour éviter qu'ils apparaissent dans les résultats de recherche
+- ⚠️ **Tests** : Utilisez cette fonctionnalité pour tester des produits sans les rendre publics
+- ⚠️ **SEO** : Les produits masqués ne doivent pas être indexés par Google pour éviter les problèmes de contenu dupliqué
+
+## Ressources
+
+- **Documentation Shopify Metafields** : [Shopify Metafields](https://shopify.dev/apps/custom-data/metafields)
+- **Produits non répertoriés** : [Shopify Help - Unlisted Products](https://help.shopify.com/en/manual/products/product-status)
+

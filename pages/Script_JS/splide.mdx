@@ -1,0 +1,254 @@
+# Splide.js
+
+***
+
+Splide.js est une bibliothèque JavaScript légère et performante pour créer des carrousels et sliders modernes. Elle est particulièrement adaptée pour les sliders de produits, galeries d'images et tout type de contenu défilant.
+
+## Installation
+
+### Dans le head
+
+Ajoutez le CSS de Splide dans le `<head>` de votre fichier `theme.liquid` :
+
+```html
+<!-- Splide : Used for all sliders on the website -->  
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/css/splide.min.css" as="style">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/css/splide.min.css">
+```
+
+### À la fin du body
+
+Ajoutez le script JavaScript juste avant la fermeture de la balise `</body>` :
+
+```html
+<!-- Splide : Used for all sliders on the website -->    
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.js"></script>
+```
+
+## Exemple de section
+
+### HTML
+
+```html
+<div class="splide splide-{{section.id}}">
+    <div class="splide__track">
+      <ul class="splide__list">
+        {% for product in section.settings.collection.products %}
+        <li class="splide__slide">
+          {% render 'mm-product-card' product: product %}
+        </li>
+        {% endfor %}
+      </ul>
+	  </div>  
+</div>
+```
+
+### JavaScript
+
+```jsx
+document.addEventListener( 'DOMContentLoaded', function () {
+    let id = '.splide-{{section.id}}';
+    let splideElem = document.querySelector(id);
+    if (splideElem) {
+    
+    new Splide( splideElem, {
+		type   : 'slide',
+        arrows: false,
+        pagination: false,
+        gap: 20,
+		perPage: 4,
+        padding: {
+          right: '10rem',
+          left: '20px'
+        },
+		breakpoints: {
+			768: {
+				perPage: 2,
+			}
+		}
+      }).mount();
+    }
+  
+  } );
+```
+
+## Options de configuration
+
+### Options principales
+
+- **`type`** : Type de slider (`'slide'`, `'loop'`, `'fade'`)
+- **`arrows`** : Afficher/masquer les flèches de navigation (`true`/`false`)
+- **`pagination`** : Afficher/masquer les points de pagination (`true`/`false`)
+- **`gap`** : Espacement entre les slides en pixels
+- **`perPage`** : Nombre de slides visibles simultanément
+- **`padding`** : Padding à gauche et à droite du slider
+- **`breakpoints`** : Configuration responsive pour différentes largeurs d'écran
+
+### Exemple avec flèches et pagination
+
+```jsx
+new Splide( splideElem, {
+    type: 'loop',
+    arrows: true,
+    pagination: true,
+    gap: 30,
+    perPage: 3,
+    perMove: 1,
+    autoplay: true,
+    interval: 3000,
+    pauseOnHover: true,
+    breakpoints: {
+        1024: {
+            perPage: 2,
+        },
+        768: {
+            perPage: 1,
+            gap: 20,
+        }
+    }
+}).mount();
+```
+
+### Exemple avec slider de type "fade"
+
+```jsx
+new Splide( splideElem, {
+    type: 'fade',
+    rewind: true,
+    autoplay: true,
+    interval: 5000,
+    arrows: true,
+    pagination: true,
+    perPage: 1
+}).mount();
+```
+
+### Exemple avec slider infini (loop)
+
+```jsx
+new Splide( splideElem, {
+    type: 'loop',
+    perPage: 4,
+    gap: 20,
+    arrows: true,
+    pagination: false,
+    focus: 'center',
+    trimSpace: false,
+    breakpoints: {
+        768: {
+            perPage: 2,
+        },
+        480: {
+            perPage: 1,
+        }
+    }
+}).mount();
+```
+
+## Options avancées
+
+### Autoplay
+
+```jsx
+new Splide( splideElem, {
+    autoplay: true,
+    interval: 3000,        // Délai en millisecondes
+    pauseOnHover: true,   // Pause au survol
+    pauseOnFocus: true,    // Pause lors du focus
+    resetProgress: false   // Réinitialiser la progression
+}).mount();
+```
+
+### Navigation au clavier
+
+```jsx
+new Splide( splideElem, {
+    keyboard: 'global',   // Navigation au clavier activée
+    arrowPath: 'M 15 0 L 0 15 L 15 30', // Personnaliser les flèches
+}).mount();
+```
+
+### Vitesse et transitions
+
+```jsx
+new Splide( splideElem, {
+    speed: 400,           // Vitesse de transition en ms
+    easing: 'cubic-bezier(0.25, 1, 0.5, 1)', // Courbe d'animation
+    drag: true,           // Autoriser le glisser-déposer
+    snap: true            // Snap sur les slides
+}).mount();
+```
+
+## Exemple complet avec section Shopify
+
+```html
+<div class="splide splide-products-{{section.id}}">
+    <div class="splide__track">
+        <ul class="splide__list">
+            {% for product in section.settings.collection.products limit: section.settings.products_to_show %}
+            <li class="splide__slide">
+                {% render 'mm-product-card', product: product %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Flèches de navigation personnalisées -->
+    <div class="splide__arrows">
+        <button class="splide__arrow splide__arrow--prev">
+            <svg>...</svg>
+        </button>
+        <button class="splide__arrow splide__arrow--next">
+            <svg>...</svg>
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const splideId = '.splide-products-{{section.id}}';
+    const splideElement = document.querySelector(splideId);
+    
+    if (splideElement) {
+        new Splide(splideId, {
+            type: 'slide',
+            arrows: true,
+            pagination: true,
+            gap: '2rem',
+            perPage: 4,
+            perMove: 1,
+            autoplay: false,
+            breakpoints: {
+                1024: {
+                    perPage: 3,
+                    gap: '1.5rem'
+                },
+                768: {
+                    perPage: 2,
+                    gap: '1rem'
+                },
+                480: {
+                    perPage: 1,
+                    gap: '1rem'
+                }
+            }
+        }).mount();
+    }
+});
+</script>
+```
+
+## Notes importantes
+
+1. **Initialisation** : Toujours initialiser Splide après le chargement du DOM avec `DOMContentLoaded`
+2. **Sélecteurs uniques** : Utilisez `{{section.id}}` pour créer des sélecteurs uniques par section
+3. **Vérification** : Vérifiez toujours que l'élément existe avant d'initialiser (`if (splideElem)`)
+4. **Performance** : Utilisez `preload` pour le CSS afin d'améliorer les performances
+5. **Responsive** : Configurez toujours les `breakpoints` pour une expérience mobile optimale
+
+## Ressources
+
+- **Documentation officielle :** https://splidejs.com/
+- **CDN :** https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/
+- **GitHub :** https://github.com/Splidejs/splide
+

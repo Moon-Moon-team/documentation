@@ -3,5 +3,18 @@
 	"external_links": "External Links",
 	"media_query": "Media Query",
 	"wait_for_element": "Wait for Element",
-	"infinite_scroll": "Infinite Scroll"
+	"infinite_scroll": "Infinite Scroll",
+	"jQuery": "jQuery",
+	"lazyloader_app": "Lazyloader App",
+	"read_more": "Read more",
+	"smooth_dropdown": "Smooth Dropdown",
+	"cta_sticky_mobile": "CTA Sticky Mobile",
+	"splide": "Splide",
+	"redirect_cart_to_homepage_drawer_open": "Redirect Cart to Homepage Drawer Open",
+	"animer_texte_gsap": "Animer le texte avec GSAP",
+	"inventaire_panier": "Récupérer l'inventaire d'un item pour éviter les bugs lors des spam de quantités dans le panier",
+	"get_user_country_geolocation": "Get user country with javascript (with Geolocation IP App)",
+	"affichage_dynamique_dispo_options": "Affichage dynamique de la dispo des options (product form)",
+	"slider_product_card_sans_splide": "Slider product card sans Splide",
+	"fallback_100dvh": "Fallback 100dvh pour vieux navigateurs mobiles"
 }

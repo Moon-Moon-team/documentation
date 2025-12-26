@@ -1,0 +1,587 @@
+# Slider product card sans Splide
+
+***
+
+Un slider léger pour les product cards, sans utiliser Splide. Solution JavaScript vanilla avec support du drag/swipe sur mobile et desktop.
+
+## Vue d'ensemble
+
+Ce slider permet de :
+- Afficher plusieurs images de produit dans une card
+- Naviguer par swipe/drag sur mobile et desktop
+- Afficher une barre de progression
+- Gérer les clics pour naviguer vers la page produit
+- Support du clic avec Ctrl pour ouvrir dans un nouvel onglet
+
+## Structure des fichiers
+
+### 1. mm-product-card.liquid
+
+Dans votre snippet de product card :
+
+```liquid
+<div class="mm-product-card" data-url="{{ product.url }}"> <!-- Important de mettre l'URL -->
+  
+  <!-- SLIDER-->
+  {% render 'mm-pc-slider', product: product %}
+  
+  <!-- Reste des infos -->
+  <div class="mm-product-card-info">
+    <h3>{{ product.title }}</h3>
+    <p>{{ product.price | money }}</p>
+  </div>
+</div>
+```
+
+**Points importants :**
+- L'attribut `data-url` est nécessaire pour la navigation au clic
+- Le slider est rendu via le snippet `mm-pc-slider`
+
+### 2. mm-pc-slider.liquid
+
+Créez le snippet `snippets/mm-pc-slider.liquid` :
+
+```liquid
+<div class="mm-pc-slider">
+  <a href="{{ product.url }}" class="mm-pc-slides">
+    {% for image in product.images limit: 4 %}
+      {{ image | image_url: width: 600 | image_tag: loading: 'lazy', class: 'mm-pc-slider-image' }}
+    {% endfor %}
+  </a>
+  <div class="mm-pc-slider-progress-bar-container"> <!-- Barre de progression -->
+    <div class="mm-pc-slider-progress-bar"></div>
+  </div>
+</div>
+```
+
+**Explication :**
+- Limite à 4 images pour les performances
+- Images chargées en lazy loading
+- Barre de progression pour indiquer l'image actuelle
+
+### 3. mm-product-card.css
+
+Ajoutez ces styles dans votre fichier CSS :
+
+```css
+/* SLIDER IMAGES */
+.mm-pc-slider {
+  position: relative;
+}
+
+.mm-pc-slider-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: auto;
+  aspect-ratio: 1 / 2;
+  opacity: 0;
+  transition: .3s;
+}
+
+.mm-pc-slider-progress-bar {
+  position: absolute;
+  bottom: 0;
+  background-color: black;
+  height: 5px;
+  width: 0%;
+  transition: .5s;
+}
+```
+
+**Explication :**
+- Les images sont en position absolue et superposées
+- L'opacité change pour afficher/masquer les images
+- La barre de progression indique la position dans le slider
+
+### 4. mm-global.js
+
+Ajoutez cette fonction dans votre fichier JavaScript global :
+
+```jsx
+// PRODUCT CARDS SLIDERS
+function productCardSlidersInit() {
+	const sliders = document.querySelectorAll('.mm-pc-slider');
+
+	if (sliders) {
+		sliders.forEach(function (slider) {
+
+      var link = slider.querySelector('.mm-pc-slides');
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+      })   
+      
+			const card = slider.closest('.mm-product-card');
+			let isDragging = false;
+			let start = 0;
+			let end = 0;
+			let images = slider.querySelectorAll('.mm-pc-slider-image');
+			let index = 0;
+			let progressBar = slider.querySelector('.mm-pc-slider-progress-bar');
+
+			function updateImage() {
+				images.forEach((img) => (img.style.opacity = '0'));
+				images[index].style.opacity = '1';
+				progressBar.style.width = `${((index + 1) / images.length) * 100}%`;
+			}
+
+			function handleDragStart(event) {
+				isDragging = true;
+				start = event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+				end = start;
+			}
+
+			function handleDragging(event) {
+				if (!isDragging) {
+					return;
+				}
+				end = event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+			}
+
+			function handleDragEnd() {
+				if (!isDragging) {
+					return;
+				}
+				isDragging = false;
+				if (start == end) {
+					// Pas de mouvement, donc un clic
+          if (event.ctrlKey) {
+            // La touche Ctrl est enfoncée
+            window.open(card.dataset.url, '_blank');
+          } else {
+            // La touche Ctrl n'est pas enfoncée
+            if (event.button === 0) {
+              window.location.href = card.dataset.url;
+            }
+          }
+				} else if (start > end + 5) {
+					// Swipe gauche
+					if (window.innerWidth < 769) {
+						index = index + 1 < images.length ? index + 1 : 0;
+						updateImage();
+					}
+				} else if (start < end - 5) {
+					// Swipe droit
+					if (window.innerWidth < 769) {
+						index = index - 1 >= 0 ? index - 1 : images.length - 1;
+						updateImage();
+					}
+				}
+			}
+
+			// Mobile
+			slider.addEventListener('touchstart', handleDragStart);
+			slider.addEventListener('touchmove', handleDragging);
+			slider.addEventListener('touchend', handleDragEnd);
+
+			// Desk
+			slider.addEventListener('mousedown', handleDragStart);
+			slider.addEventListener('mousemove', handleDragging);
+			slider.addEventListener('mouseup', handleDragEnd);
+			slider.addEventListener('mouseleave', handleDragEnd);
+
+			// Init
+			if (window.innerWidth < 769) {
+				updateImage();
+			}
+		});
+	}
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  productCardSlidersInit();
+});
+```
+
+## Explication du code JavaScript
+
+### Fonction principale
+
+```jsx
+function productCardSlidersInit() {
+  const sliders = document.querySelectorAll('.mm-pc-slider');
+  // ...
+}
+```
+
+**Rôle :** Initialise tous les sliders de product cards sur la page.
+
+### Prévention du clic par défaut
+
+```jsx
+var link = slider.querySelector('.mm-pc-slides');
+link.addEventListener('click', function(e) {
+  e.preventDefault();
+})
+```
+
+**Rôle :** Empêche la navigation par défaut du lien, pour gérer manuellement les clics.
+
+### Variables d'état
+
+```jsx
+let isDragging = false;
+let start = 0;
+let end = 0;
+let images = slider.querySelectorAll('.mm-pc-slider-image');
+let index = 0;
+let progressBar = slider.querySelector('.mm-pc-slider-progress-bar');
+```
+
+**Explication :**
+- `isDragging` : Indique si un drag est en cours
+- `start` / `end` : Positions de début et fin du drag
+- `images` : Toutes les images du slider
+- `index` : Index de l'image actuellement affichée
+- `progressBar` : Élément de la barre de progression
+
+### Fonction `updateImage()`
+
+```jsx
+function updateImage() {
+  images.forEach((img) => (img.style.opacity = '0'));
+  images[index].style.opacity = '1';
+  progressBar.style.width = `${((index + 1) / images.length) * 100}%`;
+}
+```
+
+**Rôle :**
+- Masque toutes les images
+- Affiche l'image à l'index actuel
+- Met à jour la barre de progression
+
+### Gestion du drag
+
+#### `handleDragStart()`
+
+```jsx
+function handleDragStart(event) {
+  isDragging = true;
+  start = event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+  end = start;
+}
+```
+
+**Rôle :** Démarre le drag et enregistre la position de départ.
+
+#### `handleDragging()`
+
+```jsx
+function handleDragging(event) {
+  if (!isDragging) {
+    return;
+  }
+  end = event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+}
+```
+
+**Rôle :** Met à jour la position de fin pendant le drag.
+
+#### `handleDragEnd()`
+
+```jsx
+function handleDragEnd() {
+  if (!isDragging) {
+    return;
+  }
+  isDragging = false;
+  
+  if (start == end) {
+    // Clic simple
+    if (event.ctrlKey) {
+      window.open(card.dataset.url, '_blank');
+    } else {
+      if (event.button === 0) {
+        window.location.href = card.dataset.url;
+      }
+    }
+  } else if (start > end + 5) {
+    // Swipe gauche
+    if (window.innerWidth < 769) {
+      index = index + 1 < images.length ? index + 1 : 0;
+      updateImage();
+    }
+  } else if (start < end - 5) {
+    // Swipe droit
+    if (window.innerWidth < 769) {
+      index = index - 1 >= 0 ? index - 1 : images.length - 1;
+      updateImage();
+    }
+  }
+}
+```
+
+**Rôle :**
+- Si pas de mouvement : gère le clic (normal ou Ctrl+clic)
+- Si swipe gauche : passe à l'image suivante (mobile uniquement)
+- Si swipe droit : passe à l'image précédente (mobile uniquement)
+
+### Événements
+
+```jsx
+// Mobile
+slider.addEventListener('touchstart', handleDragStart);
+slider.addEventListener('touchmove', handleDragging);
+slider.addEventListener('touchend', handleDragEnd);
+
+// Desktop
+slider.addEventListener('mousedown', handleDragStart);
+slider.addEventListener('mousemove', handleDragging);
+slider.addEventListener('mouseup', handleDragEnd);
+slider.addEventListener('mouseleave', handleDragEnd);
+```
+
+**Explication :**
+- Support des événements tactiles (mobile)
+- Support des événements souris (desktop)
+- `mouseleave` : Annule le drag si la souris sort du slider
+
+## Initialisation
+
+### Au chargement de la page
+
+```jsx
+document.addEventListener('DOMContentLoaded', function () {
+  productCardSlidersInit();
+});
+```
+
+### Après un refresh avec filtres ou infinite scroll
+
+⚠️ **Important :** Si vous utilisez des filtres ou l'infinite scroll, pensez à relancer le slider :
+
+```jsx
+// Après un changement de contenu (filtres, infinite scroll, etc.)
+productCardSlidersInit();
+```
+
+**Exemple avec infinite scroll :**
+
+```jsx
+function loadMoreProducts() {
+  // ... code de chargement ...
+  
+  // Après avoir ajouté les nouveaux produits au DOM
+  productCardSlidersInit();
+}
+```
+
+**Exemple avec filtres :**
+
+```jsx
+function applyFilters() {
+  // ... code de filtrage ...
+  
+  // Après avoir mis à jour le DOM
+  productCardSlidersInit();
+}
+```
+
+## Personnalisations
+
+### Afficher toutes les images
+
+Pour afficher toutes les images au lieu de 4 :
+
+```liquid
+{% for image in product.images %}
+  {{ image | image_url: width: 600 | image_tag: loading: 'lazy', class: 'mm-pc-slider-image' }}
+{% endfor %}
+```
+
+### Changer le breakpoint mobile
+
+Pour changer la largeur à partir de laquelle le slider est actif :
+
+```jsx
+if (window.innerWidth < 1024) { // Au lieu de 769
+  // ...
+}
+```
+
+### Ajuster la sensibilité du swipe
+
+Pour rendre le swipe plus ou moins sensible :
+
+```jsx
+} else if (start > end + 10) { // Au lieu de 5
+  // Swipe gauche
+}
+```
+
+### Désactiver le slider sur desktop
+
+Pour désactiver complètement le slider sur desktop :
+
+```jsx
+// Init
+if (window.innerWidth < 769) {
+  updateImage();
+} else {
+  // Afficher toutes les images sur desktop
+  images.forEach((img) => (img.style.opacity = '1'));
+}
+```
+
+### Ajouter des flèches de navigation
+
+```html
+<div class="mm-pc-slider">
+  <button class="mm-pc-slider-prev">←</button>
+  <a href="{{ product.url }}" class="mm-pc-slides">
+    <!-- images -->
+  </a>
+  <button class="mm-pc-slider-next">→</button>
+  <!-- progress bar -->
+</div>
+```
+
+```jsx
+const prevBtn = slider.querySelector('.mm-pc-slider-prev');
+const nextBtn = slider.querySelector('.mm-pc-slider-next');
+
+prevBtn.addEventListener('click', () => {
+  index = index - 1 >= 0 ? index - 1 : images.length - 1;
+  updateImage();
+});
+
+nextBtn.addEventListener('click', () => {
+  index = index + 1 < images.length ? index + 1 : 0;
+  updateImage();
+});
+```
+
+## CSS amélioré
+
+### Version avec transition plus fluide
+
+```css
+.mm-pc-slider {
+  position: relative;
+  overflow: hidden;
+}
+
+.mm-pc-slider-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 2;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .3s ease-in-out;
+  pointer-events: none;
+}
+
+.mm-pc-slider-image:first-child {
+  position: relative;
+  opacity: 1;
+}
+
+.mm-pc-slider-progress-bar-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.mm-pc-slider-progress-bar {
+  height: 100%;
+  background-color: black;
+  width: 0%;
+  transition: width .5s ease;
+}
+```
+
+### Version avec indicateurs de points
+
+```css
+.mm-pc-slider-dots {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.mm-pc-slider-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition: background-color .3s;
+}
+
+.mm-pc-slider-dot.active {
+  background-color: white;
+}
+```
+
+## Bonnes pratiques
+
+### 1. Performance
+
+- Limiter le nombre d'images (4 par défaut)
+- Utiliser le lazy loading
+- Optimiser les images avec les bons formats (WebP, AVIF)
+
+### 2. Accessibilité
+
+Ajouter des attributs ARIA :
+
+```html
+<div class="mm-pc-slider" role="region" aria-label="Images du produit">
+  <a href="{{ product.url }}" class="mm-pc-slides" aria-label="Voir le produit {{ product.title }}">
+    <!-- images -->
+  </a>
+</div>
+```
+
+### 3. Gestion des erreurs
+
+Vérifier que les éléments existent avant de les utiliser :
+
+```jsx
+if (!slider || !card || images.length === 0) {
+  return;
+}
+```
+
+## Limitations
+
+- ⚠️ **Mobile uniquement** : Le swipe fonctionne uniquement sur mobile (< 769px)
+- ⚠️ **Pas d'auto-play** : Le slider ne défile pas automatiquement
+- ⚠️ **Pas de clavier** : Pas de navigation au clavier
+- ⚠️ **Images limitées** : Par défaut limité à 4 images
+
+## Dépannage
+
+### Le slider ne fonctionne pas
+
+1. Vérifier que `productCardSlidersInit()` est appelé
+2. Vérifier que les classes CSS correspondent
+3. Vérifier que `data-url` est présent sur `.mm-product-card`
+
+### Les images ne changent pas
+
+1. Vérifier que plusieurs images sont présentes
+2. Vérifier que la largeur de l'écran est < 769px
+3. Vérifier la console pour les erreurs JavaScript
+
+### Le clic ne fonctionne pas
+
+1. Vérifier que `data-url` contient une URL valide
+2. Vérifier que `e.preventDefault()` est bien appelé
+3. Vérifier que `handleDragEnd` détecte bien un clic (start == end)
+
+## Ressources
+
+- **Touch Events** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Touch_events)
+- **Mouse Events** : [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
+

@@ -16,16 +16,39 @@
 {% schema %}
     {
         "name": "MM section template",
+        "max_blocks": 4,
         "tag": "section",
         "class": "mm-section-template",
         "settings": [
-            
+            {
+                "type": "text",
+                "id": "title",
+                "label": "Titre"
+            }
+        ],
+        "blocks": [      
+            {
+                "type": "text",
+                "name": "Produit",
+                "settings": [
+                    {
+                        "type": "product",
+                        "id": "product",
+                        "label": "Produit"
+                    }
+                ]
+            }
         ],
         "presets": [
             {
-                "name": "MM section template"
+                "name": "MM section template",
+                "category": "Moon Moon",
             }
-        ]
+        ],
+        "enabled_on": {
+            "templates": ["*"],
+            "groups": ["footer"]
+        }
     }
 {% endschema %}
 ```

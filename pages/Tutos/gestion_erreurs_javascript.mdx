@@ -1,0 +1,573 @@
+# Gestion des erreurs JavaScript
+
+***
+
+<aside>
+<img src="/icons/barcode_green.svg" alt="/icons/barcode_green.svg" width="40px" /> **Guide complet pour gérer et déboguer les erreurs JavaScript dans Shopify**
+</aside>
+
+Guide pour implémenter une gestion d'erreurs robuste dans votre thème Shopify, avec des techniques de débogage et de monitoring.
+
+## Vue d'ensemble
+
+Une bonne gestion des erreurs JavaScript permet de :
+- Améliorer l'expérience utilisateur
+- Faciliter le débogage
+- Éviter que le site se casse complètement
+- Collecter des informations pour corriger les bugs
+
+## Gestion d'erreurs de base
+
+### Try-Catch
+
+La méthode la plus basique pour capturer les erreurs :
+
+```javascript showLineNumbers
+try {
+  // Code qui peut échouer
+  const result = riskyFunction();
+  console.log(result);
+} catch (error) {
+  // Gérer l'erreur
+  console.error('Erreur:', error.message);
+  // Optionnel : afficher un message à l'utilisateur
+}
+```
+
+### Try-Catch avec Finally
+
+Le bloc `finally` s'exécute toujours, même en cas d'erreur :
+
+```javascript showLineNumbers
+try {
+  // Code
+  processData();
+} catch (error) {
+  console.error('Erreur:', error);
+} finally {
+  // Code de nettoyage qui s'exécute toujours
+  cleanup();
+}
+```
+
+### Gestion d'erreurs asynchrones
+
+Pour les promesses :
+
+```javascript showLineNumbers
+// Avec .then() et .catch()
+fetch('/api/data')
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+  })
+  .catch(error => {
+    console.error('Erreur de requête:', error);
+  });
+
+// Avec async/await
+async function fetchData() {
+  try {
+    const response = await fetch('/api/data');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erreur de requête:', error);
+    // Retourner une valeur par défaut ou relancer l'erreur
+    throw error;
+  }
+}
+```
+
+## Handler global d'erreurs
+
+### window.onerror
+
+Capturer toutes les erreurs non gérées :
+
+```javascript showLineNumbers
+window.onerror = function(message, source, lineno, colno, error) {
+  console.error('Erreur globale:', {
+    message: message,
+    source: source,
+    line: lineno,
+    column: colno,
+    error: error
+  });
+  
+  // Envoyer à un service de logging (optionnel)
+  logErrorToService({
+    message,
+    source,
+    line: lineno,
+    column: colno,
+    stack: error?.stack
+  });
+  
+  // Retourner false pour ne pas afficher l'erreur dans la console
+  return false;
+};
+```
+
+### unhandledrejection
+
+Pour les promesses rejetées non gérées :
+
+```javascript showLineNumbers
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('Promesse rejetée non gérée:', event.reason);
+  
+  // Prévenir le comportement par défaut (affichage dans la console)
+  event.preventDefault();
+  
+  // Logger l'erreur
+  logErrorToService({
+    type: 'unhandledrejection',
+    reason: event.reason,
+    promise: event.promise
+  });
+});
+```
+
+### Erreurs dans les event listeners
+
+Wrapper pour capturer les erreurs dans les listeners :
+
+```javascript showLineNumbers
+function safeEventListener(element, event, handler) {
+  element.addEventListener(event, function(event) {
+    try {
+      handler(event);
+    } catch (error) {
+      console.error(`Erreur dans le handler ${event}:`, error);
+      handleError(error);
+    }
+  });
+}
+
+// Utilisation
+safeEventListener(document, 'click', function(e) {
+  // Votre code qui peut échouer
+  riskyCode();
+});
+```
+
+## Classe utilitaire pour la gestion d'erreurs
+
+Créer une classe centralisée pour gérer les erreurs :
+
+```javascript showLineNumbers
+class ErrorHandler {
+  constructor(options = {}) {
+    this.logToConsole = options.logToConsole !== false;
+    this.logToService = options.logToService || null;
+    this.showUserMessage = options.showUserMessage || false;
+    this.setupGlobalHandlers();
+  }
+
+  setupGlobalHandlers() {
+    // Handler pour les erreurs synchrones
+    window.onerror = (message, source, lineno, colno, error) => {
+      this.handleError({
+        message,
+        source,
+        line: lineno,
+        column: colno,
+        stack: error?.stack,
+        type: 'error'
+      });
+      return false;
+    };
+
+    // Handler pour les promesses rejetées
+    window.addEventListener('unhandledrejection', (event) => {
+      this.handleError({
+        message: event.reason?.message || String(event.reason),
+        stack: event.reason?.stack,
+        type: 'unhandledrejection',
+        reason: event.reason
+      });
+      event.preventDefault();
+    });
+  }
+
+  handleError(errorInfo) {
+    // Logger dans la console
+    if (this.logToConsole) {
+      console.error('Erreur capturée:', errorInfo);
+    }
+
+    // Envoyer à un service externe
+    if (this.logToService) {
+      this.sendToService(errorInfo);
+    }
+
+    // Afficher un message à l'utilisateur
+    if (this.showUserMessage) {
+      this.showUserNotification();
+    }
+  }
+
+  async sendToService(errorInfo) {
+    try {
+      await fetch(this.logToService, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...errorInfo,
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi au service:', error);
+    }
+  }
+
+  showUserNotification() {
+    // Créer une notification discrète pour l'utilisateur
+    const notification = document.createElement('div');
+    notification.className = 'error-notification';
+    notification.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+    notification.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff4444;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 4px;
+      z-index: 10000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
+  }
+
+  // Méthode pour logger manuellement
+  log(message, data = {}) {
+    this.handleError({
+      message,
+      ...data,
+      type: 'manual'
+    });
+  }
+}
+
+// Initialisation
+const errorHandler = new ErrorHandler({
+  logToConsole: true,
+  logToService: '/api/log-error', // Optionnel
+  showUserMessage: true
+});
+```
+
+## Gestion d'erreurs spécifiques Shopify
+
+### Erreurs d'ajout au panier
+
+```javascript showLineNumbers
+async function addToCart(variantId, quantity = 1) {
+  try {
+    const response = await fetch('/cart/add.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: variantId,
+        quantity: quantity
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.description || 'Erreur lors de l\'ajout au panier');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erreur ajout au panier:', error);
+    
+    // Afficher un message d'erreur à l'utilisateur
+    showCartError(error.message);
+    
+    // Logger l'erreur
+    errorHandler.log('Erreur ajout au panier', {
+      variantId,
+      quantity,
+      error: error.message
+    });
+    
+    throw error;
+  }
+}
+
+function showCartError(message) {
+  // Votre code pour afficher l'erreur dans l'UI
+  const errorElement = document.querySelector('.cart-error-message');
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+  }
+}
+```
+
+### Erreurs de récupération de produits
+
+```javascript showLineNumbers
+async function fetchProduct(handle) {
+  try {
+    const response = await fetch(`/products/${handle}.js`);
+    
+    if (!response.ok) {
+      throw new Error(`Produit non trouvé: ${handle}`);
+    }
+    
+    const product = await response.json();
+    return product;
+  } catch (error) {
+    console.error('Erreur récupération produit:', error);
+    
+    // Afficher un état d'erreur dans l'UI
+    showProductError(handle);
+    
+    throw error;
+  }
+}
+
+function showProductError(handle) {
+  const productContainer = document.querySelector('.product-container');
+  if (productContainer) {
+    productContainer.innerHTML = `
+      <div class="product-error">
+        <p>Impossible de charger ce produit.</p>
+        <a href="/collections/all">Voir tous les produits</a>
+      </div>
+    `;
+  }
+}
+```
+
+### Erreurs de chargement de sections
+
+```javascript showLineNumbers
+async function loadSection(sectionId) {
+  try {
+    const response = await fetch(`/sections/${sectionId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Section ${sectionId} non trouvée`);
+    }
+    
+    const html = await response.text();
+    return html;
+  } catch (error) {
+    console.error('Erreur chargement section:', error);
+    
+    // Optionnel : charger une section de fallback
+    return loadFallbackSection(sectionId);
+  }
+}
+
+function loadFallbackSection(sectionId) {
+  return '<div class="section-error">Contenu temporairement indisponible</div>';
+}
+```
+
+## Validation et prévention
+
+### Valider les données avant utilisation
+
+```javascript showLineNumbers
+function validateProductData(product) {
+  if (!product) {
+    throw new Error('Données produit manquantes');
+  }
+  
+  if (!product.id) {
+    throw new Error('ID produit manquant');
+  }
+  
+  if (!product.variants || product.variants.length === 0) {
+    throw new Error('Aucune variante disponible');
+  }
+  
+  return true;
+}
+
+// Utilisation
+try {
+  validateProductData(productData);
+  // Traiter les données
+  processProduct(productData);
+} catch (error) {
+  console.error('Données invalides:', error.message);
+}
+```
+
+### Vérifier l'existence des éléments DOM
+
+```javascript showLineNumbers
+function safeQuerySelector(selector, errorMessage) {
+  const element = document.querySelector(selector);
+  
+  if (!element) {
+    const message = errorMessage || `Élément non trouvé: ${selector}`;
+    console.warn(message);
+    return null;
+  }
+  
+  return element;
+}
+
+// Utilisation
+const addToCartButton = safeQuerySelector('[data-add-to-cart]', 'Bouton ajout au panier non trouvé');
+if (addToCartButton) {
+  addToCartButton.addEventListener('click', handleAddToCart);
+}
+```
+
+### Vérifier les dépendances
+
+```javascript showLineNumbers
+function checkDependencies() {
+  const dependencies = {
+    Shopify: typeof Shopify !== 'undefined',
+    theme: typeof theme !== 'undefined',
+    jQuery: typeof $ !== 'undefined'
+  };
+  
+  const missing = Object.entries(dependencies)
+    .filter(([name, exists]) => !exists)
+    .map(([name]) => name);
+  
+  if (missing.length > 0) {
+    console.warn('Dépendances manquantes:', missing);
+    return false;
+  }
+  
+  return true;
+}
+
+// Vérifier avant d'exécuter le code
+if (checkDependencies()) {
+  initializeApp();
+} else {
+  console.error('Impossible d\'initialiser l\'application: dépendances manquantes');
+}
+```
+
+## Debugging avancé
+
+### Stack trace détaillée
+
+```javascript showLineNumbers
+function getDetailedStackTrace() {
+  const stack = new Error().stack;
+  console.log('Stack trace complet:', stack);
+  return stack;
+}
+
+// Utilisation dans un catch
+try {
+  problematicFunction();
+} catch (error) {
+  console.error('Erreur:', error);
+  console.error('Stack trace:', error.stack);
+  getDetailedStackTrace();
+}
+```
+
+### Logger avec contexte
+
+```javascript showLineNumbers
+function logWithContext(message, context = {}) {
+  const logData = {
+    message,
+    timestamp: new Date().toISOString(),
+    url: window.location.href,
+    userAgent: navigator.userAgent,
+    ...context
+  };
+  
+  console.log('Log avec contexte:', logData);
+  return logData;
+}
+
+// Utilisation
+try {
+  addToCart(variantId);
+} catch (error) {
+  logWithContext('Erreur ajout au panier', {
+    error: error.message,
+    variantId,
+    userId: getUserId()
+  });
+}
+```
+
+## Bonnes pratiques
+
+### ✅ À faire
+
+- Toujours utiliser try-catch pour les opérations critiques
+- Logger les erreurs avec suffisamment de contexte
+- Afficher des messages d'erreur clairs aux utilisateurs
+- Valider les données avant de les utiliser
+- Vérifier l'existence des éléments DOM avant manipulation
+
+### ❌ À éviter
+
+- Ignorer silencieusement les erreurs
+- Afficher des messages d'erreur techniques aux utilisateurs
+- Bloquer l'exécution du reste du code en cas d'erreur
+- Ne pas logger les erreurs pour le débogage
+- Utiliser `console.error` en production sans filtrage
+
+## Monitoring en production
+
+### Intégration avec des services externes
+
+#### Sentry
+
+```javascript showLineNumbers
+// Installation: npm install @sentry/browser
+import * as Sentry from "@sentry/browser";
+
+Sentry.init({
+  dsn: "YOUR_SENTRY_DSN",
+  environment: "production"
+});
+
+// Capturer une erreur manuellement
+try {
+  riskyOperation();
+} catch (error) {
+  Sentry.captureException(error);
+}
+```
+
+#### LogRocket
+
+```javascript showLineNumbers
+// Installation et configuration LogRocket
+LogRocket.init('YOUR_APP_ID');
+
+// Logger une erreur
+LogRocket.captureException(error);
+```
+
+## Ressources
+
+- [MDN - Error handling](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Control_flow_and_error_handling)
+- [JavaScript Error Handling Best Practices](https://www.rollbar.com/blog/javascript-error-handling/)
+- [Shopify Ajax API Documentation](https://shopify.dev/api/ajax)
+

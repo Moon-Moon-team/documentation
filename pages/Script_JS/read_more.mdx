@@ -1,0 +1,37 @@
+# Créer un "read more" en JS
+
+***
+
+## HTML
+
+```html
+<div class="mm-section-{{ section.id }}">
+	<div class="mm-rm-extract">{{ collection.description | truncatewords: 50 }} <div class="mm-rm-link" onclick="mmReadMore('.mm-rm-extract', '.mm-rm-full', '.mm-section-{{ section.id }}')">En savoir plus</div></div>
+	<div class="mm-rm-full" style="display:none">{{ collection.description }}</div>
+</div>
+```
+
+## JavaScript
+
+```jsx
+function mmReadMore(extract, full, section) {
+	const sectionId = document.querySelector(section);
+	sectionId.querySelector(extract).style.display = "none";
+	sectionId.querySelector(full).style.display = "inline-block";
+}
+```
+
+## Explication
+
+Cette fonction permet de créer un système "Lire la suite" qui :
+
+1. **Affiche un extrait** : Le contenu tronqué avec un lien "En savoir plus"
+2. **Cache le contenu complet** : Initialement masqué avec `display:none`
+3. **Au clic** : La fonction `mmReadMore()` :
+   - Cache l'extrait (`mm-rm-extract`)
+   - Affiche le contenu complet (`mm-rm-full`)
+
+## Utilisation
+
+Dans votre template Liquid, vous pouvez utiliser cette fonction avec n'importe quel contenu (description de collection, description de produit, etc.) en adaptant les sélecteurs CSS selon vos besoins.
+

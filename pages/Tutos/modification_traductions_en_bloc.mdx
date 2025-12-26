@@ -1,0 +1,172 @@
+# Modification traductions en bloc T&A
+
+***
+
+Guide complet pour modifier les traductions en bloc dans Shopify en utilisant Google Sheets pour faciliter les modifications de masse.
+
+## 1. Exporter le fichier dans le back office
+
+### Étapes
+
+1. Aller dans **Paramètres > Langues**
+2. Cliquer sur **Exporter**
+3. Sélectionner la langue qui nous intéresse, par exemple **"Anglais"**
+
+![Export des traductions](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/85fc6ece-744f-4b13-9cad-6f2ef58f266c/1.png)
+
+4. Cliquer sur **Exporter**
+
+## 2. Récupérer le/les fichier(s) envoyé par mail
+
+- Les fichiers d'export sont envoyés par email
+- ⏱️ **Cela peut prendre quelques minutes** avant de recevoir l'email
+- Vérifiez votre boîte de réception et les spams si nécessaire
+
+## 3. Importer le/les fichier(s) dans Google Sheets
+
+### Pour un seul fichier
+
+1. **Fichier > Importer > Sélectionner le fichier**
+2. Modifier l'emplacement de l'importation par **"Remplacer la feuille active"**
+
+![Import dans Google Sheets](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/3646535d-f7b7-4d68-b5b0-f1ef15ee7aa2/2.png)
+
+### Pour plusieurs fichiers
+
+Si vous avez plusieurs fichiers :
+
+1. Ajouter une **nouvelle feuille** pour chaque fichier
+2. Répéter les étapes 3.a et 3.b pour chaque fichier
+3. Nommer chaque feuille de manière claire (ex: "Anglais", "Espagnol", etc.)
+
+## 4. Modifier en bloc dans Google Sheets
+
+### Processus de remplacement
+
+1. Dans la colonne **"Translated content"**, faire une recherche :
+   - **Mac** : `Command + F`
+   - **Windows/Linux** : `Ctrl + F`
+
+![Recherche et remplacement](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/93105e87-a759-49bd-97d6-ae45a4160bce/3.png)
+
+2. Dans le champ **Rechercher**, mettre le mot à remplacer
+3. Dans le champ **Remplacer par**, mettre le mot à mettre à la place
+4. ⚠️ **Vérifier que vous êtes bien dans la bonne colonne** pour faire le remplacement
+5. Cocher les options :
+   - ✅ **Rechercher également dans les formules**
+   - ✅ **Rechercher aussi dans les liens**
+6. Cliquer sur **Tout remplacer**
+   - Un message affichera le nombre de mots changés
+   - Confirmer sur **OK**
+7. Répéter pour les autres traductions à modifier
+
+### Conseils
+
+- **Faire une sauvegarde** avant de commencer les modifications
+- **Tester sur quelques lignes** avant de remplacer en masse
+- **Vérifier le contexte** des traductions pour éviter les erreurs
+
+## 5. Télécharger les fichiers modifiés en CSV
+
+### Pour chaque feuille
+
+1. **Fichier > Télécharger > Valeurs séparées par des virgules (.csv)**
+2. ⚠️ **Attention** : Bien le faire pour chaque feuille si vous avez plusieurs langues
+3. Nommer les fichiers de manière claire (ex: `traductions-anglais.csv`)
+
+## 6. Retourner dans le back office de Shopify
+
+### Import des traductions
+
+1. Aller dans **Paramètres > Langues**
+2. Cliquer sur **Importer**
+
+![Import des traductions](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/8b035510-daca-4ad1-a312-6cc7df69486a/4.png)
+
+3. Sélectionner le fichier (un fichier à la fois)
+4. Cocher **"Remplacer les traductions existantes pour cette langue"**
+5. Cliquer sur **"Mettre en ligne et continuer"**
+6. Vous aurez ensuite un récapitulatif du nombre de traductions importées
+7. Cliquer sur **Importer**
+
+### Pour plusieurs fichiers
+
+- ⏱️ **Le processus peut être long** - c'est le moment de se faire un café ☕
+- Une fois un fichier importé, répéter les étapes 6.3, 6.4 et 6.5 pour les autres fichiers
+- Traiter un fichier à la fois pour éviter les erreurs
+
+## ⚠️ Important : Sauvegarde
+
+**Bien garder une sauvegarde des fichiers non édités** si jamais vous devez revenir en arrière ou en cas d'erreur.
+
+### Bonnes pratiques
+
+- Sauvegarder les fichiers originaux dans un dossier séparé
+- Nommer les fichiers avec la date (ex: `traductions-anglais-2025-01-15.csv`)
+- Garder une copie dans Google Sheets avant les modifications
+
+## Vidéo explicative
+
+Vous trouverez ci-dessous une vidéo explicative de Ben avec une invitée super drôle :
+
+[Vidéo : Modification traductions en bloc](https://drive.google.com/file/d/17GN6GAgNUMvoAbS1dR-okG8qP70_iFf3/view?ts=66f57cfc)
+
+## Checklist complète
+
+### Export
+- [ ] Aller dans Paramètres > Langues
+- [ ] Exporter les fichiers pour chaque langue
+- [ ] Récupérer les fichiers par email
+
+### Import dans Google Sheets
+- [ ] Importer chaque fichier dans Google Sheets
+- [ ] Créer une feuille par langue si nécessaire
+- [ ] Vérifier que les colonnes sont correctes
+
+### Modifications
+- [ ] Sauvegarder les fichiers originaux
+- [ ] Faire les remplacements en bloc dans la colonne "Translated content"
+- [ ] Vérifier les modifications
+- [ ] Répéter pour tous les remplacements nécessaires
+
+### Export et import
+- [ ] Télécharger chaque feuille en CSV
+- [ ] Nommer les fichiers clairement
+- [ ] Importer dans Shopify (un fichier à la fois)
+- [ ] Vérifier le récapitulatif d'import
+- [ ] Confirmer l'import
+
+## Cas d'usage
+
+### Remplacement de termes spécifiques
+
+Exemples de modifications courantes :
+- Remplacement d'un nom de marque
+- Correction d'une traduction incorrecte répétée
+- Mise à jour de terminologie
+- Adaptation régionale (ex: anglais US vs UK)
+
+### Exemple concret
+
+Si vous voulez remplacer "Panier" par "Caddie" dans toutes les traductions françaises :
+
+1. Exporter les traductions françaises
+2. Importer dans Google Sheets
+3. Rechercher "Panier" dans la colonne "Translated content"
+4. Remplacer par "Caddie"
+5. Télécharger en CSV
+6. Importer dans Shopify
+
+## Limitations et précautions
+
+- ⚠️ **Vérifier le contexte** : Un remplacement global peut modifier des traductions où le terme ne devrait pas être changé
+- ⚠️ **Tester d'abord** : Faire un test sur quelques lignes avant de tout remplacer
+- ⚠️ **Sauvegarder** : Toujours garder une copie des fichiers originaux
+- ⚠️ **Un fichier à la fois** : Ne pas importer plusieurs fichiers simultanément dans Shopify
+
+## Ressources
+
+- **Shopify Admin** : Paramètres > Langues
+- **Google Sheets** : https://sheets.google.com
+- **Documentation Shopify** : [Traductions](https://help.shopify.com/fr/manual/languages)
+

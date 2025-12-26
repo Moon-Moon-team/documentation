@@ -1,0 +1,271 @@
+# Moyens de paiements par pays (script editor) Shopify+
+
+***
+
+Le Script Editor de Shopify permet de personnaliser l'expérience de checkout en masquant ou affichant des méthodes de paiement selon différents critères, notamment le pays de livraison.
+
+## Exemple de projet : G-Heat
+
+## Installation
+
+### 1) Télécharger l'app 'Script Editor'
+
+1. Allez dans l'admin Shopify
+2. Accédez à **Apps** → **App and sales channel settings**
+3. Recherchez **"Script Editor"** dans le Shopify App Store
+4. Installez l'application (gratuite)
+
+### 2) Créer un script
+
+1. Une fois l'app installée, allez dans **Apps** → **Script Editor**
+2. Cliquez sur **"Create script"**
+3. Choisissez **"Hide payment gateway"** (Masquer une passerelle de paiement)
+
+## Configuration
+
+### 3) Ajouter le code dans l'onglet 'code'
+
+Dans l'onglet **"Code"**, ajoutez votre script Ruby :
+
+#### Exemple : Bancontact uniquement pour la Belgique
+
+```ruby
+ELIGIBLE_COUNTRY_CODES = ['BE']
+PAYMENT_METHOD = 'Bancontact'
+
+if Input.cart.shipping_address and ELIGIBLE_COUNTRY_CODES.include?(Input.cart.shipping_address.country_code)
+  Output.payment_gateways = Input.payment_gateways
+else
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    payment_gateway.name == PAYMENT_METHOD
+  end
+end
+```
+
+### Explication du code
+
+- **`ELIGIBLE_COUNTRY_CODES`** : Liste des codes pays autorisés (utilisez les [country codes](https://shopify.dev/docs/api/storefront/2023-07/enums/countrycode))
+- **`PAYMENT_METHOD`** : Nom exact de la méthode de paiement à masquer/afficher
+- **Condition** : Si l'adresse de livraison correspond à un pays éligible, afficher toutes les méthodes de paiement
+- **Sinon** : Masquer la méthode de paiement spécifiée
+
+## Exemples supplémentaires
+
+### Plusieurs pays
+
+```ruby
+ELIGIBLE_COUNTRY_CODES = ['BE', 'FR', 'NL']
+PAYMENT_METHOD = 'Bancontact'
+
+if Input.cart.shipping_address and ELIGIBLE_COUNTRY_CODES.include?(Input.cart.shipping_address.country_code)
+  Output.payment_gateways = Input.payment_gateways
+else
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    payment_gateway.name == PAYMENT_METHOD
+  end
+end
+```
+
+### Plusieurs méthodes de paiement
+
+```ruby
+ELIGIBLE_COUNTRY_CODES = ['BE']
+PAYMENT_METHODS = ['Bancontact', 'iDEAL']
+
+if Input.cart.shipping_address and ELIGIBLE_COUNTRY_CODES.include?(Input.cart.shipping_address.country_code)
+  Output.payment_gateways = Input.payment_gateways
+else
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    PAYMENT_METHODS.include?(payment_gateway.name)
+  end
+end
+```
+
+### Masquer plusieurs méthodes selon différents pays
+
+```ruby
+# Bancontact uniquement pour la Belgique
+if Input.cart.shipping_address and Input.cart.shipping_address.country_code == 'BE'
+  Output.payment_gateways = Input.payment_gateways
+else
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    payment_gateway.name == 'Bancontact'
+  end
+end
+
+# iDEAL uniquement pour les Pays-Bas
+if Input.cart.shipping_address and Input.cart.shipping_address.country_code == 'NL'
+  Output.payment_gateways = Input.payment_gateways
+else
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    payment_gateway.name == 'iDEAL'
+  end
+end
+```
+
+### Basé sur la devise
+
+```ruby
+ELIGIBLE_CURRENCIES = ['EUR']
+PAYMENT_METHOD = 'Bancontact'
+
+if Input.cart.currency_code and ELIGIBLE_CURRENCIES.include?(Input.cart.currency_code)
+  Output.payment_gateways = Input.payment_gateways
+else
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    payment_gateway.name == PAYMENT_METHOD
+  end
+end
+```
+
+## Codes pays courants
+
+Voici quelques codes pays couramment utilisés :
+
+- **BE** : Belgique
+- **FR** : France
+- **NL** : Pays-Bas
+- **DE** : Allemagne
+- **ES** : Espagne
+- **IT** : Italie
+- **CH** : Suisse
+- **GB** : Royaume-Uni
+- **US** : États-Unis
+- **CA** : Canada
+
+**Documentation complète** : [Country Codes](https://shopify.dev/docs/api/storefront/2023-07/enums/countrycode)
+
+## Méthodes de paiement courantes
+
+Noms exacts des méthodes de paiement (à vérifier dans vos paramètres de paiement) :
+
+- **Bancontact** : Pour la Belgique
+- **iDEAL** : Pour les Pays-Bas
+- **SEPA Direct Debit** : Pour l'Europe
+- **Klarna** : Payement en plusieurs fois
+- **PayPal** : Paypal
+- **Shop Pay** : Solution Shopify
+- **Apple Pay** : Apple Pay
+- **Google Pay** : Google Pay
+
+## Publication et configuration
+
+### 4) Publier le script
+
+1. Une fois le code ajouté, cliquez sur **"Save"**
+2. Cliquez sur **"Publish"** pour activer le script
+3. Le script sera actif immédiatement sur votre checkout
+
+### Ajouter les méthodes de paiement dans le back office
+
+⚠️ **Important** : N'oubliez pas d'ajouter les méthodes de paiement dans **Paramètres** → **Paiements** :
+
+1. Allez dans **Paramètres** → **Paiements**
+2. Ajoutez les méthodes de paiement nécessaires (ex: Mollie pour G-Heat)
+3. Configurez chaque méthode selon vos besoins
+4. Le script masquera automatiquement les méthodes non éligibles selon le pays
+
+## Test
+
+### Tester avec 'Run script'
+
+1. Dans Script Editor, cliquez sur **"Run script"**
+2. Dans l'onglet **"Input"**, modifiez le pays d'origine
+3. Cliquez sur **"Run"** pour voir le résultat
+4. Vérifiez que la méthode de paiement apparaît ou disparaît selon le pays
+
+### Exemple d'input de test
+
+```json
+{
+  "cart": {
+    "shipping_address": {
+      "country_code": "BE"
+    }
+  },
+  "payment_gateways": [
+    {
+      "name": "Bancontact"
+    },
+    {
+      "name": "Credit Card"
+    }
+  ]
+}
+```
+
+## Cas d'usage
+
+### Produits spécifiques à certains pays
+
+```ruby
+# Masquer certaines méthodes pour des produits spécifiques
+RESTRICTED_PRODUCT_IDS = [123456789, 987654321]
+PAYMENT_METHOD = 'Klarna'
+
+cart_has_restricted_products = Input.cart.line_items.any? do |item|
+  RESTRICTED_PRODUCT_IDS.include?(item.variant.product.id)
+end
+
+if cart_has_restricted_products
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    payment_gateway.name == PAYMENT_METHOD
+  end
+else
+  Output.payment_gateways = Input.payment_gateways
+end
+```
+
+### Montant minimum/maximum
+
+```ruby
+MIN_AMOUNT = 1000  # En centimes
+MAX_AMOUNT = 100000
+PAYMENT_METHOD = 'Klarna'
+
+cart_total = Input.cart.total_price
+
+if cart_total >= MIN_AMOUNT and cart_total <= MAX_AMOUNT
+  Output.payment_gateways = Input.payment_gateways
+else
+  Output.payment_gateways = Input.payment_gateways.delete_if do |payment_gateway|
+    payment_gateway.name == PAYMENT_METHOD
+  end
+end
+```
+
+## Bonnes pratiques
+
+1. **Nom exact** : Utilisez le nom exact de la méthode de paiement tel qu'il apparaît dans Shopify
+2. **Test** : Testez toujours avec "Run script" avant de publier
+3. **Documentation** : Documentez quels scripts sont actifs et pour quels pays
+4. **Backup** : Sauvegardez vos scripts avant de les modifier
+5. **Vérification** : Vérifiez régulièrement que les méthodes de paiement fonctionnent correctement
+
+## Dépannage
+
+### La méthode de paiement ne se masque pas
+
+- Vérifiez le nom exact de la méthode dans **Paramètres** → **Paiements**
+- Vérifiez que le code pays est correct
+- Testez avec "Run script" pour voir le résultat
+- Vérifiez que le script est bien publié
+
+### La méthode de paiement ne s'affiche pas
+
+- Vérifiez que la méthode est bien activée dans **Paramètres** → **Paiements**
+- Vérifiez que le pays de livraison correspond aux pays éligibles
+- Vérifiez la logique de votre script
+
+## Limitations
+
+- Les scripts ne fonctionnent que sur le checkout Shopify (pas sur les checkouts personnalisés)
+- Certaines méthodes de paiement peuvent avoir leurs propres restrictions
+- Les scripts sont exécutés côté serveur, pas côté client
+
+## Ressources
+
+- **Documentation Script Editor** : [Shopify Scripts](https://shopify.dev/docs/apps/checkout/script-editor)
+- **Country Codes** : [Shopify Country Codes](https://shopify.dev/docs/api/storefront/2023-07/enums/countrycode)
+- **Payment Gateway API** : [Payment Gateway](https://shopify.dev/docs/apps/checkout/script-editor/payment-gateway)
+

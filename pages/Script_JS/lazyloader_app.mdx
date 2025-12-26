@@ -1,0 +1,41 @@
+# Lazyloader les apps (desactiver une app sur un theme précis)
+
+***
+
+## Tutoriel
+
+### 1) Créer une section app-optimization.liquid
+
+Créez un nouveau fichier dans le dossier `sections` de votre thème avec le nom `app-optimization.liquid`.
+
+### 2) Ajouter le code
+
+Copiez le code depuis le dépôt GitHub et collez-le dans le fichier `app-optimization.liquid` :
+
+**Lien vers le code :** https://github.com/mirceapiturca/Sections/blob/master/App%20Optimization/app-optimization.liquid
+
+### 3) Ajouter dans theme.liquid
+
+Ouvrez le fichier `theme.liquid` et ajoutez la section à la fin du body, juste avant la balise de fermeture `</body>` :
+
+```liquid
+{% section 'app-optimization' %}
+```
+
+### 4) Configurer les apps à désactiver
+
+1. Accédez à l'éditeur de thème de Shopify
+2. Sélectionnez la section "App Optimization" dans le menu personnalisé
+3. Pour chaque application que vous souhaitez optimiser :
+   - Ajoutez un nouveau bloc en cliquant sur "Add Application"
+   - Renseignez l'URL du script de l'application dans le champ "App ScriptTag URL"
+   - Attribuez un titre à l'application pour l'identifier facilement
+   - Choisissez l'une des options d'optimisation :
+     - **Block** : Empêche le chargement du script sur certaines pages
+     - **Load on scroll** : Charge le script uniquement lorsque l'utilisateur fait défiler la page
+     - **Load on interaction** : Charge le script lorsqu'un événement spécifique est déclenché (par exemple, un clic sur un élément avec une classe spécifique)
+
+## Ressources
+
+- **Article complet :** https://sections.design/blogs/shopify/app-optimization
+- **Code source :** https://github.com/mirceapiturca/Sections/blob/master/App%20Optimization/app-optimization.liquid

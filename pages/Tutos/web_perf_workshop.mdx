@@ -1,0 +1,407 @@
+# WEB PERF WORKSHOP
+
+***
+
+Workshop sur l'optimisation de la performance web pour les sites Shopify. Ce guide couvre les meilleures pratiques, outils et techniques pour améliorer les Core Web Vitals et l'expérience utilisateur.
+
+## Questions fréquentes
+
+### What to do when LCP is a cookie banner from an app ?
+
+Quand le LCP (Largest Contentful Paint) est un cookie banner d'une app :
+
+- **Solution 1** : Délayer l'affichage du cookie banner après le LCP
+- **Solution 2** : Utiliser un placeholder léger pour réserver l'espace
+- **Solution 3** : Charger le cookie banner après interaction utilisateur
+- **Solution 4** : Utiliser `fetchpriority="low"` sur le cookie banner
+
+### Sometimes LCP is high but the LCP media is light
+
+Si le LCP est élevé mais que le média LCP est léger :
+
+- Vérifier le TTFB (Time To First Byte)
+- Vérifier les ressources bloquantes avant le LCP
+- Vérifier le rendu CSS bloquant
+- Optimiser le chargement des polices
+
+### Lab testing on non published themes → TTFB higher but rest will be the same
+
+Lors des tests Lab sur des thèmes non publiés :
+- Le TTFB sera plus élevé (normal en développement)
+- Les autres métriques resteront les mêmes
+- Se concentrer sur les optimisations autres que TTFB en dev
+
+### Font-display:swap should we use it always ?
+
+**Non**, `font-display: swap` n'est pas toujours recommandé :
+
+- ✅ **Utiliser `swap`** : Pour les polices de texte principal (meilleure lisibilité)
+- ✅ **Utiliser `optional`** : Pour les polices décoratives (évite le FOIT)
+- ✅ **Utiliser `fallback`** : Pour les polices secondaires
+- ❌ **Éviter `block`** : Bloque le rendu pendant le chargement
+
+## Outils
+
+### Treo.sh/sitespeed
+
+[Treo](https://treo.sh/sitespeed) est un outil de monitoring de performance qui permet de :
+- Surveiller les Core Web Vitals
+- Comparer les performances dans le temps
+- Recevoir des alertes en cas de dégradation
+
+## Général knowledge
+
+### SEO
+
+**TO DO / ideas :**
+
+- **JS : API pour mesurer le round trip time** : Détecter si la connexion utilisateur est bonne pour décider d'afficher des animations ou charger des images au lieu de vidéos
+- **Ne pas utiliser de loaders full page** : Utiliser des loaders ou placeholders quand on attend une réponse API
+
+### Service perf
+
+- **S'aligner avec le workflow existant** (GitHub ? README ?)
+- **Expliquer ce qu'on fait et pourquoi** : L'équipe appréciera d'apprendre
+
+## Project discovery
+
+### Questions à poser
+
+- **How do you know perf has to be improved ?** : Comment savez-vous que la performance doit être améliorée ?
+- **Specific pain points ?** : Y a-t-il des points de friction spécifiques ?
+- **Existing dev team ?** : Y a-t-il une équipe de développement existante ?
+- **Specific goals ?** : Quels sont les objectifs spécifiques ?
+
+## Perf goal
+
+### Caractéristiques d'un bon objectif
+
+- **User focused** : Centré sur l'utilisateur
+- **Measurable** : Mesurable
+- **Sensible** : Prend en compte les limitations business et techniques (on ne peut pas pousser plus loin à cause de X ou Y)
+
+### Objectifs usuels
+
+- **Green CWV** : Avoir tous les Core Web Vitals en vert
+
+## Run Lab tests
+
+### Paramètres de test
+
+- **Mobile + Desktop** : Tester sur les deux
+- **Test key pages urls** : Tester les pages clés
+- **Multiple tests per page (11)** : Faire plusieurs tests par page pour avoir une moyenne
+
+## Steps new presta
+
+### 1. Check metrics to see what are the main issues
+
+- Analyser les métriques des **15-30 derniers jours** (selon le trafic)
+- Identifier les problèmes principaux
+
+### 2. See traffic to see where is the biggest positive impact
+
+- **Mobile/Desktop** : Voir où est le plus gros impact
+- **Type of page** : Identifier les types de pages les plus visités
+
+**Où regarder :**
+- Shopify BO : **Analytics > Rapports > Session over time**
+- Demander au client les pages impactantes (LPs spécifiques ?)
+
+### 3. Check specific urls
+
+- Utiliser **PSI** (PageSpeed Insights) ou **CrUX Vis** (Chrome User Experience Report)
+- Analyser les URLs spécifiques
+
+### 4. Start lab testing
+
+- **WebPageTest** + **Performance tab in Chrome**
+- Tester avec **slow CPU (slow 6x)** et **connexion 4G**
+- Utiliser les comparaisons sur WebPageTest, notamment les vidéos !
+
+## Optimisations par métrique
+
+### Images
+
+**Image resizing is not needed** : Shopify gère automatiquement le redimensionnement des images.
+
+**Bonnes pratiques :**
+- Utiliser `loading="lazy"` pour les images below the fold
+- Utiliser `fetchpriority="high"` pour l'image LCP
+- Utiliser l'attribut `sizes` pour indiquer au navigateur la taille de l'image
+- Utiliser `$0.currentSrc` dans la console pour savoir quelle URL d'image est utilisée
+
+### TTFB (Time To First Byte)
+
+**Optimisations :**
+
+- **Preload true on CSS filter** ou **preload tag** → early hint
+- **Use paginate in loop** : `{% paginate collection.products by 24 %}`
+- **Simplify loops** : Réduire la complexité des boucles
+- **Using section rendering API** : Utiliser l'API de rendu de sections
+
+### FCP (First Contentful Paint)
+
+**Waterfall WebPageTest**, chercher les éléments render-blocking :
+
+- **JS defer or async** : Pour qu'ils ne soient pas render-blocking
+- **Put scripts locally** : Mettre les scripts localement
+- **Usually do not preload javascript files** : Ne pas preload les fichiers JS qui ne font pas partie du FCP ou qui sont dans le head
+- **Do not put JS in head** (sauf si ça doit être render-blocking) (ou mettre async ou defer)
+
+### LCP (Largest Contentful Paint)
+
+**Optimisations :**
+
+- **Add "who hide" snippet in Chrome** : Pour identifier l'élément LCP
+- **Test block JS** : Tester en bloquant le JS pour voir l'impact
+- **Force style for Splide !** : Forcer les styles pour Splide
+- **Display popup after interaction** : Afficher les popups après interaction (ex: NL popups Klaviyo)
+- **fetchpriority="high"** : Si on est sûr que l'image est le LCP
+
+**Exemple :**
+```html
+<img src="{{ product.featured_image | img_url: 'large' }}" 
+     fetchpriority="high"
+     loading="eager"
+     alt="{{ product.title }}">
+```
+
+### Video
+
+**Bonnes pratiques :**
+
+- **Use videos uploaded on the website** : Utiliser des vidéos uploadées sur le site car on a besoin du poster (qui sera le LCP)
+- **For video banner** : Utiliser le snippet du site [orlebarbrown.com](https://orlebarbrown.com/fr-eu)
+
+### Scripts
+
+**Stratégies de chargement :**
+
+- **async** : Pour les scripts qui ne dépendent de rien d'autre (analytics par exemple)
+- **defer** : Sera exécuté après le parsing du DOM (juste avant DOMContentLoaded)
+
+**Exemple :**
+```html
+<!-- Analytics - async -->
+<script src="analytics.js" async></script>
+
+<!-- Script important - defer -->
+<script src="main.js" defer></script>
+```
+
+### Fonts
+
+**Optimisations :**
+
+- **Google Web Fonts Helper** : Pour télécharger les Google Fonts localement
+- **Preload les fonts critiques** :
+```html
+<link rel="preload" href="{{ 'font.woff2' | asset_url }}" as="font" type="font/woff2" crossorigin>
+```
+
+**Font-display :**
+```css
+@font-face {
+  font-family: 'CustomFont';
+  src: url('font.woff2') format('woff2');
+  font-display: swap; /* ou optional selon le cas */
+}
+```
+
+## Custom solution RUM
+
+### LCP per page and element
+
+- **Top URLs with all metrics** : Suivre les URLs principales avec toutes les métriques
+- **Using Web Vitals JavaScript** (from Google) et envoyer les résultats à Google Analytics pour visualiser dans Looker Studio
+- **Alternative** : Utiliser [RUM Vision](https://www.rumvision.com/pricing/) (demander le plan agency)
+
+## Image snippet
+
+**Bonnes pratiques :**
+
+- **Check in Dawn how they manage animations** : Voir comment Dawn gère les animations
+- **Do not put animation on LCP elements** : Ne pas mettre d'animations sur les éléments LCP
+- **GSAP render blocking** : GSAP peut être render-blocking
+- **Use animate HTML tag** : Utiliser la balise HTML `<animate>`
+- **Parameters for fetch priority** : Utiliser `fetchpriority`
+- **Loading attributes** : Utiliser `loading="lazy"` ou `loading="eager"`
+- **Use sizes attribute** : Pour indiquer au navigateur la taille de l'image (`50vw` ?)
+
+**Exemple complet :**
+```html
+<img src="{{ image | img_url: '800x' }}"
+     srcset="{{ image | img_url: '400x' }} 400w,
+             {{ image | img_url: '800x' }} 800w,
+             {{ image | img_url: '1200x' }} 1200w"
+     sizes="(max-width: 768px) 100vw, 50vw"
+     loading="lazy"
+     fetchpriority="high"
+     alt="{{ image.alt }}">
+```
+
+## INP (Interaction to Next Paint)
+
+**Optimisations :**
+
+1. **Performance tab** : Lancer l'enregistrement, cliquer sur les boutons du parcours client
+2. **Regarder les scripts** qui se déclenchent dans la waterfall pour voir ce qu'on peut améliorer
+3. **requestAnimationFrame + setTimeout** : Délayer des parties de scripts au prochain paint
+4. **Do less work (JS)** : Réduire le travail JavaScript
+5. **Do work after interaction** : Faire le travail après l'interaction
+
+**Exemple :**
+```jsx
+button.addEventListener('click', () => {
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      // Code qui peut être différé
+    }, 0);
+  });
+});
+```
+
+## CLS (Cumulative Layout Shift)
+
+**Optimisations :**
+
+- **Slow down CPU and connection** : Ralentir CPU et connexion pour voir les sauts
+- **Reserve space for images !** : Réserver l'espace pour les images
+- **img must not be inline** : Les images ne doivent pas être inline pour avoir un espace réservé
+
+**Exemple :**
+```html
+<!-- ✅ Bon -->
+<div style="aspect-ratio: 16/9; background: #f0f0f0;">
+  <img src="image.jpg" alt="..." style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+
+<!-- ❌ Mauvais -->
+<img src="image.jpg" alt="..." style="display: inline;">
+```
+
+### Async styles pour éléments non visibles au chargement
+
+```html
+<link
+  rel="stylesheet"
+  href="{{ 'low-prio-async.css' | asset_url }}"
+  media="print"
+  onload="this.media='all'"
+>
+```
+
+### Custom fonts preload
+
+```html
+<link
+  rel="preload"
+  href="{{ 'font.woff2' | asset_url }}"
+  as="font"
+  type="font/woff2"
+  crossorigin
+>
+```
+
+### Test de résilience
+
+**Test to cut *.js** : Tester en coupant tous les JS, tout devrait être visuellement correct
+
+**Use fallback font generator** : Utiliser un générateur de fallback fonts
+
+## Échanges client
+
+### Questions à poser
+
+- **How do you know perf has to be improved ?** : Comment savez-vous que la performance doit être améliorée ?
+- **Specific pain points ?** : Y a-t-il des points de friction spécifiques ?
+- **Existing dev team ?** : Y a-t-il une équipe de développement existante ?
+- **Specific goals ?** : Quels sont les objectifs spécifiques ?
+
+## Audit + Présentation
+
+### Trame de présentation
+
+Utiliser la trame Figma de JJ
+
+#### 1. Audit
+
+**Utilisateurs :**
+- Mobile/Desktop
+- Types de pages (on focus sur les 2-3 premières)
+- Visites par URLs (voir si certaines se détachent pour focus dessus particulièrement)
+
+**CWV :**
+- **QUE MOBILE** (sauf si il y a un sujet sur desktop spécifiquement)
+- Sur le site global + sur chaque type de page qu'on focus
+
+**Ajouter une page explicative de chaque métrique :**
+- LCP (Largest Contentful Paint)
+- FID/INP (First Input Delay / Interaction to Next Paint)
+- CLS (Cumulative Layout Shift)
+
+**Lab Testing (WebPageTest)** sur site global + sur chaque type de page qu'on focus
+
+**Paramétrages WebPageTest :**
+- Connexion : 4G
+- CPU : Slow 6x
+- Browser : Chrome
+- Runs : 3-5
+
+#### 2. Optimisations mises en place par MM
+
+Se baser sur la présentation de Marge et Antoine
+
+**Exemples d'optimisations :**
+- Optimisation des images
+- Réduction du JavaScript
+- Optimisation des fonts
+- Amélioration du TTFB
+- Optimisation du LCP
+- Réduction du CLS
+- Amélioration de l'INP
+
+#### 3. Avant / Après
+
+**Vidéo pour chaque type de page optimisé + graphs :**
+- Comparaison visuelle avant/après
+- Graphiques des métriques
+- Amélioration des Core Web Vitals
+
+#### 4. Pour aller plus loin
+
+**À mettre en place côté client (recos MM) :**
+
+Souvent des recommandations liées à :
+- **Apps** : Optimisation des apps tierces (cookies, etc.)
+- **Infrastructure** : Améliorations serveur
+- **Contenu** : Optimisation du contenu
+- **Monitoring** : Mise en place de monitoring continu
+
+## Checklist rapide
+
+- [ ] Analyser les métriques des 15-30 derniers jours
+- [ ] Identifier les pages les plus impactantes
+- [ ] Tester avec WebPageTest (4G, slow CPU)
+- [ ] Optimiser les images (lazy loading, sizes, fetchpriority)
+- [ ] Optimiser le TTFB (preload, pagination, section rendering)
+- [ ] Optimiser le FCP (defer/async scripts, éviter render-blocking)
+- [ ] Optimiser le LCP (fetchpriority, delay popups, force styles)
+- [ ] Optimiser les vidéos (poster, local upload)
+- [ ] Optimiser les scripts (async/defer)
+- [ ] Optimiser les fonts (preload, font-display, local)
+- [ ] Réduire l'INP (requestAnimationFrame, moins de JS)
+- [ ] Réduire le CLS (reserve space, aspect-ratio)
+- [ ] Mettre en place RUM (monitoring)
+- [ ] Créer la présentation audit + optimisations
+
+## Ressources
+
+- **WebPageTest** : https://www.webpagetest.org/
+- **PageSpeed Insights** : https://pagespeed.web.dev/
+- **Treo** : https://treo.sh/sitespeed
+- **RUM Vision** : https://www.rumvision.com/
+- **Google Web Fonts Helper** : https://gwfh.mranftl.com/fonts
+- **Web Vitals** : https://web.dev/vitals/
+
