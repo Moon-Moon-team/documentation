@@ -4,8 +4,6 @@
 
 Système permettant de "griser" les options non disponibles selon la sélection actuelle de l'utilisateur dans un formulaire produit. Cela améliore l'expérience utilisateur en évitant les sélections impossibles.
 
-![Exemple d'affichage](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/b802da80-f3e4-43ad-a1ed-328374cdb448/Untitled.png)
-
 ## Vue d'ensemble
 
 Ce système vérifie en temps réel la disponibilité des combinaisons de variantes et désactive visuellement les options qui ne sont pas disponibles selon la sélection actuelle.
@@ -13,8 +11,6 @@ Ce système vérifie en temps réel la disponibilité des combinaisons de varian
 ## 1. Ajouter `updateOptionsStocks()` dans `onVariantChange()`
 
 Dans votre fonction `onVariantChange()`, ajoutez l'appel à la fonction de mise à jour :
-
-![Ajout dans onVariantChange](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/51f0f564-a6ac-4e8a-9589-c9bf2f5e6b31/Untitled.png)
 
 ```jsx
 onVariantChange() {
@@ -83,8 +79,6 @@ updateOptionsStocks() {
 ## 3. Ajouter la fonction `checkIfAvailable()` et l'event au chargement
 
 Ajoutez cette fonction à la fin de votre script, ainsi que l'événement de chargement :
-
-![Ajout des fonctions](https://prod-files-secure.s3.us-west-2.amazonaws.com/03f659dd-96f6-48e1-b022-3602a9d0dacc/fff5dee7-40d7-4f1d-8ba0-6c503d114c25/Untitled.png)
 
 ```jsx
 function checkIfAvailable(JSONoptions, valuesToTest) {

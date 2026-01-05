@@ -10,6 +10,9 @@ const config: DocsThemeConfig = {
   footer: {
     text: '2025 © Moon Moon',
   },
+  sidebar: {
+    defaultMenuCollapseLevel: 0,
+  },
 }
 
 export default config
