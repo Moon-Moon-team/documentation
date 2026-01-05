@@ -1,1 +1,604 @@
-Work in progress !
+# Media Queries en JavaScript
+
+***
+
+Utiliser les media queries en JavaScript permet de détecter les changements de taille d'écran et d'adapter le comportement de votre site en conséquence. C'est particulièrement utile pour activer/désactiver des fonctionnalités selon la taille de l'écran.
+
+## API window.matchMedia()
+
+L'API `window.matchMedia()` permet de tester et d'écouter les changements de media queries en JavaScript.
+
+### Syntaxe de base
+
+```jsx
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+if (mediaQuery.matches) {
+  // Le viewport fait moins de 768px de large
+  console.log('Mobile détecté');
+} else {
+  // Le viewport fait plus de 768px de large
+  console.log('Desktop détecté');
+}
+```
+
+## Écouter les changements
+
+Pour réagir aux changements de taille d'écran en temps réel, utilisez `addListener()` ou `addEventListener()` :
+
+### Méthode moderne (recommandée)
+
+```jsx
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+function handleMediaChange(e) {
+  if (e.matches) {
+    // Media query correspond maintenant
+    console.log('Mode mobile activé');
+  } else {
+    // Media query ne correspond plus
+    console.log('Mode desktop activé');
+  }
+}
+
+// Écouter les changements
+mediaQuery.addEventListener('change', handleMediaChange);
+
+// Exécuter immédiatement
+handleMediaChange(mediaQuery);
+```
+
+### Méthode avec addListener (ancienne, toujours supportée)
+
+```jsx
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+function handleMediaChange(e) {
+  if (e.matches) {
+    console.log('Mode mobile');
+  } else {
+    console.log('Mode desktop');
+  }
+}
+
+mediaQuery.addListener(handleMediaChange);
+handleMediaChange(mediaQuery);
+```
+
+## Exemples pratiques
+
+### Détecter mobile vs desktop
+
+```jsx
+const isMobile = window.matchMedia('(max-width: 768px)');
+
+function handleMobileChange(e) {
+  if (e.matches) {
+    // Actions pour mobile
+    document.body.classList.add('is-mobile');
+    document.body.classList.remove('is-desktop');
+  } else {
+    // Actions pour desktop
+    document.body.classList.add('is-desktop');
+    document.body.classList.remove('is-mobile');
+  }
+}
+
+isMobile.addEventListener('change', handleMobileChange);
+handleMobileChange(isMobile);
+```
+
+### Activer/désactiver une fonctionnalité selon la taille
+
+```jsx
+const isTablet = window.matchMedia('(min-width: 769px) and (max-width: 1024px)');
+
+function handleTabletChange(e) {
+  if (e.matches) {
+    // Activer une fonctionnalité spécifique pour tablette
+    enableTabletFeature();
+  } else {
+    // Désactiver la fonctionnalité
+    disableTabletFeature();
+  }
+}
+
+isTablet.addEventListener('change', handleTabletChange);
+handleTabletChange(isTablet);
+```
+
+### Changer le comportement d'un slider
+
+```jsx
+const isMobile = window.matchMedia('(max-width: 768px)');
+
+function initSlider() {
+  const slider = document.querySelector('.product-slider');
+  
+  if (isMobile.matches) {
+    // Configuration mobile : 1 slide visible
+    slider.setAttribute('data-slides-per-view', '1');
+  } else {
+    // Configuration desktop : 3 slides visibles
+    slider.setAttribute('data-slides-per-view', '3');
+  }
+}
+
+isMobile.addEventListener('change', initSlider);
+initSlider();
+```
+
+### Afficher/masquer des éléments
+
+```jsx
+const isDesktop = window.matchMedia('(min-width: 1025px)');
+
+function toggleDesktopElements(e) {
+  const desktopElements = document.querySelectorAll('.desktop-only');
+  
+  desktopElements.forEach(element => {
+    element.style.display = e.matches ? 'block' : 'none';
+  });
+}
+
+isDesktop.addEventListener('change', toggleDesktopElements);
+toggleDesktopElements(isDesktop);
+```
+
+## Fonction utilitaire réutilisable
+
+### Version simple
+
+```jsx
+function useMediaQuery(query, callback) {
+  const mediaQuery = window.matchMedia(query);
+  
+  function handleChange(e) {
+    callback(e.matches, e);
+  }
+  
+  mediaQuery.addEventListener('change', handleChange);
+  handleChange(mediaQuery);
+  
+  // Retourner une fonction pour nettoyer l'écouteur
+  return () => {
+    mediaQuery.removeEventListener('change', handleChange);
+  };
+}
+
+// Utilisation
+const cleanup = useMediaQuery('(max-width: 768px)', (isMobile) => {
+  if (isMobile) {
+    console.log('Mode mobile');
+  } else {
+    console.log('Mode desktop');
+  }
+});
+
+// Pour nettoyer plus tard
+// cleanup();
+```
+
+### Version avec plusieurs callbacks
+
+```jsx
+function useMediaQuery(query) {
+  const mediaQuery = window.matchMedia(query);
+  const callbacks = [];
+  
+  function handleChange(e) {
+    callbacks.forEach(callback => callback(e.matches, e));
+  }
+  
+  mediaQuery.addEventListener('change', handleChange);
+  
+  return {
+    matches: mediaQuery.matches,
+    addListener: (callback) => {
+      callbacks.push(callback);
+      callback(mediaQuery.matches, mediaQuery);
+    },
+    removeListener: (callback) => {
+      const index = callbacks.indexOf(callback);
+      if (index > -1) {
+        callbacks.splice(index, 1);
+      }
+    },
+    cleanup: () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    }
+  };
+}
+
+// Utilisation
+const mobileQuery = useMediaQuery('(max-width: 768px)');
+
+mobileQuery.addListener((isMobile) => {
+  console.log('Mobile:', isMobile);
+});
+
+mobileQuery.addListener((isMobile) => {
+  document.body.classList.toggle('mobile', isMobile);
+});
+```
+
+## Media queries courantes
+
+### Breakpoints standards
+
+```jsx
+// Mobile
+const isMobile = window.matchMedia('(max-width: 768px)');
+
+// Tablet
+const isTablet = window.matchMedia('(min-width: 769px) and (max-width: 1024px)');
+
+// Desktop
+const isDesktop = window.matchMedia('(min-width: 1025px)');
+
+// Large Desktop
+const isLargeDesktop = window.matchMedia('(min-width: 1440px)');
+```
+
+### Orientation
+
+```jsx
+// Portrait
+const isPortrait = window.matchMedia('(orientation: portrait)');
+
+// Landscape
+const isLandscape = window.matchMedia('(orientation: landscape)');
+
+isPortrait.addEventListener('change', (e) => {
+  if (e.matches) {
+    console.log('Mode portrait');
+  }
+});
+```
+
+### Préférences utilisateur
+
+```jsx
+// Mode sombre
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+prefersDark.addEventListener('change', (e) => {
+  if (e.matches) {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+});
+
+// Mode réduit (accessibilité)
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+prefersReducedMotion.addEventListener('change', (e) => {
+  if (e.matches) {
+    // Désactiver les animations
+    document.body.classList.add('reduce-motion');
+  }
+});
+```
+
+## Cas d'usage avancés
+
+### Initialiser un slider différemment selon la taille
+
+```jsx
+const isMobile = window.matchMedia('(max-width: 768px)');
+let sliderInstance = null;
+
+function initSlider() {
+  // Détruire l'instance existante si elle existe
+  if (sliderInstance) {
+    sliderInstance.destroy();
+  }
+  
+  const config = isMobile.matches ? {
+    slidesPerView: 1,
+    spaceBetween: 10
+  } : {
+    slidesPerView: 3,
+    spaceBetween: 30
+  };
+  
+  sliderInstance = new Swiper('.slider', config);
+}
+
+isMobile.addEventListener('change', initSlider);
+initSlider();
+```
+
+### Charger des images différentes selon la taille
+
+```jsx
+const isMobile = window.matchMedia('(max-width: 768px)');
+
+function updateImageSources() {
+  const images = document.querySelectorAll('img[data-mobile-src]');
+  
+  images.forEach(img => {
+    if (isMobile.matches) {
+      img.src = img.dataset.mobileSrc;
+    } else {
+      img.src = img.dataset.desktopSrc;
+    }
+  });
+}
+
+isMobile.addEventListener('change', updateImageSources);
+updateImageSources();
+```
+
+### Adapter le menu de navigation
+
+```jsx
+const isMobile = window.matchMedia('(max-width: 768px)');
+
+function initNavigation() {
+  const nav = document.querySelector('.main-nav');
+  
+  if (isMobile.matches) {
+    // Menu hamburger pour mobile
+    nav.classList.add('mobile-menu');
+    initMobileMenu();
+  } else {
+    // Menu horizontal pour desktop
+    nav.classList.remove('mobile-menu');
+    initDesktopMenu();
+  }
+}
+
+isMobile.addEventListener('change', initNavigation);
+initNavigation();
+```
+
+### Gérer les événements différemment
+
+```jsx
+const isMobile = window.matchMedia('(max-width: 768px)');
+
+function setupEventListeners() {
+  const button = document.querySelector('.cta-button');
+  
+  // Retirer les anciens écouteurs
+  button.replaceWith(button.cloneNode(true));
+  const newButton = document.querySelector('.cta-button');
+  
+  if (isMobile.matches) {
+    // Tap pour mobile
+    newButton.addEventListener('touchstart', handleClick);
+  } else {
+    // Click pour desktop
+    newButton.addEventListener('click', handleClick);
+  }
+}
+
+isMobile.addEventListener('change', setupEventListeners);
+setupEventListeners();
+```
+
+## Gestion de plusieurs media queries
+
+### Objet de configuration
+
+```jsx
+const breakpoints = {
+  mobile: window.matchMedia('(max-width: 768px)'),
+  tablet: window.matchMedia('(min-width: 769px) and (max-width: 1024px)'),
+  desktop: window.matchMedia('(min-width: 1025px)')
+};
+
+function getCurrentBreakpoint() {
+  if (breakpoints.mobile.matches) return 'mobile';
+  if (breakpoints.tablet.matches) return 'tablet';
+  if (breakpoints.desktop.matches) return 'desktop';
+  return 'unknown';
+}
+
+function handleBreakpointChange() {
+  const current = getCurrentBreakpoint();
+  document.body.setAttribute('data-breakpoint', current);
+  console.log('Breakpoint actuel:', current);
+}
+
+// Écouter tous les changements
+Object.values(breakpoints).forEach(mq => {
+  mq.addEventListener('change', handleBreakpointChange);
+});
+
+handleBreakpointChange();
+```
+
+### Classe utilitaire complète
+
+```jsx
+class MediaQueryManager {
+  constructor(queries) {
+    this.queries = {};
+    this.callbacks = [];
+    
+    Object.entries(queries).forEach(([name, query]) => {
+      this.queries[name] = window.matchMedia(query);
+      this.queries[name].addEventListener('change', () => this.notify());
+    });
+  }
+  
+  matches(name) {
+    return this.queries[name]?.matches || false;
+  }
+  
+  onBreakpointChange(callback) {
+    this.callbacks.push(callback);
+    callback(this.getState());
+  }
+  
+  getState() {
+    const state = {};
+    Object.keys(this.queries).forEach(name => {
+      state[name] = this.queries[name].matches;
+    });
+    return state;
+  }
+  
+  notify() {
+    this.callbacks.forEach(callback => callback(this.getState()));
+  }
+}
+
+// Utilisation
+const mediaManager = new MediaQueryManager({
+  mobile: '(max-width: 768px)',
+  tablet: '(min-width: 769px) and (max-width: 1024px)',
+  desktop: '(min-width: 1025px)'
+});
+
+mediaManager.onBreakpointChange((state) => {
+  console.log('État des breakpoints:', state);
+  
+  if (state.mobile) {
+    document.body.classList.add('mobile');
+  } else {
+    document.body.classList.remove('mobile');
+  }
+});
+```
+
+## Bonnes pratiques
+
+### 1. Nettoyer les écouteurs
+
+```jsx
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+function handleChange(e) {
+  // Votre code
+}
+
+mediaQuery.addEventListener('change', handleChange);
+
+// Plus tard, pour nettoyer
+mediaQuery.removeEventListener('change', handleChange);
+```
+
+### 2. Vérifier immédiatement
+
+Toujours exécuter la fonction de callback immédiatement pour initialiser l'état :
+
+```jsx
+const isMobile = window.matchMedia('(max-width: 768px)');
+
+function handleChange(e) {
+  // Code
+}
+
+isMobile.addEventListener('change', handleChange);
+handleChange(isMobile); // ← Important !
+```
+
+### 3. Utiliser des variables pour les breakpoints
+
+```jsx
+const BREAKPOINTS = {
+  mobile: '(max-width: 768px)',
+  tablet: '(min-width: 769px) and (max-width: 1024px)',
+  desktop: '(min-width: 1025px)'
+};
+
+const isMobile = window.matchMedia(BREAKPOINTS.mobile);
+```
+
+### 4. Éviter les recalculs inutiles
+
+Utilisez un debounce si nécessaire :
+
+```jsx
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+const isMobile = window.matchMedia('(max-width: 768px)');
+const debouncedHandler = debounce((e) => {
+  // Code qui ne doit pas s'exécuter trop souvent
+}, 250);
+
+isMobile.addEventListener('change', debouncedHandler);
+```
+
+## Dépannage
+
+### La media query ne se déclenche pas
+
+1. Vérifiez la syntaxe de la media query
+2. Vérifiez que `addEventListener` est bien appelé
+3. Vérifiez que la fonction de callback est bien exécutée immédiatement
+
+### Performance
+
+Si vous avez beaucoup de media queries, regroupez-les :
+
+```jsx
+// ❌ Mauvais : trop d'écouteurs
+const mq1 = window.matchMedia('(max-width: 768px)');
+const mq2 = window.matchMedia('(max-width: 768px)');
+const mq3 = window.matchMedia('(max-width: 768px)');
+
+// ✅ Bon : réutiliser la même instance
+const mobileQuery = window.matchMedia('(max-width: 768px)');
+```
+
+### Compatibilité navigateurs
+
+`window.matchMedia()` est supporté par tous les navigateurs modernes :
+- ✅ Chrome 9+
+- ✅ Firefox 6+
+- ✅ Safari 5.1+
+- ✅ Edge 12+
+- ✅ iOS Safari 5.1+
+
+Pour les anciens navigateurs, utilisez un polyfill ou une bibliothèque comme `enquire.js`.
+
+## Alternatives
+
+### Utiliser CSS avec des classes
+
+Au lieu de JavaScript, vous pouvez utiliser CSS pour détecter les changements :
+
+```css
+.mobile-only {
+  display: block;
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none;
+  }
+}
+```
+
+Puis en JavaScript, vérifier simplement la classe :
+
+```jsx
+const isMobile = document.querySelector('.mobile-only').offsetParent !== null;
+```
+
+### Bibliothèques tierces
+
+- **enquire.js** : Bibliothèque légère pour les media queries
+- **react-responsive** : Pour React
+- **use-media** : Hook React pour media queries
+
+## Ressources
+
+- **MDN matchMedia** : [Documentation](https://developer.mozilla.org/fr/docs/Web/API/Window/matchMedia)
+- **Media Queries** : [Spécification CSS](https://www.w3.org/TR/css3-mediaqueries/)
+- **Responsive Design** : [Best Practices](https://developer.mozilla.org/fr/docs/Learn/CSS/CSS_layout/Responsive_Design)
