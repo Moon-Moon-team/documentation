@@ -43,14 +43,17 @@ Si la boutique n'a jamais été suivie en Git, il faut d'abord créer le reposit
 
 4. **Ajouter un `.gitignore` adapté aux thèmes Shopify** (optionnel mais recommandé)
 
-   Avant de récupérer le thème, on peut committer un `.gitignore` de base pour éviter de versionner des fichiers inutiles (fichiers de config Shopify CLI locaux, fichiers système, etc.) :
+   Avant de récupérer le thème, on peut committer un `.gitignore` de base pour éviter de versionner des fichiers inutiles (fichiers de config Shopify CLI locaux, fichiers système, etc.). Le repo étant vide juste après le clone, il faut d'abord **créer** ce fichier (il n'existe pas encore) :
 
    ```bash
-   # .gitignore
+   cat > .gitignore << 'EOF'
    .shopify/
    .DS_Store
    node_modules/
+   EOF
    ```
+
+   Puis le committer :
 
    ```bash
    git add .gitignore
@@ -62,7 +65,9 @@ Si la boutique n'a jamais été suivie en Git, il faut d'abord créer le reposit
 
 ## Étape 1 : Se connecter à la boutique
 
-Cette commande nécessite l'URL `.myshopify.com` de la boutique (le domaine d'origine, pas le nom de domaine personnalisé du client).
+⚠️ Les versions actuelles du Shopify CLI (3.x) n'ont plus de commande `theme login` séparée : elle a été supprimée. L'authentification se déclenche **automatiquement** (ouverture du navigateur pour se connecter) dès qu'on lance une commande `theme` en précisant `--store`, par exemple directement avec `shopify theme list --store=VOTRE-BOUTIQUE.myshopify.com` à l'étape 2.
+
+Il n'y a donc rien à exécuter à cette étape en tant que telle : il suffit de connaître l'URL `.myshopify.com` de la boutique (le domaine d'origine, pas le nom de domaine personnalisé du client), qui sera utilisée dans toutes les commandes suivantes.
 
 **Comment récupérer ce lien :**
 
@@ -70,15 +75,15 @@ Cette commande nécessite l'URL `.myshopify.com` de la boutique (le domaine d'or
 - **Depuis les réglages de la boutique** : dans l'admin, aller dans **Réglages > Domaines**, le domaine `myshopify.com` par défaut y est listé (même si un domaine personnalisé est configuré en principal)
 - Si vous n'avez pas encore accès à l'admin, demander ce lien directement au client ou à la personne ayant créé la boutique
 
-```bash
-shopify theme login --store VOTRE-BOUTIQUE.myshopify.com
-```
+Il n'y a pas de commande dédiée pour "juste" se connecter au préalable (`shopify auth login` n'accepte pas de flag `--store`). Passez directement à l'étape 2 : la première commande `theme` avec `--store=` déclenchera l'ouverture du navigateur pour l'authentification.
 
 ## Étape 2 : Identifier le bon thème
-
+l
 ```bash
-shopify theme list
+shopify theme list --store=VOTRE-BOUTIQUE.myshopify.com
 ```
+
+Si c'est la première commande exécutée, le navigateur s'ouvre pour se connecter à la boutique : valider la connexion, puis relancer la commande si besoin.
 
 - Repérer le thème **live** (publié) ou le thème de développement contenant les modifications à récupérer
 - Noter son `THEME_ID`
