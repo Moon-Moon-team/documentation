@@ -1,0 +1,108 @@
+# Ajouter Claude-Kit à un projet run
+
+***
+
+Guide pour installer le [Claude-Kit Moon Moon](https://github.com/Moon-Moon-team/Claude-Kit) sur un projet lors d'un run : setup Claude Code unifié (rules, skills, agents, hooks, docs, configs) commun à tous les thèmes Moon Moon.
+
+## Prérequis
+
+- Avoir la **GitHub CLI** (`gh`) installée et authentifiée sur son poste
+
+```bash
+gh auth login
+```
+
+Le repo `Claude-Kit` est **privé** : `curl` renverra une 404. Il faut obligatoirement passer par `gh` (qui utilise l'authentification GitHub) pour l'installer.
+
+## Installation
+
+Depuis la **racine du projet Shopify** sur lequel on run :
+
+```bash
+gh api repos/Moon-Moon-team/Claude-Kit/contents/scripts/install-kit.sh \
+  -H "Accept: application/vnd.github.raw" | bash
+```
+
+### Alternative : depuis un clone local du kit
+
+Si le kit `Claude-Kit` est déjà cloné en local sur le poste :
+
+```bash
+bash /chemin/vers/moon-moon-claude-kit/scripts/install-kit.sh
+```
+
+## Ce que fait l'installer
+
+L'installer détecte automatiquement l'état du projet et adapte son comportement :
+
+| Mode | Détection | Action |
+|---|---|---|
+| **fresh** | Pas de `.claude/` ni `CLAUDE.md` | Install complet propre |
+| **adopt** | `.claude/` ou `CLAUDE.md` existe sans `.kit-version` | Backup, puis install du core, templates ajoutés si absents |
+| **upgrade** | `.kit-version` déjà présent | Écrase `core/`, garde `templates/` intacts |
+
+Aucune manipulation supplémentaire n'est nécessaire : l'installer choisit le bon mode tout seul selon ce qu'il trouve déjà dans le projet.
+
+## Ce qui est installé
+
+```
+core/                     # Écrasé à chaque sync (universel Moon Moon)
+├── .claude/
+│   ├── rules/            # Rules contextuelles
+│   ├── skills/           # Skills
+│   ├── agents/           # Agents spécialisés
+│   ├── commands/         # Commands utilitaires
+│   ├── output-styles/    # Styles de réponse
+│   ├── hooks/            # Hooks PreToolUse/PostToolUse/etc.
+│   ├── config/
+│   └── settings.json     # Config Claude (hooks, permissions)
+├── .theme-check.yml
+├── .shopifyignore
+├── .mcp.json
+└── docs/                 # Guides Moon Moon (accessibilité, perf, SEO...)
+
+templates/                # Copié si absent, jamais écrasé
+├── CLAUDE.md.template
+├── .gitignore.template
+└── .claude/
+    └── settings.local.json.template
+```
+
+## Ce qui n'est jamais touché par le kit
+
+- `.claude/agent-memory/` (memories du projet)
+- `.claude/plans/` (plans du projet)
+- `.claude/settings.local.json` (permissions/secrets locaux)
+- `CHANGELOG.md` et `README.md` du thème
+- Tout le code Shopify (sections, snippets, assets, locales, etc.)
+
+## Renseigner les clés API locales
+
+Le fichier `settings.local.json.template` ne contient **aucun secret**. Après installation, penser à renseigner localement les clés nécessaires, par exemple `GOOGLE_PSI_API_KEY` pour la commande `/performance-review`.
+
+## Mettre à jour le kit sur un projet déjà installé
+
+Si le projet a déjà le kit installé (`.claude/.kit-version` présent), relancer simplement la commande d'installation : l'installer passera automatiquement en **mode upgrade** et écrasera `core/` avec la dernière version, sans toucher aux `templates/` déjà personnalisés.
+
+```bash
+gh api repos/Moon-Moon-team/Claude-Kit/contents/scripts/install-kit.sh \
+  -H "Accept: application/vnd.github.raw" | bash
+```
+
+### Forcer une version précise
+
+```bash
+bash install-kit.sh --ref v1.0.0
+```
+
+## Checklist
+
+- [ ] `gh auth login` fait sur le poste (une fois par poste)
+- [ ] Commande d'installation lancée depuis la racine du projet Shopify
+- [ ] Mode d'installation détecté vérifié (fresh / adopt / upgrade)
+- [ ] `.claude/.kit-version` présent après installation
+- [ ] Clés API locales renseignées dans `settings.local.json` si nécessaire
+
+## Ressources
+
+- [Claude-Kit sur GitHub](https://github.com/Moon-Moon-team/Claude-Kit)

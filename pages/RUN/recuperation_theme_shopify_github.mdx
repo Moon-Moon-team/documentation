@@ -20,7 +20,55 @@ Il arrive qu'un thème soit modifié directement sur une boutique Shopify (via l
 npm install -g @shopify/cli @shopify/theme
 ```
 
+## Étape 0 : Créer le repository GitHub (si le thème n'en a pas encore)
+
+Si la boutique n'a jamais été suivie en Git, il faut d'abord créer le repository sur GitHub avant de pouvoir y récupérer le thème.
+
+1. **Créer le repo dans l'organisation Moon-Moon-team**
+   - Aller sur [github.com/organizations/Moon-Moon-team/repositories/new](https://github.com/Moon-Moon-team)
+   - Nom du repo : convention `nom-boutique-shopify` (ou le nom déjà utilisé pour les autres projets du client)
+   - Visibilité : **Private**
+   - Ne pas initialiser avec un README, un `.gitignore` ou une licence à cette étape : le premier contenu du repo sera le thème récupéré depuis la boutique, pas un template vide (un repo initialisé avec des fichiers créerait un historique divergent au premier `push`)
+
+2. **Donner les accès nécessaires**
+   - Ajouter les développeur(se)s concerné(e)s comme collaborateurs (ou via l'équipe existante si le repo hérite des permissions d'un Team GitHub)
+   - Vérifier que la personne qui va faire la récupération a bien un accès en écriture
+
+3. **Cloner le repo vide en local**
+
+   ```bash
+   git clone https://github.com/Moon-Moon-team/NOM-DU-REPO.git
+   cd NOM-DU-REPO
+   ```
+
+4. **Ajouter un `.gitignore` adapté aux thèmes Shopify** (optionnel mais recommandé)
+
+   Avant de récupérer le thème, on peut committer un `.gitignore` de base pour éviter de versionner des fichiers inutiles (fichiers de config Shopify CLI locaux, fichiers système, etc.) :
+
+   ```bash
+   # .gitignore
+   .shopify/
+   .DS_Store
+   node_modules/
+   ```
+
+   ```bash
+   git add .gitignore
+   git commit -m "Ajout du .gitignore initial"
+   git push -u origin main
+   ```
+
+⚠️ Cette étape ne concerne que la **création initiale** du repo. Si le repo existe déjà (cas le plus courant), passer directement à l'étape 1.
+
 ## Étape 1 : Se connecter à la boutique
+
+Cette commande nécessite l'URL `.myshopify.com` de la boutique (le domaine d'origine, pas le nom de domaine personnalisé du client).
+
+**Comment récupérer ce lien :**
+
+- **Depuis l'admin Shopify** : une fois connecté à l'admin de la boutique, l'URL de l'admin est de la forme `https://admin.shopify.com/store/NOM-BOUTIQUE`. Le nom `NOM-BOUTIQUE` correspond au sous-domaine à utiliser : `NOM-BOUTIQUE.myshopify.com`
+- **Depuis les réglages de la boutique** : dans l'admin, aller dans **Réglages > Domaines**, le domaine `myshopify.com` par défaut y est listé (même si un domaine personnalisé est configuré en principal)
+- Si vous n'avez pas encore accès à l'admin, demander ce lien directement au client ou à la personne ayant créé la boutique
 
 ```bash
 shopify theme login --store VOTRE-BOUTIQUE.myshopify.com
