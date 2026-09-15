@@ -1,0 +1,143 @@
+# Récupération d'un thème Shopify vers GitHub
+
+***
+
+Guide pour récupérer un thème Shopify directement depuis une boutique (avec toutes les modifications faites en live via l'éditeur/personnalisateur) et le mettre à jour sur notre repository GitHub.
+
+## Contexte
+
+Il arrive qu'un thème soit modifié directement sur une boutique Shopify (via le personnalisateur de thème, l'éditeur de code en ligne, ou par un tiers) sans que ces changements ne soient reportés dans notre repo Git. Avant de reprendre le développement localement, il faut donc **récupérer l'état actuel du thème sur la boutique** et le synchroniser avec GitHub, afin de ne perdre aucune modification.
+
+## Prérequis
+
+- **Shopify CLI** installé
+- Accès à la boutique Shopify concernée (droits développeur / collaborateur)
+- Accès en écriture au repository GitHub du thème
+- Le repository cloné en local (ou à cloner si ce n'est pas déjà fait)
+
+```bash
+# Installer Shopify CLI si besoin
+npm install -g @shopify/cli @shopify/theme
+```
+
+## Étape 1 : Se connecter à la boutique
+
+```bash
+shopify theme login --store VOTRE-BOUTIQUE.myshopify.com
+```
+
+## Étape 2 : Identifier le bon thème
+
+```bash
+shopify theme list
+```
+
+- Repérer le thème **live** (publié) ou le thème de développement contenant les modifications à récupérer
+- Noter son `THEME_ID`
+
+## Étape 3 : Cloner le repo GitHub (si pas déjà fait)
+
+```bash
+git clone https://github.com/Moon-Moon-team/NOM-DU-REPO.git
+cd NOM-DU-REPO
+```
+
+Si le repo est déjà cloné en local, s'assurer d'être à jour avant de continuer :
+
+```bash
+git checkout main
+git pull origin main
+```
+
+## Étape 4 : Créer une branche dédiée
+
+Pour isoler la récupération des modifications et pouvoir les relire avant de merger :
+
+```bash
+git checkout -b recuperation-theme-boutique
+```
+
+## Étape 5 : Récupérer le thème depuis la boutique
+
+Depuis la racine du repo cloné, télécharger le thème live (ou de dev) directement par-dessus les fichiers existants :
+
+```bash
+# Télécharger le thème live avec toutes les modifs faites en ligne
+shopify theme pull --store VOTRE-BOUTIQUE.myshopify.com --live
+
+# Ou en ciblant un thème précis par son ID
+shopify theme pull --store VOTRE-BOUTIQUE.myshopify.com --theme=THEME_ID
+```
+
+Cette commande écrase les fichiers locaux avec la version présente sur la boutique. C'est voulu : l'objectif est de récupérer l'état réel du thème en ligne, modifications comprises.
+
+## Étape 6 : Vérifier ce qui a changé
+
+Avant de committer, regarder précisément ce qui a été modifié sur la boutique :
+
+```bash
+git status
+git diff
+```
+
+Points à vérifier particulièrement :
+- **Sections / snippets** : nouveaux fichiers créés via l'éditeur en ligne, ou fichiers modifiés
+- **`config/settings_data.json`** : changements de réglages faits dans le personnalisateur (couleurs, layout, contenu des sections, etc.)
+- **`templates/*.json`** : sections ajoutées/retirées/réordonnées sur les pages
+- **`locales/`** : traductions modifiées directement dans l'admin
+- **`assets/`** : fichiers CSS/JS potentiellement édités via l'éditeur de code en ligne
+
+⚠️ Si des fichiers non liés au thème apparaissent en diff (fichiers de config du repo, README, etc.), s'assurer qu'ils n'ont pas été touchés par erreur.
+
+## Étape 7 : Committer les changements
+
+```bash
+git add .
+git commit -m "Récupération des modifications faites sur la boutique VOTRE-BOUTIQUE"
+```
+
+Pour des commits plus lisibles, il est possible de scinder par type de changement (settings, sections, locales…) plutôt que de tout committer d'un bloc.
+
+## Étape 8 : Pousser la branche et ouvrir une Pull Request
+
+```bash
+git push -u origin recuperation-theme-boutique
+```
+
+Ouvrir une Pull Request vers `main` pour :
+- Faire relire le diff par un(e) autre développeur(se)
+- S'assurer qu'aucune modification indésirable n'est intégrée
+- Garder un historique clair de la synchronisation
+
+## Étape 9 : Merger dans main
+
+Une fois la PR validée, merger dans `main` (ou la branche de référence du projet) puis supprimer la branche temporaire.
+
+```bash
+git checkout main
+git pull origin main
+git branch -d recuperation-theme-boutique
+```
+
+## Points d'attention
+
+### Conflits avec le développement local en cours
+
+Si du développement était déjà en cours sur `main` en parallèle des modifications faites sur la boutique, des conflits peuvent apparaître au moment du merge. Il faut alors :
+- Résoudre les conflits fichier par fichier
+- Vérifier en priorité `config/settings_data.json` et les fichiers JSON de `templates/`, souvent sources de conflits car modifiés des deux côtés
+
+### Ne pas écraser par erreur les modifications de la boutique
+
+Ne jamais faire de `shopify theme push` vers la boutique avant d'avoir bien récupéré (`pull`) et committé l'état actuel : un push écraserait les modifications faites en ligne et les ferait perdre définitivement.
+
+### Garder la boutique et le repo synchronisés dans la durée
+
+- Éviter autant que possible les modifications directes sur la boutique (personnalisateur, éditeur de code en ligne) une fois le suivi Git en place
+- Si des modifications en ligne sont nécessaires (urgence, ajustement rapide par un tiers), prévoir une récupération régulière avec ce processus pour ne pas accumuler trop de dérive entre la boutique et le repo
+
+## Ressources
+
+- [Shopify CLI Documentation](https://shopify.dev/themes/tools/cli)
+- [shopify theme pull](https://shopify.dev/docs/api/shopify-cli/theme/theme-pull)
+- Voir aussi : [Migration de thème](/Tutos/migration_theme) pour dupliquer un thème d'une boutique à une autre
